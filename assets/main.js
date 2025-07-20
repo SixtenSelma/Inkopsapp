@@ -112,5 +112,8 @@ window.toggleItem = (listIndex, itemIndex) => {
     saveAndRenderList(listIndex);
 };
 
+// Gör renderAllLists globalt
+window.renderAllLists = renderAllLists;
+
 // --- STARTA APPLIKATIONEN ---
 renderAllLists();
