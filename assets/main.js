@@ -5,12 +5,13 @@ localStorage.setItem("user", user);
 // Ladda listor från localStorage
 let lists = JSON.parse(localStorage.getItem("lists") || "[]");
 
-// Funktion för att spara och ladda om
+// Funktion för att spara och ladda om alla listor
 function saveAndRender() {
     localStorage.setItem("lists", JSON.stringify(lists));
-    renderLists();
+    renderAllLists();
 }
 
+// Funktion för att spara och ladda om en specifik lista
 function saveAndRenderList(listIndex) {
     localStorage.setItem("lists", JSON.stringify(lists));
     renderListDetail(listIndex);
@@ -21,7 +22,7 @@ const appContainer = document.getElementById("app");
 // --- RENDERINGSFUNKTIONER ---
 
 // Renderar startsidan med alla inköpslistor
-function renderLists() {
+function renderAllLists() {
     const listItems = lists.map((list, index) => `
         <li class="list-item" onclick="window.viewList(${index})">
             <span class="list-item-name">${list.name}</span>
@@ -61,7 +62,7 @@ function renderListDetail(listIndex) {
             <button onclick="window.addItem(${listIndex})">Lägg till</button>
         </div>
         <div class="add-new-container">
-             <button class="btn-secondary" onclick="renderLists()">Tillbaka till alla listor</button>
+             <button class="btn-secondary" onclick="renderAllLists()">Tillbaka till alla listor</button>
         </div>
     `;
     document.getElementById("newItemInput").focus();
@@ -112,4 +113,4 @@ window.toggleItem = (listIndex, itemIndex) => {
 };
 
 // --- STARTA APPLIKATIONEN ---
-renderLists();
+renderAllLists();
