@@ -1,157 +1,133 @@
+/* Reset & grund */
+* {
+  box-sizing: border-box;
+}
+
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: #f0f2f5;
-    margin: 0;
-    padding: 20px;
-    color: #1c1e21;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  background: #f9fafb;
+  color: #333;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
 }
 
 #app {
-    max-width: 600px;
-    margin: 0 auto;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+  background: white;
+  max-width: 480px;
+  width: 100%;
+  padding: 1.5rem 2rem;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.1);
+  border-radius: 12px;
 }
 
-header {
-    background-color: #1877f2;
-    color: white;
-    padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+h1 {
+  margin-top: 0;
+  font-weight: 700;
+  color: #2c3e50;
 }
 
-header h1 {
-    margin: 0;
-    font-size: 1.5em;
+h2 {
+  font-weight: 600;
+  color: #34495e;
+  margin-bottom: 1rem;
 }
 
-.user-info {
-    font-size: 0.9em;
+ul {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 1.5rem;
 }
 
-.user-info button {
-    margin-left: 8px;
-    background: #fff;
-    color: #1877f2;
-    border: none;
-    border-radius: 4px;
-    padding: 5px 8px;
-    cursor: pointer;
+li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e1e4e8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.list-card, .item-card {
-    border-bottom: 1px solid #ddd;
-    padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    transition: background-color 0.2s;
+li:hover {
+  background-color: #f0f4f8;
 }
 
-.list-card:hover {
-    background-color: #f5f5f5;
+input[type="checkbox"] {
+  margin-right: 1rem;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
 }
 
-.list-details h2 {
-    margin: 0;
-    font-size: 1.2em;
+input[type="text"],
+input[type="search"],
+input[id="newList"],
+input[id="newItem"] {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  transition: border-color 0.3s ease;
 }
 
-.list-meta {
-    font-size: 0.8em;
-    color: #606770;
-}
-
-.list-stats {
-    text-align: right;
-    font-size: 0.9em;
-    color: #606770;
-}
-
-.add-new-list-container, .add-new-item-container {
-    padding: 20px;
-    background-color: #f7f7f7;
-    border-top: 1px solid #ddd;
-    display: flex;
-}
-
-input[type="text"] {
-    flex-grow: 1;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 10px;
-    font-size: 1em;
+input[type="text"]:focus,
+input[type="search"]:focus,
+input[id="newList"]:focus,
+input[id="newItem"]:focus {
+  border-color: #2563eb;
+  outline: none;
 }
 
 button {
-    background-color: #42b72a;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 4px;
-    margin-left: 10px;
-    cursor: pointer;
-    font-weight: bold;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  user-select: none;
 }
 
 button:hover {
-    opacity: 0.9;
+  background-color: #1d4ed8;
 }
 
-/* Items View */
-#back-to-lists-btn {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 1.5em;
-    font-weight: bold;
-    padding: 0 15px 0 0;
+button:active {
+  background-color: #1e40af;
 }
 
-.list-summary {
-    padding: 10px 20px;
-    background: #f7f7f7;
-    border-bottom: 1px solid #ddd;
-    font-weight: bold;
-    color: #606770;
+@media (hover: none) {
+  li:hover {
+    background-color: transparent;
+  }
+  button:hover {
+    background-color: #2563eb;
+  }
 }
 
-.item-card {
-    cursor: default;
+/* Anpassning för checkbox och text i listvyn */
+li input[type="checkbox"] {
+  margin-right: 0.75rem;
 }
 
-.item-card.completed {
-    background-color: #e8f5e9;
-    color: #606770;
+li.done {
+  text-decoration: line-through;
+  color: #6b7280;
 }
 
-.item-card.completed .item-name {
-    text-decoration: line-through;
-}
-
-.item-name {
-    flex-grow: 1;
-}
-
-.item-status {
-    text-align: right;
-}
-
-.item-status .completed-by {
-    font-size: 0.8em;
-    display: block;
-}
-
-.item-status button {
-    background-color: #1877f2;
-    padding: 8px 12px;
-}
-
-.hidden {
-    display: none;
+/* Mobilanpassning */
+@media (max-width: 480px) {
+  #app {
+    padding: 1rem 1rem;
+    border-radius: 0;
+    box-shadow: none;
+    min-height: 100vh;
+  }
 }
