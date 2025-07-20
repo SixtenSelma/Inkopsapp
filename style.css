@@ -1,133 +1,170 @@
-/* Reset & grund */
-* {
-  box-sizing: border-box;
-}
-
+/* Grundläggande stil för hela sidan */
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-  background: #f9fafb;
-  color: #333;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  padding: 1rem;
+    font-family: 'Inter', sans-serif; /* Modernare typsnitt */
+    background-color: #f4f5f7; /* Ljusgrå bakgrund */
+    margin: 0;
+    padding: 24px;
+    color: #172b4d; /* Mörkblå textfärg för bättre läsbarhet */
 }
 
+/* App-containern */
 #app {
-  background: white;
-  max-width: 480px;
-  width: 100%;
-  padding: 1.5rem 2rem;
-  box-shadow: 0 4px 12px rgb(0 0 0 / 0.1);
-  border-radius: 12px;
+    max-width: 700px;
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 16px; /* Mjukare, större rundade hörn */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+/* Allmänna stilar för rubriker */
+h1, h2 {
+    padding: 16px 24px;
+    margin: 0;
+    border-bottom: 1px solid #dfe1e6;
 }
 
 h1 {
-  margin-top: 0;
-  font-weight: 700;
-  color: #2c3e50;
+    font-size: 1.8em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 h2 {
-  font-weight: 600;
-  color: #34495e;
-  margin-bottom: 1rem;
+    font-size: 1.1em;
+    color: #5e6c84;
+    background-color: #fafbfc;
 }
 
+/* Styling för listor (både inköpslistor och varulistor) */
 ul {
-  list-style: none;
-  padding-left: 0;
-  margin-bottom: 1.5rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
 li {
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #e1e4e8;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+    display: flex;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid #dfe1e6;
+    transition: background-color 0.2s ease;
 }
 
-li:hover {
-  background-color: #f0f4f8;
+li:last-child {
+    border-bottom: none;
 }
 
+/* Specifik stil för en klickbar lista */
+.list-item {
+    justify-content: space-between;
+    cursor: pointer;
+}
+
+.list-item:hover {
+    background-color: #fafbfc;
+}
+
+.list-item-name {
+    font-weight: 500;
+}
+
+.list-item-count {
+    font-size: 0.9em;
+    color: #5e6c84;
+    background-color: #e9ecef;
+    padding: 4px 8px;
+    border-radius: 8px;
+}
+
+/* Styling för enskilda varor i en lista */
+.todo-item .item-name {
+    flex-grow: 1;
+    margin-left: 12px;
+}
+
+/* Styling när en vara är avklarad */
+.todo-item.done .item-name {
+    text-decoration: line-through;
+    color: #5e6c84;
+}
+
+/* Styling för checkboxar */
 input[type="checkbox"] {
-  margin-right: 1rem;
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
 }
 
-input[type="text"],
-input[type="search"],
-input[id="newList"],
-input[id="newItem"] {
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  margin-bottom: 1rem;
-  font-size: 1rem;
-  border: 1.5px solid #d1d5db;
-  border-radius: 8px;
-  transition: border-color 0.3s ease;
+/* Formulär för att lägga till nya saker */
+.add-new-container {
+    background: #fafbfc;
+    padding: 24px;
+    display: flex;
+    gap: 12px; /* Mellanrum mellan input och knapp */
+    border-top: 1px solid #dfe1e6;
 }
 
-input[type="text"]:focus,
-input[type="search"]:focus,
-input[id="newList"]:focus,
-input[id="newItem"]:focus {
-  border-color: #2563eb;
-  outline: none;
+input[type="text"] {
+    flex-grow: 1;
+    border: 2px solid #dfe1e6;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 1em;
+    transition: border-color 0.2s ease;
 }
 
+input[type="text"]:focus {
+    outline: none;
+    border-color: #0052cc; /* Tydligare fokus-markering */
+}
+
+/* Allmänna knappstilar */
 button {
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  font-size: 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  user-select: none;
+    background-color: #0052cc; /* Ny blå accentfärg */
+    color: white;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 1em;
+    transition: background-color 0.2s ease;
+    white-space: nowrap; /* Förhindra textbrytning i knappar */
 }
 
 button:hover {
-  background-color: #1d4ed8;
+    background-color: #0065ff;
 }
 
-button:active {
-  background-color: #1e40af;
+/* Specialknappar */
+.btn-secondary {
+    background-color: #f4f5f7;
+    color: #172b4d;
+}
+.btn-secondary:hover {
+    background-color: #dfe1e6;
 }
 
-@media (hover: none) {
-  li:hover {
-    background-color: transparent;
-  }
-  button:hover {
-    background-color: #2563eb;
-  }
+.btn-danger {
+    background-color: #de350b;
+}
+.btn-danger:hover {
+    background-color: #bf2600;
 }
 
-/* Anpassning för checkbox och text i listvyn */
-li input[type="checkbox"] {
-  margin-right: 0.75rem;
+/* Knapp för att ta bort (soptunna-ikon) */
+.delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    margin-left: auto; /* Flyttar knappen till höger */
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
 }
 
-li.done {
-  text-decoration: line-through;
-  color: #6b7280;
-}
-
-/* Mobilanpassning */
-@media (max-width: 480px) {
-  #app {
-    padding: 1rem 1rem;
-    border-radius: 0;
-    box-shadow: none;
-    min-height: 100vh;
-  }
+.delete-btn:hover {
+    opacity: 1;
 }
