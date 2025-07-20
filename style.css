@@ -1,0 +1,157 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f0f2f5;
+    margin: 0;
+    padding: 20px;
+    color: #1c1e21;
+}
+
+#app {
+    max-width: 600px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+header {
+    background-color: #1877f2;
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+.user-info {
+    font-size: 0.9em;
+}
+
+.user-info button {
+    margin-left: 8px;
+    background: #fff;
+    color: #1877f2;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 8px;
+    cursor: pointer;
+}
+
+.list-card, .item-card {
+    border-bottom: 1px solid #ddd;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.list-card:hover {
+    background-color: #f5f5f5;
+}
+
+.list-details h2 {
+    margin: 0;
+    font-size: 1.2em;
+}
+
+.list-meta {
+    font-size: 0.8em;
+    color: #606770;
+}
+
+.list-stats {
+    text-align: right;
+    font-size: 0.9em;
+    color: #606770;
+}
+
+.add-new-list-container, .add-new-item-container {
+    padding: 20px;
+    background-color: #f7f7f7;
+    border-top: 1px solid #ddd;
+    display: flex;
+}
+
+input[type="text"] {
+    flex-grow: 1;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 1em;
+}
+
+button {
+    background-color: #42b72a;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    margin-left: 10px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+/* Items View */
+#back-to-lists-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5em;
+    font-weight: bold;
+    padding: 0 15px 0 0;
+}
+
+.list-summary {
+    padding: 10px 20px;
+    background: #f7f7f7;
+    border-bottom: 1px solid #ddd;
+    font-weight: bold;
+    color: #606770;
+}
+
+.item-card {
+    cursor: default;
+}
+
+.item-card.completed {
+    background-color: #e8f5e9;
+    color: #606770;
+}
+
+.item-card.completed .item-name {
+    text-decoration: line-through;
+}
+
+.item-name {
+    flex-grow: 1;
+}
+
+.item-status {
+    text-align: right;
+}
+
+.item-status .completed-by {
+    font-size: 0.8em;
+    display: block;
+}
+
+.item-status button {
+    background-color: #1877f2;
+    padding: 8px 12px;
+}
+
+.hidden {
+    display: none;
+}
