@@ -31,11 +31,11 @@ window.viewList = (index) => {
   document.getElementById("app").innerHTML = `
     <h1>${list.name}</h1>
     <ul>
-      ${list.items.map((item, i) => `
-        <li>
-          <input type="checkbox" ${item.done ? "checked" : ""} onchange="toggleItem(${index}, ${i})" />
-          ${item.name} ${item.done ? `(✓ ${item.doneBy} - ${item.doneAt})` : ""}
-        </li>`).join("")}
+    ${list.items.map((item, i) => `
+      <li>
+        <input type="checkbox" ${item.done ? "checked" : ""} onchange="toggleItem(${index}, ${i})" />
+        ${item.name} ${item.done ? `(✓ ${item.doneBy} - ${item.doneAt})` : ""}
+      </li>`).join("")}
     </ul>
     <input id="newItem" placeholder="Ny vara" />
     <button onclick="addItem(${index})">Lägg till vara</button><br><br>
