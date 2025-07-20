@@ -168,3 +168,17 @@ button:hover {
 .delete-btn:hover {
     opacity: 1;
 }
+
+/* snyggare vid check i / ur */
+.todo-item.done {
+    color: #aaa;
+    font-style: italic;
+}
+.todo-item.done .item-name s {
+    text-decoration: line-through;
+}
+.todo-item small {
+    display: block;
+    font-size: 0.8em;
+    color: #666;
+}
