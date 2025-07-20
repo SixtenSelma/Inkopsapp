@@ -46,27 +46,36 @@ function renderAllLists() {
 // Renderar detaljvyn för en specifik lista
 function renderListDetail(listIndex) {
     const list = lists[listIndex];
-    const itemsHtml = list.items.map((item, itemIndex) => `
+
+    // Separera klara och ej klara varor
+    const uncheckedItems = list.items.filter(item => !item.done);
+    const checkedItems = list.items.filter(item => item.done);
+
+    const itemsHtml = [...uncheckedItems, ...checkedItems].map((item, itemIndex) => `
         <li class="todo-item ${item.done ? 'done' : ''}">
             <input type="checkbox" ${item.done ? "checked" : ""} onchange="window.toggleItem(${listIndex}, ${itemIndex})" />
-            <span class="item-name">${item.name}</span>
+            <span class="item-name">
+                ${item.done ? `<s>${item.name}</s>` : item.name}
+                ${item.done && item.doneBy ? `<small><br><em>${item.doneBy}, ${item.doneAt}</em></small>` : ""}
+            </span>
             <button class="delete-btn" onclick="window.deleteItem(${listIndex}, ${itemIndex})">🗑️</button>
         </li>
     `).join("");
 
     appContainer.innerHTML = `
         <h1>${list.name}</h1>
-        <ul>${itemsHtml.length > 0 ? itemsHtml : '<li>Inga varor än.</li>'}</ul>
+        <ul>${itemsHtml || '<li>Inga varor än.</li>'}</ul>
         <div class="add-new-container">
             <input id="newItemInput" type="text" placeholder="Ny vara...">
             <button onclick="window.addItem(${listIndex})">Lägg till</button>
         </div>
         <div class="add-new-container">
-             <button class="btn-secondary" onclick="renderAllLists()">Tillbaka till alla listor</button>
+            <button class="btn-secondary" onclick="window.renderAllLists()">Tillbaka till alla listor</button>
         </div>
     `;
     document.getElementById("newItemInput").focus();
 }
+
 
 // --- FUNKTIONALITET (exponerad på window-objektet) ---
 
@@ -109,6 +118,15 @@ window.deleteItem = (listIndex, itemIndex) => {
 window.toggleItem = (listIndex, itemIndex) => {
     const item = lists[listIndex].items[itemIndex];
     item.done = !item.done;
+
+    if (item.done) {
+        item.doneBy = user;
+        item.doneAt = new Date().toLocaleString();
+    } else {
+        delete item.doneBy;
+        delete item.doneAt;
+    }
+
     saveAndRenderList(listIndex);
 };
 
