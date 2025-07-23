@@ -41,7 +41,7 @@ window.showRenameDialog = function(title, currentName, onConfirm) {
 };
 
 // Ny lista-modal
-window.showNewListDialog = function(onConfirm) {
+window.showNewListModal = function(onConfirm) {
   const m = document.createElement("div");
   m.className = "modal";
   m.innerHTML = `
@@ -74,7 +74,7 @@ window.showNewListDialog = function(onConfirm) {
 };
 
 // Batch add-modal (flera varor samtidigt)
-window.showBatchAddDialog = function(i) {
+window.showBatchAddDialog = function(i, onDone) {
   const m = document.createElement("div");
   m.className = "modal";
   m.innerHTML = `
@@ -112,13 +112,12 @@ window.showBatchAddDialog = function(i) {
     if (input && input.value.trim()) {
       added.push(input.value.trim());
     }
-    // Kör batch-add via item.js (frågar efter kategori direkt om saknas)
-    window.handleBatchAdd(lists, i, added, categoryMemory, saveAndRenderList);
+    if (onDone) onDone(added);
     document.body.removeChild(m);
   };
 };
 
-// Kategoriväljare (popup)
+// Info/modal för kategori (exempel)
 window.showCategoryPicker = function(name, onSave) {
   const m = document.createElement("div");
   m.className = "modal";
