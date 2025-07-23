@@ -30,6 +30,16 @@ body {
   z-index: 10;
 }
 
+.top-bar h1 {
+  font-size: 2rem;         /* ← Större huvudrubrik! */
+  font-weight: 800;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
 h1 {
   font-size: 20px;
   font-weight: 700;
@@ -95,6 +105,11 @@ h1 {
   font-weight: 600;
   font-size: 1rem;
   margin-bottom: 10px;
+}
+
+.list-card-title {
+  font-size: 1.22rem;    /* ← Större listnamn i listan! */
+  font-weight: 700;
 }
 
 .menu-btn {
@@ -391,8 +406,8 @@ select {
 }
 
 select:focus {
-border-color: #4cd137;
-box-shadow: 0 0 0 2px rgba(76, 209, 55, 0.25);
+  border-color: #4cd137;
+  box-shadow: 0 0 0 2px rgba(76, 209, 55, 0.25);
   outline: none;
 }
 
@@ -405,12 +420,13 @@ box-shadow: 0 0 0 2px rgba(76, 209, 55, 0.25);
     margin-bottom: 20px !important;
   }
 }
+
 .back-title {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 1.3rem;
-  font-weight: bold;
+  font-size: 1.5rem;    /* ← Gör tillbaka-rubrik större även i detaljvy! */
+  font-weight: 800;
   cursor: pointer;
 }
 
