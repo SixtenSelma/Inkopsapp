@@ -6,7 +6,10 @@ const app = document.getElementById("app");
 
 function formatDate(dateString) {
   const d = new Date(dateString);
-  return `${d.toLocaleDateString('sv-SE')} ${d.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}`;
+  return `${d.toLocaleDateString('sv-SE')} ${d.toLocaleTimeString('sv-SE', {
+    hour: '2-digit',
+    minute: '2-digit'
+  })}`;
 }
 
 function saveAndRender() {
@@ -50,6 +53,7 @@ function renderAllLists() {
       ${listCards || '<p class="no-lists">Inga listor än.</p>'}
     </ul>
     <div class="bottom-bar">
+      <button onclick="showNewListDialog()" title="Ny lista">🆕</button>
       <button onclick="showBatchAddDialog()" title="Snabbinmatning">➕</button>
     </div>
   `;
@@ -59,11 +63,8 @@ function renderAllLists() {
 
 function renderListDetail(i) {
   const list = lists[i];
-  const fullList = lists[i].items.map((item, realIdx) => ({ ...item, realIdx }));
-  const sortedItems = [
-    ...fullList.filter(item => !item.done),
-    ...fullList.filter(item => item.done)
-  ];
+  const fullList = list.items.map((item, realIdx) => ({ ...item, realIdx }));
+  const sortedItems = [...fullList.filter(x => !x.done), ...fullList.filter(x => x.done)];
 
   const items = sortedItems.map(item => `
     <li class="todo-item ${item.done ? 'done' : ''}">
@@ -88,15 +89,14 @@ function renderListDetail(i) {
       ${items || '<li>Inga varor än.</li>'}
     </ul>
     <div class="bottom-bar">
-      <button onclick="showBatchAddDialog(${i})" title="Snabbinmatning">➕</button>
+      <button onclick="showBatchAddDialog(${i})" title="Lägg till vara">➕</button>
     </div>
   `;
 
   applyFade();
 }
 
-// ======= Dialoger =======
-
+// === Modal: Ny Lista ===
 window.showNewListDialog = () => {
   const m = document.createElement("div");
   m.className = "modal";
@@ -106,7 +106,7 @@ window.showNewListDialog = () => {
       <input id="modalNewListInput" placeholder="Namn på lista…" />
       <div class="modal-actions">
         <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
-        <button onclick="confirmNewList()">OK</button>
+        <button onclick="window._confirmNewList()">OK</button>
       </div>
     </div>
   `;
@@ -114,11 +114,11 @@ window.showNewListDialog = () => {
   const input = document.getElementById("modalNewListInput");
   input.focus();
   input.addEventListener("keydown", e => {
-    if (e.key === "Enter") confirmNewList();
+    if (e.key === "Enter") window._confirmNewList();
   });
 };
 
-window.confirmNewList = () => {
+window._confirmNewList = () => {
   const inp = document.getElementById("modalNewListInput");
   if (inp && inp.value.trim()) {
     lists.push({ name: inp.value.trim(), items: [] });
@@ -127,8 +127,40 @@ window.confirmNewList = () => {
   }
 };
 
-// ======= Batch Add =======
+// === Modal: Byt namn (lista eller vara) ===
+function showRenameDialog(title, currentName, onConfirm) {
+  const m = document.createElement("div");
+  m.className = "modal";
+  m.innerHTML = `
+    <div class="modal-content">
+      <h2>${title}</h2>
+      <input id="renameInput" value="${currentName}" />
+      <div class="modal-actions">
+        <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
+        <button onclick="confirmRename()">OK</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(m);
 
+  const input = document.getElementById("renameInput");
+  input.focus();
+  input.select();
+
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") confirmRename();
+  });
+
+  window.confirmRename = () => {
+    const newName = input.value.trim();
+    if (newName) {
+      onConfirm(newName);
+      document.body.removeChild(m);
+    }
+  };
+}
+
+// === Modal: Snabbinmatning av varor ===
 window.showBatchAddDialog = (i) => {
   const m = document.createElement("div");
   m.className = "modal";
@@ -148,7 +180,6 @@ window.showBatchAddDialog = (i) => {
   const input = document.getElementById("batchItemInput");
   const preview = document.getElementById("batchPreview");
 
-  // Spara den här batchen separat i window-scope så confirmBatchAdd kan nå den
   window._batchAddItems = [];
 
   input.focus();
@@ -163,63 +194,30 @@ window.showBatchAddDialog = (i) => {
     }
   });
 };
+
 window.confirmBatchAdd = (index) => {
   const added = window._batchAddItems || [];
   added.forEach(name => lists[index].items.push({ name, done: false }));
   saveAndRenderList(index);
   document.body.removeChild(document.querySelector('.modal'));
-  window._batchAddItems = []; // rensa
+  window._batchAddItems = [];
 };
 
-
-function showRenameDialog(title, currentName, onConfirm) {
-  const m = document.createElement("div");
-  m.className = "modal";
-  m.innerHTML = `
-    <div class="modal-content">
-      <h2>${title}</h2>
-      <input id="renameInput" value="${currentName}" />
-      <div class="modal-actions">
-        <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
-        <button onclick="confirmRename()">OK</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(m);
-
-  const input = document.getElementById("renameInput");
-  input.focus();
-  input.select(); // 👈 markerar hela texten
-
-  input.addEventListener("keydown", e => {
-    if (e.key === "Enter") confirmRename();
+// === Menyer ===
+window.renameItem = (li, ii) => {
+  const currentName = lists[li].items[ii].name;
+  showRenameDialog("Byt namn på vara", currentName, (newName) => {
+    lists[li].items[ii].name = newName;
+    saveAndRenderList(li);
+    closeAnyMenu();
   });
-
-  window.confirmRename = () => {
-    const newName = input.value.trim();
-    if (newName) {
-      onConfirm(newName);
-      document.body.removeChild(m);
-    }
-  };
-}
-
-// ======= Menyer =======
+};
 
 window.renameList = i => {
   const currentName = lists[i].name;
   showRenameDialog("Byt namn på lista", currentName, (newName) => {
     lists[i].name = newName;
     saveAndRender();
-    closeAnyMenu();
-  });
-};
-
-window.renameItem = (li, ii) => {
-  const currentName = lists[li].items[ii].name;
-  showRenameDialog("Byt namn på vara", currentName, (newName) => {
-    lists[li].items[ii].name = newName;
-    saveAndRenderList(li);
     closeAnyMenu();
   });
 };
@@ -290,8 +288,7 @@ function positionMenu(menu, btn) {
   }, 0);
 }
 
-// ======= Init =======
-
+// === Övrigt ===
 function applyFade() {
   app.classList.add('fade-enter');
   requestAnimationFrame(() => {
