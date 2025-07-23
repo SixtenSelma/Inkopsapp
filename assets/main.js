@@ -59,7 +59,6 @@ function renderAllLists() {
 
 function renderListDetail(i) {
   const list = lists[i];
-
   const fullList = lists[i].items.map((item, realIdx) => ({ ...item, realIdx }));
   const sortedItems = [
     ...fullList.filter(item => !item.done),
@@ -89,14 +88,15 @@ function renderListDetail(i) {
       ${items || '<li>Inga varor än.</li>'}
     </ul>
     <div class="bottom-bar">
-      <button onclick="showNewItemDialog(${i})">➕</button>
+      <button onclick="showNewItemDialog(${i})" title="Lägg till en vara">➕</button>
+      <button onclick="showBatchAddDialog(${i})" title="Snabbinmatning">➕➕</button>
     </div>
   `;
 
   applyFade();
 }
 
-// ===== Dialoger =====
+// ======= Dialoger =======
 
 window.showNewListDialog = () => {
   const m = document.createElement("div");
@@ -158,7 +158,48 @@ window.confirmNewItem = (i) => {
   }
 };
 
-// ===== Menyer =====
+// ======= NY: Batch Add (➕➕) =======
+
+window.showBatchAddDialog = (i) => {
+  const m = document.createElement("div");
+  m.className = "modal";
+  m.innerHTML = `
+    <div class="modal-content">
+      <h2>Snabbinmatning</h2>
+      <input id="batchItemInput" placeholder="Skriv vara och tryck Enter…" />
+      <ul id="batchPreview" class="preview-list"></ul>
+      <div class="modal-actions">
+        <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
+        <button onclick="confirmBatchAdd(${i})">Klar</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(m);
+
+  const input = document.getElementById("batchItemInput");
+  const preview = document.getElementById("batchPreview");
+  const added = [];
+
+  input.focus();
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter" && input.value.trim()) {
+      const name = input.value.trim();
+      added.push(name);
+      const li = document.createElement("li");
+      li.textContent = name;
+      preview.appendChild(li);
+      input.value = "";
+    }
+  });
+
+  window.confirmBatchAdd = (index) => {
+    added.forEach(name => lists[index].items.push({ name, done: false }));
+    saveAndRenderList(index);
+    document.body.removeChild(document.querySelector('.modal'));
+  };
+};
+
+// ======= Menyer =======
 
 window.renameItem = (li, ii) => {
   const item = lists[li].items[ii];
@@ -241,7 +282,7 @@ function positionMenu(menu, btn) {
   }, 0);
 }
 
-// ===== Init =====
+// ======= Init =======
 
 function applyFade() {
   app.classList.add('fade-enter');
