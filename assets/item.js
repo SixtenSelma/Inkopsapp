@@ -107,3 +107,28 @@ window.deleteItem = function(li, ii, lists, saveAndRenderList, closeAnyMenu) {
   saveAndRenderList(li);
   closeAnyMenu();
 };
+
+// Ny batch-add som frågar efter kategori på nya varor utan minne
+window.handleBatchAdd = function(lists, listIndex, names, categoryMemory, saveAndRenderList) {
+  function addNext(idx) {
+    if (idx >= names.length) {
+      saveAndRenderList(listIndex);
+      return;
+    }
+    let { name, note } = splitItemInput(names[idx]);
+    let nameKey = name.trim().toLowerCase();
+    let cat = categoryMemory[nameKey] || "";
+    if (!cat) {
+      showCategoryPicker(name, (pickedCat) => {
+        lists[listIndex].items.push({ name, note, category: pickedCat, done: false });
+        categoryMemory[nameKey] = pickedCat;
+        saveCategoryMemory(categoryMemory);
+        addNext(idx + 1);
+      });
+    } else {
+      lists[listIndex].items.push({ name, note, category: cat, done: false });
+      addNext(idx + 1);
+    }
+  }
+  addNext(0);
+};
