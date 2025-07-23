@@ -308,3 +308,27 @@ input[type="text"]:focus {
   font-size: 0.75rem;
   margin-top: 4px;
 }
+.new-list-button-wrapper {
+  padding: 24px;
+  text-align: center;
+  background: #ffffff;
+  border-top: 1px solid #eee;
+}
+
+.new-list-button {
+  background-color: #4cd137;
+  color: white;
+  font-size: 1rem;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  width: 100%;
+  max-width: 280px;
+}
+
+.new-list-button:hover {
+  background-color: #44bd32;
+}
