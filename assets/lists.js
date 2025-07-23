@@ -95,25 +95,46 @@ window.renderListDetail = function(i) {
       ${itemsHTML || '<p>Inga varor än.</p>'}
     </div>
     <div class="bottom-bar">
-      <button onclick="showBatchAddDialog(${i}, function(added){ 
-        if (!added || !added.length) return; 
-        added.forEach(name => { 
-          // Dela upp till namn/note
-          const {name: itemName, note} = splitItemInput(name); 
-          // Förslag på kategori från memory om finns
-          const itemNameKey = itemName.trim().toLowerCase();
-          const suggestedCategory = categoryMemory[itemNameKey];
-          lists[${i}].items.push({ name: itemName, note: note, done: false, ...(suggestedCategory ? {category: suggestedCategory} : {}) }); 
-        }); 
-        saveLists(lists); 
-        renderListDetail(${i}); 
-      })" title="Lägg till vara">➕</button>
+      <button onclick="addItemsWithCategory(${i})" title="Lägg till vara">➕</button>
     </div>
   `;
 
   applyFade && applyFade();
 };
 
+// --- Lägg till denna funktion i lists.js! ---
+window.addItemsWithCategory = function(listIndex) {
+  showBatchAddDialog(listIndex, function(added) {
+    if (!added || !added.length) return;
+    let toAdd = [...added];
+    let handled = 0;
+    function handleNext() {
+      if (!toAdd.length) {
+        saveLists(lists);
+        renderListDetail(listIndex);
+        return;
+      }
+      const raw = toAdd.shift();
+      const { name: itemName, note } = splitItemInput(raw);
+      const itemNameKey = itemName.trim().toLowerCase();
+      const suggestedCategory = categoryMemory[itemNameKey];
+      // Om kategori redan finns i minnet, använd den direkt
+      if (suggestedCategory) {
+        lists[listIndex].items.push({ name: itemName, note: note, done: false, category: suggestedCategory });
+        handleNext();
+      } else {
+        // Visa kategori-popup
+        showCategoryPicker(itemName, (chosenCat) => {
+          lists[listIndex].items.push({ name: itemName, note: note, done: false, category: chosenCat });
+          categoryMemory[itemNameKey] = chosenCat;
+          saveCategoryMemory && saveCategoryMemory(categoryMemory);
+          handleNext();
+        });
+      }
+    }
+    handleNext();
+  });
+};
 // === Skapa ny lista (popup) ===
 window.showNewListDialog = function() {
   showNewListModal(function(listName) {
