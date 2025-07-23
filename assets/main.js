@@ -1,18 +1,14 @@
-// === Användarhantering ===
 let user = localStorage.getItem("user") || prompt("Vad heter du?");
 localStorage.setItem("user", user);
 
-// === Data ===
 let lists = JSON.parse(localStorage.getItem("lists") || "[]");
 const app = document.getElementById("app");
 
-// === Format-tid till 23/7 13.34 ===
 function formatDate(dateString) {
   const d = new Date(dateString);
   return `${d.getDate()}/${d.getMonth() + 1} ${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`;
 }
 
-// === Helpers ===
 function saveAndRender() {
   localStorage.setItem("lists", JSON.stringify(lists));
   renderAllLists();
@@ -23,7 +19,6 @@ function saveAndRenderList(i) {
   renderListDetail(i);
 }
 
-// === Startsida ===
 function renderAllLists() {
   const listCards = lists.map((list, i) => {
     const done = list.items.filter(x => x.done).length;
@@ -35,7 +30,7 @@ function renderAllLists() {
         <div class="list-card">
           <div class="list-card-header">
             <span class="list-card-title">${list.name}</span>
-            <button class="icon-button" onclick="event.stopPropagation(); renameList(${i})" title="Byt namn">✎</button>
+            <button class="menu-btn" onclick="event.stopPropagation(); openListMenu(${i}, this)">⋮</button>
           </div>
           <div class="progress-bar">
             <div class="progress-fill" style="width:${pct}%"></div>
@@ -64,7 +59,6 @@ function renderAllLists() {
   applyFade();
 }
 
-// === Detaljvy ===
 function renderListDetail(i) {
   const list = lists[i];
   const unchecked = list.items.filter(x => !x.done);
@@ -76,7 +70,7 @@ function renderListDetail(i) {
         ${item.done ? `<s>${item.name}</s>` : item.name}
         ${item.done && item.doneBy ? `<small>${item.doneBy} • ${formatDate(item.doneAt)}</small>` : ''}
       </span>
-      <button class="menu-btn" onclick="openItemMenu(${i},${idx}, this)">⋮</button>
+      <button class="menu-btn" onclick="openItemMenu(${i}, ${idx}, this)">⋮</button>
     </li>
   `).join("");
 
@@ -102,38 +96,100 @@ function renderListDetail(i) {
   applyFade();
 }
 
-// === Användare & inställningar ===
-window.changeUser = () => {
-  const n = prompt("Vad heter du?", user);
-  if (n) {
-    user = n;
-    localStorage.setItem("user", user);
-    saveAndRender();
-  }
+// === Menyer ===
+
+window.openItemMenu = (li, ii, btn) => {
+  closeAnyMenu();
+
+  const menu = document.createElement('div');
+  menu.className = 'item-menu';
+  menu.innerHTML = `
+    <button onclick="renameItem(${li}, ${ii})">✎ Byt namn</button>
+    <button onclick="deleteItem(${li}, ${ii})">🗑️ Ta bort</button>
+  `;
+
+  positionMenu(menu, btn);
 };
 
-window.renameList = i => {
-  const n = prompt("Nytt namn:", lists[i].name);
-  if (n) {
-    lists[i].name = n;
-    saveAndRender();
-  }
+window.openListMenu = (i, btn) => {
+  closeAnyMenu();
+
+  const menu = document.createElement('div');
+  menu.className = 'item-menu';
+  menu.innerHTML = `
+    <button onclick="renameList(${i})">✎ Byt namn</button>
+    <button onclick="deleteList(${i})">🗑️ Ta bort lista</button>
+  `;
+
+  positionMenu(menu, btn);
 };
 
-// === Lista-hantering ===
+function closeAnyMenu() {
+  const existing = document.querySelector('.item-menu');
+  if (existing) existing.remove();
+}
+
+function positionMenu(menu, btn) {
+  const rect = btn.getBoundingClientRect();
+  menu.style.position = 'absolute';
+  menu.style.top = `${rect.bottom + window.scrollY}px`;
+  menu.style.left = `${rect.left + window.scrollX - 100}px`;
+  document.body.appendChild(menu);
+
+  setTimeout(() => {
+    document.addEventListener('click', function close(e) {
+      if (!menu.contains(e.target)) {
+        menu.remove();
+        document.removeEventListener('click', close);
+      }
+    });
+  }, 0);
+}
+
+// === CRUD ===
+
 window.viewList = i => renderListDetail(i);
+
 window.addList = name => {
   if (!name.trim()) return;
   lists.push({ name, items: [] });
   saveAndRender();
 };
 
-// === Vara-hantering ===
+window.renameList = i => {
+  const n = prompt("Nytt namn på lista:", lists[i].name);
+  if (n) {
+    lists[i].name = n.trim();
+    saveAndRender();
+  }
+};
+
+window.deleteList = i => {
+  if (confirm("Vill du ta bort listan permanent?")) {
+    lists.splice(i, 1);
+    saveAndRender();
+  }
+};
+
 window.addItem = i => {
   const v = document.getElementById("newItemInput").value.trim();
   if (!v) return;
   lists[i].items.push({ name: v, done: false });
   saveAndRenderList(i);
+};
+
+window.renameItem = (li, ii) => {
+  const item = lists[li].items[ii];
+  const newName = prompt("Nytt namn på vara:", item.name);
+  if (newName && newName.trim()) {
+    item.name = newName.trim();
+    saveAndRenderList(li);
+  }
+};
+
+window.deleteItem = (li, ii) => {
+  lists[li].items.splice(ii, 1);
+  saveAndRenderList(li);
 };
 
 window.toggleItem = (li, ii) => {
@@ -149,49 +205,16 @@ window.toggleItem = (li, ii) => {
   saveAndRenderList(li);
 };
 
-window.deleteItem = (li, ii) => {
-  lists[li].items.splice(ii, 1);
-  saveAndRenderList(li);
-};
-
-window.renameItem = (li, ii) => {
-  const item = lists[li].items[ii];
-  const newName = prompt("Nytt namn på vara:", item.name);
-  if (newName && newName.trim()) {
-    item.name = newName.trim();
-    saveAndRenderList(li);
+window.changeUser = () => {
+  const n = prompt("Vad heter du?", user);
+  if (n) {
+    user = n;
+    localStorage.setItem("user", user);
+    saveAndRender();
   }
 };
 
-// === Visa meny för vara ===
-window.openItemMenu = (li, ii, btn) => {
-  const existing = document.querySelector('.item-menu');
-  if (existing) existing.remove();
-
-  const menu = document.createElement('div');
-  menu.className = 'item-menu';
-  menu.innerHTML = `
-    <button onclick="renameItem(${li}, ${ii})">✏️ Byt namn</button>
-    <button onclick="deleteItem(${li}, ${ii})">🗑️ Ta bort</button>
-  `;
-
-  const rect = btn.getBoundingClientRect();
-  menu.style.position = 'absolute';
-  menu.style.top = `${rect.bottom + window.scrollY}px`;
-  menu.style.left = `${rect.left + window.scrollX - 100}px`;
-
-  document.body.appendChild(menu);
-
-  const closeMenu = (e) => {
-    if (!menu.contains(e.target)) {
-      menu.remove();
-      document.removeEventListener('click', closeMenu);
-    }
-  };
-  setTimeout(() => document.addEventListener('click', closeMenu), 0);
-};
-
-// === Modal ny lista ===
+// === Ny lista-dialog ===
 window.showNewListDialog = () => {
   const m = document.createElement("div");
   m.className = "modal";
@@ -217,7 +240,7 @@ window.confirmNewList = () => {
   }
 };
 
-// === Fade-animation ===
+// === Animation ===
 function applyFade() {
   app.classList.add('fade-enter');
   requestAnimationFrame(() => {
@@ -228,6 +251,5 @@ function applyFade() {
   });
 }
 
-// === Init ===
 window.renderAllLists = renderAllLists;
 renderAllLists();
