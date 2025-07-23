@@ -1,10 +1,13 @@
+// --- Användarhantering ---
 let user = localStorage.getItem("user") || prompt("Vad heter du?");
 localStorage.setItem("user", user);
 
+// --- Ladda listor från localStorage ---
 let lists = JSON.parse(localStorage.getItem("lists") || "[]");
 
 const appContainer = document.getElementById("app");
 
+// --- Spara & rendera ---
 function saveAndRender() {
   localStorage.setItem("lists", JSON.stringify(lists));
   renderAllLists();
@@ -14,6 +17,7 @@ function saveAndRenderList(index) {
   renderListDetail(index);
 }
 
+// --- Rendera startsida ---
 function renderAllLists() {
   const listHtml = lists.map((list, i) => {
     const doneCount = list.items.filter(item => item.done).length;
@@ -36,14 +40,7 @@ function renderAllLists() {
   }).join("");
 
   appContainer.innerHTML = `
-    <div class="top-bar">
-      <h1>Mina listor</h1>
-      <div class="user-badge">
-        ${user}
-        <button class="icon-button" onclick="window.changeUser()">⚙️</button>
-      </div>
-    </div>
-    <ul class="list-wrapper">${listHtml}</ul>
+    <ul class="list-wrapper">${listHtml || '<p>Inga listor än.</p>'}</ul>
     <div class="bottom-bar">
       <button onclick="window.showNewListDialog()">➕</button>
     </div>
@@ -53,6 +50,7 @@ function renderAllLists() {
   applyFade();
 }
 
+// --- Rendera en lista ---
 function renderListDetail(index) {
   const list = lists[index];
   const unchecked = list.items.filter(item => !item.done);
@@ -69,48 +67,50 @@ function renderListDetail(index) {
     </li>`).join("");
 
   appContainer.innerHTML = `
-    <h1>${list.name}</h1>
+    <div class="top-bar">
+      <h1>${list.name}</h1>
+      <div class="user-badge">
+        ${user}
+        <button class="icon-button" onclick="window.changeUser()">⚙️</button>
+      </div>
+    </div>
     <ul>${itemHtml || '<li>Inga varor än.</li>'}</ul>
     <div class="add-new-container">
       <input id="newItemInput" type="text" placeholder="Ny vara..." />
       <button onclick="window.addItem(${index})">Lägg till</button>
-    </div>
-    <div class="add-new-container">
       <button class="btn-secondary" onclick="window.renderAllLists()">⬅️ Tillbaka</button>
     </div>
   `;
 
   document.getElementById("newItemInput").focus();
-
-  // Lägg till swipe efter render
-  const lis = document.querySelectorAll('.todo-item');
-  lis.forEach((li, i) => addSwipeListeners(li, index, i));
-
+  // Lägg till swipe-funktionalitet
+  document.querySelectorAll('.todo-item').forEach((li, i) => addSwipeListeners(li, index, i));
   applyFade();
 }
 
+// --- Swipe-funktion ---
 function addSwipeListeners(li, listIndex, itemIndex) {
   let startX = 0;
   li.addEventListener('touchstart', e => startX = e.changedTouches[0].clientX);
   li.addEventListener('touchend', e => {
     const deltaX = e.changedTouches[0].clientX - startX;
-    if (deltaX > 80) toggleItem(listIndex, itemIndex);
-    if (deltaX < -80) deleteItem(listIndex, itemIndex);
+    if (deltaX > 80) window.toggleItem(listIndex, itemIndex);
+    if (deltaX < -80) window.deleteItem(listIndex, itemIndex);
   });
 }
 
+// --- Fade-animation ---
 function applyFade() {
-  const app = document.getElementById('app');
-  app.classList.add('fade-enter');
+  appContainer.classList.add('fade-enter');
   requestAnimationFrame(() => {
-    app.classList.add('fade-enter-active');
-    app.addEventListener('transitionend', () => {
-      app.classList.remove('fade-enter', 'fade-enter-active');
+    appContainer.classList.add('fade-enter-active');
+    appContainer.addEventListener('transitionend', () => {
+      appContainer.classList.remove('fade-enter', 'fade-enter-active');
     }, { once: true });
   });
 }
 
-// --- Funktioner ---
+// --- Globala funktioner ---
 window.viewList = i => renderListDetail(i);
 
 window.addItem = i => {
@@ -139,7 +139,7 @@ window.toggleItem = (listIndex, itemIndex) => {
 };
 
 window.addList = name => {
-  if (!name.trim()) return;
+  if (!name || !name.trim()) return;
   lists.push({ name, items: [] });
   saveAndRender();
 };
@@ -153,8 +153,9 @@ window.renameList = index => {
 };
 
 window.changeUser = () => {
-  user = prompt("Vad heter du?", user);
-  if (user) {
+  const newUser = prompt("Vad heter du?", user);
+  if (newUser) {
+    user = newUser;
     localStorage.setItem("user", user);
     saveAndRender();
   }
@@ -168,7 +169,7 @@ window.showNewListDialog = () => {
       <h2>Ny lista</h2>
       <input type="text" id="modalNewListInput" placeholder="Namn på ny lista..." />
       <div class="modal-actions">
-        <button onclick="document.body.removeChild(this.parentElement.parentElement.parentElement)">Avbryt</button>
+        <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
         <button onclick="window.confirmNewList()">Skapa</button>
       </div>
     </div>`;
@@ -180,10 +181,10 @@ window.confirmNewList = () => {
   const input = document.getElementById("modalNewListInput");
   if (!input || !input.value.trim()) return;
   window.addList(input.value.trim());
-  document.body.removeChild(document.querySelector(".modal"));
+  const modal = document.querySelector('.modal');
+  if (modal) document.body.removeChild(modal);
 };
 
+// --- Initiera appen ---
 window.renderAllLists = renderAllLists;
-
-// Starta
 renderAllLists();
