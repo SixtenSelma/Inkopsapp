@@ -81,7 +81,7 @@ function renderListDetail(i) {
       <h1 class="back-title" onclick="renderAllLists()">&lt; ${list.name}</h1>
       <div class="user-badge">
         ${user}
-        <button class="icon-button" onclick="changeUser()" title="Byt namn">🖉</button>
+        <button class="icon-button" onclick="changeUser()" title="Byt namn">✏</button>
       </div>
     </div>
     <ul class="todo-list">
@@ -213,7 +213,7 @@ window.openItemMenu = (li, ii, btn) => {
   const menu = document.createElement('div');
   menu.className = 'item-menu';
   menu.innerHTML = `
-    <button onclick="renameItem(${li}, ${ii})">🖉 Byt namn</button>
+    <button onclick="renameItem(${li}, ${ii})">✏ Byt namn</button>
     <button onclick="deleteItem(${li}, ${ii})">✖ Ta bort</button>
   `;
   positionMenu(menu, btn);
@@ -224,7 +224,7 @@ window.openListMenu = (i, btn) => {
   const menu = document.createElement('div');
   menu.className = 'item-menu';
   menu.innerHTML = `
-    <button onclick="renameList(${i})">🖉 Byt namn</button>
+    <button onclick="renameList(${i})">✏ Byt namn</button>
     <button onclick="deleteList(${i})">✖ Ta bort lista</button>
   `;
   positionMenu(menu, btn);
