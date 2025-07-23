@@ -15,10 +15,10 @@ window.renderAllLists = function() {
     const pct = total ? Math.round((done / total) * 100) : 0;
 
     return `
-      <li class="list-item" data-listindex="${i}">
+      <li class="list-item" data-index="${i}"> <!-- NYTT: data-index istället för onclick -->
         <div class="list-card">
           <div class="list-card-header">
-            <span class="list-card-title" style="font-size:1.15em">${list.name}</span>
+            <span class="list-card-title">${list.name}</span>
             <button class="menu-btn" onclick="event.stopPropagation(); openListMenu(${i}, this)">⋮</button>
           </div>
           <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
@@ -35,7 +35,7 @@ window.renderAllLists = function() {
         <button class="icon-button" onclick="changeUser()" title="Byt namn">🖊</button>
       </div>
     </div>
-    <ul class="list-wrapper">
+    <ul class="list-wrapper" id="allLists"> <!-- NYTT: id för event delegation -->
       ${listCards || '<p class="no-lists">Inga listor än.</p>'}
     </ul>
     <div class="bottom-bar">
@@ -43,6 +43,24 @@ window.renderAllLists = function() {
     </div>
   `;
 
+  // NYTT: Event delegation på hela listan
+  const ul = document.getElementById("allLists");
+  if (ul) {
+    ul.onclick = function(e) {
+      let el = e.target;
+      // Gå uppåt till närmaste .list-item
+      while (el && !el.classList.contains("list-item") && el !== ul) {
+        el = el.parentNode;
+      }
+      if (el && el.classList.contains("list-item")) {
+        const idx = el.getAttribute("data-index");
+        if (idx !== null) viewList(Number(idx));
+      }
+    };
+  }
+
+  applyFade && applyFade();
+};
   // ---- Event delegation för att öppna listor ----
   const ul = document.querySelector('.list-wrapper');
   ul && ul.addEventListener('click', function(ev) {
