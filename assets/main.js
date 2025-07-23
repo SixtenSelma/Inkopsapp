@@ -196,6 +196,13 @@ window.showBatchAddDialog = (i) => {
 
 window.confirmBatchAdd = (index) => {
   const added = window._batchAddItems || [];
+  const input = document.getElementById("batchItemInput");
+
+  // Om det finns text kvar i inputfältet – spara den också
+  if (input && input.value.trim()) {
+    added.push(input.value.trim());
+  }
+
   added.forEach(name => lists[index].items.push({ name, done: false }));
   saveAndRenderList(index);
   document.body.removeChild(document.querySelector('.modal'));
