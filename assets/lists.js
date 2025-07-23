@@ -95,7 +95,19 @@ window.renderListDetail = function(i) {
       ${itemsHTML || '<p>Inga varor än.</p>'}
     </div>
     <div class="bottom-bar">
-      <button onclick="showBatchAddDialog(${i})" title="Lägg till vara">➕</button>
+      <button onclick="showBatchAddDialog(${i}, function(added){ 
+        if (!added || !added.length) return; 
+        added.forEach(name => { 
+          // Dela upp till namn/note
+          const {name: itemName, note} = splitItemInput(name); 
+          // Förslag på kategori från memory om finns
+          const itemNameKey = itemName.trim().toLowerCase();
+          const suggestedCategory = categoryMemory[itemNameKey];
+          lists[${i}].items.push({ name: itemName, note: note, done: false, ...(suggestedCategory ? {category: suggestedCategory} : {}) }); 
+        }); 
+        saveLists(lists); 
+        renderListDetail(${i}); 
+      })" title="Lägg till vara">➕</button>
     </div>
   `;
 
