@@ -59,6 +59,7 @@ function renderAllLists() {
   applyFade();
 }
 
+
 function renderListDetail(i) {
   const list = lists[i];
   const unchecked = list.items.filter(x => !x.done);
@@ -67,8 +68,12 @@ function renderListDetail(i) {
     <li class="todo-item ${item.done ? 'done' : ''}">
       <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${idx})"/>
       <span class="item-name">
-        ${item.done ? `<s>${item.name}</s>` : item.name}
-        ${item.done && item.doneBy ? `<small>${item.doneBy} • ${formatDate(item.doneAt)}</small>` : ''}
+        ${item.done
+          ? `<s>${item.name}</s>`
+          : `<strong>${item.name}</strong>`}
+        ${item.done && item.doneBy
+          ? `<small>${item.doneBy} • ${formatDate(item.doneAt)}</small>`
+          : ''}
       </span>
       <button class="menu-btn" onclick="openItemMenu(${i}, ${idx}, this)">⋮</button>
     </li>
@@ -76,7 +81,10 @@ function renderListDetail(i) {
 
   app.innerHTML = `
     <div class="top-bar">
-      <h1>${list.name}</h1>
+      <div class="list-header">
+        <a href="#" onclick="renderAllLists()" class="back-link">&lt; Tillbaka</a>
+        <h1>${list.name}</h1>
+      </div>
       <div class="user-badge">
         ${user}
         <button class="icon-button" onclick="changeUser()" title="Byt namn">✎</button>
@@ -85,14 +93,11 @@ function renderListDetail(i) {
     <ul class="todo-list">
       ${items || '<li>Inga varor än.</li>'}
     </ul>
-    <div class="add-new-container">
-      <input id="newItemInput" placeholder="Ny vara…" />
-      <button onclick="addItem(${i})">Lägg till</button>
-      <button class="btn-secondary" onclick="renderAllLists()">⬅️ Tillbaka</button>
+    <div class="bottom-bar">
+      <button onclick="addItem(${i})">➕</button>
     </div>
   `;
 
-  document.getElementById("newItemInput").focus();
   applyFade();
 }
 
