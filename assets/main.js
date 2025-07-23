@@ -56,13 +56,15 @@ function renderAllLists() {
     <ul class="list-wrapper">
       ${listCards || '<p class="no-lists">Inga listor än.</p>'}
     </ul>
-    <div class="bottom-bar">
-      <button onclick="showNewListDialog()">➕</button>
+    <div class="new-list-button-wrapper">
+      <button class="new-list-button" onclick="showNewListDialog()">➕ Ny lista</button>
     </div>
   `;
 
   applyFade();
 }
+
+
 
 // === Detaljvy ===
 function renderListDetail(i) {
