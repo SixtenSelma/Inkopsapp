@@ -1,17 +1,13 @@
-// Hämta användare eller fråga efter namn. Samma som tidigare.
 const user = localStorage.getItem("user") || prompt("Vad heter du?");
 localStorage.setItem("user", user);
 
-// Ladda listor från localStorage
 let lists = JSON.parse(localStorage.getItem("lists") || "[]");
 
-// Funktion för att spara och ladda om alla listor
 function saveAndRender() {
     localStorage.setItem("lists", JSON.stringify(lists));
     renderAllLists();
 }
 
-// Funktion för att spara och ladda om en specifik lista
 function saveAndRenderList(listIndex) {
     localStorage.setItem("lists", JSON.stringify(lists));
     renderListDetail(listIndex);
@@ -19,60 +15,71 @@ function saveAndRenderList(listIndex) {
 
 const appContainer = document.getElementById("app");
 
-// --- RENDERINGSFUNKTIONER ---
-
-// Renderar startsidan med alla inköpslistor
 function renderAllLists() {
-    const listItems = lists.map((list, index) => `
-        <li class="list-item" onclick="window.viewList(${index})">
-            <span class="list-item-name">${list.name}</span>
-            <span class="list-item-count">${list.items.filter(it => it.done).length} / ${list.items.length}</span>
-            <button class="delete-btn" onclick="event.stopPropagation(); window.deleteList(${index})">🗑️</button>
+    const listItems = lists.map((list, index) => {
+        const done = list.items.filter(i => i.done).length;
+        const total = list.items.length;
+        const percent = total === 0 ? 0 : Math.round((done / total) * 100);
+
+        return `
+        <div class="list-card">
+            <div class="list-card-header">
+                <span class="list-name" onclick="window.viewList(${index})">${list.name}</span>
+                <button class="edit-btn" onclick="event.stopPropagation(); window.renameList(${index})">⚙️</button>
+            </div>
+            <div class="progress-bar">
+                <div class="progress" style="width: ${percent}%;"></div>
+            </div>
+            <div class="progress-label">${done} / ${total}</div>
+        </div>
+        `;
+    }).join("");
+
+    appContainer.innerHTML = `
+        <h1>
+            <span>Mina listor</span>
+            <div class="user-info">
+                ${user} <button class="edit-btn" onclick="window.changeUser()">⚙️</button>
+            </div>
+        </h1>
+        <div class="lists-wrapper">
+            ${listItems || "<p>Inga listor än.</p>"}
+        </div>
+        <div class="add-new-container center">
+            <button onclick="window.openNewListDialog()">➕ Ny lista</button>
+        </div>
+        <dialog id="newListDialog">
+            <form method="dialog">
+                <h3>Ny lista</h3>
+                <input id="dialogListName" type="text" placeholder="Namn på listan..." required />
+                <div class="dialog-buttons">
+                    <button type="submit" onclick="window.confirmAddList()">Skapa</button>
+                    <button onclick="window.closeNewListDialog()">Avbryt</button>
+                </div>
+            </form>
+        </dialog>
+    `;
+}
+
+function renderListDetail(listIndex) {
+    const list = lists[listIndex];
+    const unchecked = list.items.filter(i => !i.done);
+    const checked = list.items.filter(i => i.done);
+
+    const itemsHtml = [...unchecked, ...checked].map((item, i) => `
+        <li class="todo-item ${item.done ? 'done' : ''}">
+            <input type="checkbox" ${item.done ? "checked" : ""} onchange="window.toggleItem(${listIndex}, ${list.items.indexOf(item)})" />
+            <span class="item-name">
+                ${item.done ? `<s>${item.name}</s>` : item.name}
+                ${item.doneBy ? `<small><br><em>${item.doneBy}, ${item.doneAt}</em></small>` : ""}
+            </span>
+            <button class="delete-btn" onclick="window.deleteItem(${listIndex}, ${list.items.indexOf(item)})">🗑️</button>
         </li>
     `).join("");
 
     appContainer.innerHTML = `
-        <h1>Hej, ${user}!</h1>
-        <h2>Dina inköpslistor</h2>
-        <ul>${listItems}</ul>
-        <div class="add-new-container">
-            <input id="newListInput" type="text" placeholder="Namn på ny lista...">
-            <button onclick="window.addList()">Skapa lista</button>
-        </div>
-    `;
-    document.getElementById("newListInput").focus();
-}
-
-// Renderar detaljvyn för en specifik lista
-function renderListDetail(listIndex) {
-    const list = lists[listIndex];
-
-    const unchecked = [];
-    const checked = [];
-
-    list.items.forEach((item, index) => {
-        const html = `
-            <li class="todo-item ${item.done ? 'done' : ''}">
-                <input type="checkbox" ${item.done ? "checked" : ""} onchange="window.toggleItem(${listIndex}, ${index})" />
-                <span class="item-name">
-                    ${item.done ? `<s>${item.name}</s>` : item.name}
-                    ${item.done && item.doneBy ? `<small><br><em>${item.doneBy}, ${item.doneAt}</em></small>` : ""}
-                </span>
-                <button class="delete-btn" onclick="window.deleteItem(${listIndex}, ${index})">🗑️</button>
-            </li>
-        `;
-        if (item.done) {
-            checked.push(html);
-        } else {
-            unchecked.push(html);
-        }
-    });
-
-    const itemsHtml = [...unchecked, ...checked].join("");
-
-    appContainer.innerHTML = `
         <h1>${list.name}</h1>
-        <ul>${itemsHtml || '<li>Inga varor än.</li>'}</ul>
+        <ul>${itemsHtml || "<li>Inga varor än.</li>"}</ul>
         <div class="add-new-container">
             <input id="newItemInput" type="text" placeholder="Ny vara...">
             <button onclick="window.addItem(${listIndex})">Lägg till</button>
@@ -83,30 +90,30 @@ function renderListDetail(listIndex) {
     `;
     document.getElementById("newItemInput").focus();
 }
-// --- FUNKTIONALITET (exponerad på window-objektet) ---
 
-// Lägg till en ny lista
-window.addList = () => {
-    const input = document.getElementById("newListInput");
-    if (!input.value) return;
-    lists.push({ name: input.value, items: [] });
+window.addList = (name) => {
+    if (!name) return;
+    lists.push({ name, items: [] });
     saveAndRender();
 };
 
-// Ta bort en lista
+window.renameList = (index) => {
+    const newName = prompt("Nytt namn på listan:", lists[index].name);
+    if (newName) {
+        lists[index].name = newName;
+        saveAndRender();
+    }
+};
+
 window.deleteList = (index) => {
-    if (confirm(`Är du säker på att du vill ta bort listan "${lists[index].name}"?`)) {
+    if (confirm(`Ta bort listan "${lists[index].name}"?`)) {
         lists.splice(index, 1);
         saveAndRender();
     }
 };
 
-// Visa en specifik lista
-window.viewList = (index) => {
-    renderListDetail(index);
-};
+window.viewList = (index) => renderListDetail(index);
 
-// Lägg till en vara i en lista
 window.addItem = (listIndex) => {
     const input = document.getElementById("newItemInput");
     if (!input.value) return;
@@ -114,13 +121,11 @@ window.addItem = (listIndex) => {
     saveAndRenderList(listIndex);
 };
 
-// Ta bort en vara från en lista
 window.deleteItem = (listIndex, itemIndex) => {
     lists[listIndex].items.splice(itemIndex, 1);
     saveAndRenderList(listIndex);
 };
 
-// Checka i/ur en vara
 window.toggleItem = (listIndex, itemIndex) => {
     const item = lists[listIndex].items[itemIndex];
     item.done = !item.done;
@@ -136,8 +141,29 @@ window.toggleItem = (listIndex, itemIndex) => {
     saveAndRenderList(listIndex);
 };
 
-// Gör renderAllLists globalt
-window.renderAllLists = renderAllLists;
+window.changeUser = () => {
+    const newUser = prompt("Ange nytt namn:", user);
+    if (newUser) {
+        localStorage.setItem("user", newUser);
+        location.reload();
+    }
+};
 
-// --- STARTA APPLIKATIONEN ---
+window.openNewListDialog = () => {
+    document.getElementById("newListDialog").showModal();
+};
+
+window.closeNewListDialog = () => {
+    document.getElementById("newListDialog").close();
+};
+
+window.confirmAddList = () => {
+    const input = document.getElementById("dialogListName");
+    if (input.value) {
+        window.addList(input.value);
+        window.closeNewListDialog();
+    }
+};
+
+window.renderAllLists = renderAllLists;
 renderAllLists();
