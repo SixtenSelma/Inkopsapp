@@ -1,13 +1,10 @@
-// --- Användarhantering ---
 let user = localStorage.getItem("user") || prompt("Vad heter du?");
 localStorage.setItem("user", user);
 
-// --- Ladda listor från localStorage ---
 let lists = JSON.parse(localStorage.getItem("lists") || "[]");
 
 const appContainer = document.getElementById("app");
 
-// --- Spara & rendera ---
 function saveAndRender() {
   localStorage.setItem("lists", JSON.stringify(lists));
   renderAllLists();
@@ -17,7 +14,6 @@ function saveAndRenderList(index) {
   renderListDetail(index);
 }
 
-// --- Rendera startsida ---
 function renderAllLists() {
   const listHtml = lists.map((list, i) => {
     const doneCount = list.items.filter(item => item.done).length;
@@ -49,13 +45,14 @@ function renderAllLists() {
     </div>
     <ul class="list-wrapper">${listHtml}</ul>
     <div class="bottom-bar">
-      <button onclick="window.showNewListDialog()">➕ Ny lista</button>
+      <button onclick="window.showNewListDialog()">➕</button>
     </div>
     <div id="dialog-root"></div>
   `;
+
+  applyFade();
 }
 
-// --- Rendera en lista ---
 function renderListDetail(index) {
   const list = lists[index];
   const unchecked = list.items.filter(item => !item.done);
@@ -82,7 +79,14 @@ function renderListDetail(index) {
       <button class="btn-secondary" onclick="window.renderAllLists()">⬅️ Tillbaka</button>
     </div>
   `;
+
   document.getElementById("newItemInput").focus();
+
+  // Lägg till swipe efter render
+  const lis = document.querySelectorAll('.todo-item');
+  lis.forEach((li, i) => addSwipeListeners(li, index, i));
+
+  applyFade();
 }
 
 function addSwipeListeners(li, listIndex, itemIndex) {
@@ -95,7 +99,6 @@ function addSwipeListeners(li, listIndex, itemIndex) {
   });
 }
 
-
 function applyFade() {
   const app = document.getElementById('app');
   app.classList.add('fade-enter');
@@ -106,9 +109,6 @@ function applyFade() {
     }, { once: true });
   });
 }
-
-window.renderAllLists = () => { renderAllListsOriginal(); applyFade() }
-window.renderListDetail = i => { renderListDetailOriginal(i); applyFade() }
 
 // --- Funktioner ---
 window.viewList = i => renderListDetail(i);
@@ -183,13 +183,7 @@ window.confirmNewList = () => {
   document.body.removeChild(document.querySelector(".modal"));
 };
 
-
-window.renderListDetail = index => {
-  // ... existerande kod ...
-  const lis = document.querySelectorAll('.todo-item');
-  lis.forEach((li, i) => addSwipeListeners(li, index, i));
-};
-
-// Starta appen
 window.renderAllLists = renderAllLists;
+
+// Starta
 renderAllLists();
