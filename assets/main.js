@@ -4,187 +4,145 @@ localStorage.setItem("user", user);
 
 // --- Ladda listor från localStorage ---
 let lists = JSON.parse(localStorage.getItem("lists") || "[]");
+const app = document.getElementById("app");
 
-const appContainer = document.getElementById("app");
-
-// --- Spara & rendera ---
+// --- Helpers för spara & render ---
 function saveAndRender() {
   localStorage.setItem("lists", JSON.stringify(lists));
   renderAllLists();
 }
-function saveAndRenderList(index) {
+function saveAndRenderList(i) {
   localStorage.setItem("lists", JSON.stringify(lists));
-  renderListDetail(index);
+  renderListDetail(i);
 }
 
 // --- Rendera startsida ---
 function renderAllLists() {
-  const listHtml = lists.map((list, i) => {
-    const doneCount = list.items.filter(item => item.done).length;
-    const totalCount = list.items.length;
-    const progress = totalCount ? (doneCount / totalCount) * 100 : 0;
-
+  const listCards = lists.map((list, i) => {
+    const done = list.items.filter(x => x.done).length;
+    const total = list.items.length;
+    const pct = total ? Math.round((done/total)*100) : 0;
     return `
-      <li class="list-item" onclick="window.viewList(${i})">
+      <li class="list-item" onclick="viewList(${i})">
         <div class="list-card">
           <div class="list-card-header">
             <span class="list-card-title">${list.name}</span>
-            <button class="icon-button" onclick="event.stopPropagation(); window.renameList(${i})">⚙️</button>
+            <button class="icon-button" onclick="event.stopPropagation(); renameList(${i})">⚙️</button>
           </div>
-          <div class="progress-bar">
-            <div class="progress-fill" style="width: ${progress}%"></div>
-          </div>
-          <div class="progress-text">${doneCount} / ${totalCount} klara</div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+          <div class="progress-text">${done} / ${total} klara</div>
         </div>
       </li>`;
   }).join("");
 
-  appContainer.innerHTML = `
-    <ul class="list-wrapper">${listHtml || '<p>Inga listor än.</p>'}</ul>
-    <div class="bottom-bar">
-      <button onclick="window.showNewListDialog()">➕</button>
+  app.innerHTML = `
+    <div class="top-bar">
+      <h1>Mina listor</h1>
+      <div class="user-badge">${user}<button class="icon-button" onclick="changeUser()">⚙️</button></div>
     </div>
-    <div id="dialog-root"></div>
+    <ul class="list-wrapper">
+      ${listCards || '<p class="no-lists">Inga listor än.</p>'}
+    </ul>
+    <div class="bottom-bar">
+      <button onclick="showNewListDialog()">➕</button>
+    </div>
   `;
 
   applyFade();
 }
 
-// --- Rendera en lista ---
-function renderListDetail(index) {
-  const list = lists[index];
-  const unchecked = list.items.filter(item => !item.done);
-  const checked = list.items.filter(item => item.done);
-
-  const itemHtml = [...unchecked, ...checked].map((item, i) => `
-    <li class="todo-item ${item.done ? 'done' : ''}">
-      <input type="checkbox" ${item.done ? 'checked' : ''} onchange="window.toggleItem(${index}, ${i})" />
+// --- Rendera detaljvy ---
+function renderListDetail(i) {
+  const list = lists[i];
+  const unchecked = list.items.filter(x => !x.done);
+  const checked = list.items.filter(x => x.done);
+  const items = [...unchecked, ...checked].map((item, idx) => `
+    <li class="todo-item ${item.done?'done':''}">
+      <input type="checkbox" ${item.done?'checked':''} onchange="toggleItem(${i},${idx})"/>
       <span class="item-name">
-        ${item.done ? '<s>' + item.name + '</s>' : item.name}
-        ${item.done && item.doneBy ? `<small><br><em>${item.doneBy}, ${item.doneAt}</em></small>` : ''}
+        ${item.done?`<s>${item.name}</s>`:item.name}
+        ${item.done && item.doneBy?`<small>${item.doneBy}, ${item.doneAt}</small>`:''}
       </span>
-      <button class="delete-btn" onclick="window.deleteItem(${index}, ${i})">🗑️</button>
+      <button class="delete-btn" onclick="deleteItem(${i},${idx})">🗑️</button>
     </li>`).join("");
 
-  appContainer.innerHTML = `
+  app.innerHTML = `
     <div class="top-bar">
       <h1>${list.name}</h1>
-      <div class="user-badge">
-        ${user}
-        <button class="icon-button" onclick="window.changeUser()">⚙️</button>
-      </div>
+      <div class="user-badge">${user}<button class="icon-button" onclick="changeUser()">⚙️</button></div>
     </div>
-    <ul>${itemHtml || '<li>Inga varor än.</li>'}</ul>
+    <ul class="todo-list">${items || '<li>Inga varor än.</li>'}</ul>
     <div class="add-new-container">
-      <input id="newItemInput" type="text" placeholder="Ny vara..." />
-      <button onclick="window.addItem(${index})">Lägg till</button>
-      <button class="btn-secondary" onclick="window.renderAllLists()">⬅️ Tillbaka</button>
+      <input id="newItemInput" placeholder="Ny vara…" />
+      <button onclick="addItem(${i})">Lägg till</button>
+      <button class="btn-secondary" onclick="renderAllLists()">⬅️ Tillbaka</button>
     </div>
   `;
 
   document.getElementById("newItemInput").focus();
-  // Lägg till swipe-funktionalitet
-  document.querySelectorAll('.todo-item').forEach((li, i) => addSwipeListeners(li, index, i));
   applyFade();
 }
 
-// --- Swipe-funktion ---
-function addSwipeListeners(li, listIndex, itemIndex) {
-  let startX = 0;
-  li.addEventListener('touchstart', e => startX = e.changedTouches[0].clientX);
-  li.addEventListener('touchend', e => {
-    const deltaX = e.changedTouches[0].clientX - startX;
-    if (deltaX > 80) window.toggleItem(listIndex, itemIndex);
-    if (deltaX < -80) window.deleteItem(listIndex, itemIndex);
-  });
-}
-
-// --- Fade-animation ---
-function applyFade() {
-  appContainer.classList.add('fade-enter');
-  requestAnimationFrame(() => {
-    appContainer.classList.add('fade-enter-active');
-    appContainer.addEventListener('transitionend', () => {
-      appContainer.classList.remove('fade-enter', 'fade-enter-active');
-    }, { once: true });
-  });
-}
-
 // --- Globala funktioner ---
-window.viewList = i => renderListDetail(i);
-
-window.addItem = i => {
-  const input = document.getElementById("newItemInput");
-  if (!input.value) return;
-  lists[i].items.push({ name: input.value, done: false });
+window.viewList    = i => renderListDetail(i);
+window.addItem     = i => {
+  const v = document.getElementById("newItemInput").value.trim();
+  if (!v) return;
+  lists[i].items.push({name:v,done:false});
   saveAndRenderList(i);
 };
-
-window.deleteItem = (listIndex, itemIndex) => {
-  lists[listIndex].items.splice(itemIndex, 1);
-  saveAndRenderList(listIndex);
+window.deleteItem  = (li,ii) => { lists[li].items.splice(ii,1); saveAndRenderList(li); };
+window.toggleItem  = (li,ii) => {
+  const it = lists[li].items[ii];
+  it.done = !it.done;
+  if(it.done){ it.doneBy=user; it.doneAt=new Date().toLocaleString();}
+  else { delete it.doneBy; delete it.doneAt; }
+  saveAndRenderList(li);
 };
-
-window.toggleItem = (listIndex, itemIndex) => {
-  const item = lists[listIndex].items[itemIndex];
-  item.done = !item.done;
-  if (item.done) {
-    item.doneBy = user;
-    item.doneAt = new Date().toLocaleString();
-  } else {
-    delete item.doneBy;
-    delete item.doneAt;
-  }
-  saveAndRenderList(listIndex);
-};
-
-window.addList = name => {
-  if (!name || !name.trim()) return;
-  lists.push({ name, items: [] });
+window.addList     = name => {
+  if (!name.trim()) return;
+  lists.push({name,items:[]});
   saveAndRender();
 };
-
-window.renameList = index => {
-  const newName = prompt("Nytt namn på listan:", lists[index].name);
-  if (newName) {
-    lists[index].name = newName;
-    saveAndRender();
-  }
+window.renameList  = i => {
+  const n = prompt("Nytt namn:", lists[i].name);
+  if(n){ lists[i].name=n; saveAndRender(); }
+};
+window.changeUser  = () => {
+  const n = prompt("Vad heter du?", user);
+  if(n){ user=n; localStorage.setItem("user",user); saveAndRender(); }
 };
 
-window.changeUser = () => {
-  const newUser = prompt("Vad heter du?", user);
-  if (newUser) {
-    user = newUser;
-    localStorage.setItem("user", user);
-    saveAndRender();
-  }
-};
-
+// --- Ny lista-dialog ---
 window.showNewListDialog = () => {
-  const dialog = document.createElement("div");
-  dialog.className = "modal";
-  dialog.innerHTML = `
+  const m = document.createElement("div");
+  m.className="modal";
+  m.innerHTML=`
     <div class="modal-content">
       <h2>Ny lista</h2>
-      <input type="text" id="modalNewListInput" placeholder="Namn på ny lista..." />
+      <input id="modalNewListInput" placeholder="Namn på lista…" />
       <div class="modal-actions">
         <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
-        <button onclick="window.confirmNewList()">Skapa</button>
+        <button onclick="confirmNewList()">Skapa</button>
       </div>
     </div>`;
-  document.body.appendChild(dialog);
-  setTimeout(() => document.getElementById("modalNewListInput").focus(), 50);
+  document.body.appendChild(m);
+  setTimeout(()=>document.getElementById("modalNewListInput").focus(),50);
 };
-
 window.confirmNewList = () => {
-  const input = document.getElementById("modalNewListInput");
-  if (!input || !input.value.trim()) return;
-  window.addList(input.value.trim());
-  const modal = document.querySelector('.modal');
-  if (modal) document.body.removeChild(modal);
+  const inp = document.getElementById("modalNewListInput");
+  if(inp && inp.value.trim()){ addList(inp.value.trim()); document.body.removeChild(document.querySelector('.modal')); }
 };
 
-// --- Initiera appen ---
+// --- Animation & start ---
+function applyFade(){
+  app.classList.add('fade-enter');
+  requestAnimationFrame(()=>{
+    app.classList.add('fade-enter-active');
+    app.addEventListener('transitionend',()=>{
+      app.classList.remove('fade-enter','fade-enter-active');
+    },{once:true});
+  });
+}
 window.renderAllLists = renderAllLists;
 renderAllLists();
