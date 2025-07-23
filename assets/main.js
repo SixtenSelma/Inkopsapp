@@ -18,10 +18,8 @@ let user = localStorage.getItem("user") || prompt("Vad heter du?");
 localStorage.setItem("user", user);
 
 let lists = JSON.parse(localStorage.getItem("lists") || "[]");
-const app = document.getElementById("app");
-
-// NYTT: kategori-minne per vara
 let categoryMemory = JSON.parse(localStorage.getItem("categoryMemory") || "{}");
+const app = document.getElementById("app");
 
 function formatDate(dateString) {
   const d = new Date(dateString);
@@ -31,15 +29,18 @@ function formatDate(dateString) {
   })}`;
 }
 
-function saveAndRender() {
+function saveAll() {
   localStorage.setItem("lists", JSON.stringify(lists));
   localStorage.setItem("categoryMemory", JSON.stringify(categoryMemory));
+}
+
+function saveAndRender() {
+  saveAll();
   renderAllLists();
 }
 
 function saveAndRenderList(i) {
-  localStorage.setItem("lists", JSON.stringify(lists));
-  localStorage.setItem("categoryMemory", JSON.stringify(categoryMemory));
+  saveAll();
   renderListDetail(i);
 }
 
@@ -229,24 +230,88 @@ window.showBatchAddDialog = (i) => {
   });
 };
 
-window.confirmBatchAdd = (index) => {
+// Popup för att välja kategori för en vara
+function showCategoryPicker(name, onSave) {
+  const m = document.createElement("div");
+  m.className = "modal";
+  m.innerHTML = `
+    <div class="modal-content">
+      <h2>Kategori för "${name}"</h2>
+      <select id="categorySelectPopup" style="width:100%;margin-top:14px;font-size:1.1rem;padding:10px;border-radius:8px;border:2px solid #2863c7;">
+        <option value="">Välj kategori…</option>
+        ${standardKategorier.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+      </select>
+      <div class="modal-actions" style="margin-top:16px;">
+        <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
+        <button onclick="pickCategoryOK()">OK</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(m);
+
+  const select = document.getElementById("categorySelectPopup");
+  select.focus();
+
+  window.pickCategoryOK = () => {
+    const value = select.value;
+    if (!value) {
+      select.style.border = "2px solid red";
+      select.focus();
+      return;
+    }
+    onSave(value);
+    document.body.removeChild(m);
+  };
+}
+
+// NY: Batch-funktion som ser till att kategorier finns
+window.confirmBatchAdd = function (index) {
   const added = window._batchAddItems || [];
   const input = document.getElementById("batchItemInput");
-
   if (input && input.value.trim()) {
     added.push(input.value.trim());
   }
 
-  // Här sker kategori-minne!
-  added.forEach(name => {
-    const key = name.trim().toLowerCase();
-    const category = categoryMemory[key] || '';
-    lists[index].items.push({ name, done: false, category });
-  });
+  // Lista på varor som saknar kategori
+  let uncategorized = added.filter(name => !categoryMemory[name.trim().toLowerCase()]);
+  let toAdd = [];
 
-  saveAndRenderList(index);
-  document.body.removeChild(document.querySelector('.modal'));
-  window._batchAddItems = [];
+  function handleNext() {
+    if (uncategorized.length === 0) {
+      // Alla kategoriserade - spara!
+      added.forEach(name => {
+        const key = name.trim().toLowerCase();
+        const cat = categoryMemory[key] || "";
+        lists[index].items.push({ name, done: false, category: cat });
+      });
+      saveAndRenderList(index);
+      document.body.removeChild(document.querySelector('.modal'));
+      window._batchAddItems = [];
+      return;
+    }
+
+    // Ta första okategoriserade varan
+    const current = uncategorized.shift();
+    showCategoryPicker(current, (cat) => {
+      categoryMemory[current.trim().toLowerCase()] = cat;
+      localStorage.setItem("categoryMemory", JSON.stringify(categoryMemory));
+      handleNext();
+    });
+  }
+
+  if (uncategorized.length > 0) {
+    handleNext();
+  } else {
+    // Alla har kategori, fortsätt som vanligt
+    added.forEach(name => {
+      const key = name.trim().toLowerCase();
+      const cat = categoryMemory[key] || "";
+      lists[index].items.push({ name, done: false, category: cat });
+    });
+    saveAndRenderList(index);
+    document.body.removeChild(document.querySelector('.modal'));
+    window._batchAddItems = [];
+  }
 };
 
 window.renameItem = (li, ii) => {
