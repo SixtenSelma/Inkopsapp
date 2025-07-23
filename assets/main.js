@@ -43,14 +43,14 @@ function renderAllLists() {
       <h1>Inköpslista</h1>
       <div class="user-badge">
         ${user}
-        <button class="icon-button" onclick="changeUser()" title="Byt namn">✎</button>
+        <button class="icon-button" onclick="changeUser()" title="Byt namn">🖉</button>
       </div>
     </div>
     <ul class="list-wrapper">
       ${listCards || '<p class="no-lists">Inga listor än.</p>'}
     </ul>
     <div class="bottom-bar">
-      <button onclick="showNewListDialog()">➕</button>
+      <button onclick="showBatchAddDialog()" title="Snabbinmatning">➕</button>
     </div>
   `;
 
@@ -81,14 +81,14 @@ function renderListDetail(i) {
       <h1 class="back-title" onclick="renderAllLists()">&lt; ${list.name}</h1>
       <div class="user-badge">
         ${user}
-        <button class="icon-button" onclick="changeUser()" title="Byt namn">✎</button>
+        <button class="icon-button" onclick="changeUser()" title="Byt namn">🖉</button>
       </div>
     </div>
     <ul class="todo-list">
       ${items || '<li>Inga varor än.</li>'}
     </ul>
     <div class="bottom-bar">
-      <button onclick="showBatchAddDialog(${i})" title="Lägg till en vara">➕</button>
+      <button onclick="showBatchAddDialog(${i})" title="Snabbinmatning">➕</button>
     </div>
   `;
 
@@ -127,44 +127,14 @@ window.confirmNewList = () => {
   }
 };
 
-window.showNewItemDialog = (i) => {
-  const m = document.createElement("div");
-  m.className = "modal";
-  m.innerHTML = `
-    <div class="modal-content">
-      <h2>Lägg till ny vara</h2>
-      <input id="modalNewItemInput" placeholder="Namn på vara…" />
-      <div class="modal-actions">
-        <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
-        <button onclick="confirmNewItem(${i})">OK</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(m);
-  const input = document.getElementById("modalNewItemInput");
-  input.focus();
-  input.addEventListener("keydown", e => {
-    if (e.key === "Enter") confirmNewItem(i);
-  });
-};
-
-window.confirmNewItem = (i) => {
-  const inp = document.getElementById("modalNewItemInput");
-  if (inp && inp.value.trim()) {
-    lists[i].items.push({ name: inp.value.trim(), done: false });
-    saveAndRenderList(i);
-    document.body.removeChild(document.querySelector('.modal'));
-  }
-};
-
-// ======= NY: Batch Add (➕➕) =======
+// ======= Batch Add =======
 
 window.showBatchAddDialog = (i) => {
   const m = document.createElement("div");
   m.className = "modal";
   m.innerHTML = `
     <div class="modal-content">
-      <h2>Snabbinmatning</h2>
+      <h2>Lägg till vara</h2>
       <input id="batchItemInput" placeholder="Skriv vara och tryck Enter…" />
       <ul id="batchPreview" class="preview-list"></ul>
       <div class="modal-actions">
@@ -243,7 +213,7 @@ window.openItemMenu = (li, ii, btn) => {
   const menu = document.createElement('div');
   menu.className = 'item-menu';
   menu.innerHTML = `
-    <button onclick="renameItem(${li}, ${ii})">✎ Byt namn</button>
+    <button onclick="renameItem(${li}, ${ii})">🖉 Byt namn</button>
     <button onclick="deleteItem(${li}, ${ii})">✖ Ta bort</button>
   `;
   positionMenu(menu, btn);
@@ -254,7 +224,7 @@ window.openListMenu = (i, btn) => {
   const menu = document.createElement('div');
   menu.className = 'item-menu';
   menu.innerHTML = `
-    <button onclick="renameList(${i})">✎ Byt namn</button>
+    <button onclick="renameList(${i})">🖉 Byt namn</button>
     <button onclick="deleteList(${i})">✖ Ta bort lista</button>
   `;
   positionMenu(menu, btn);
@@ -269,7 +239,7 @@ function positionMenu(menu, btn) {
   const rect = btn.getBoundingClientRect();
   menu.style.position = 'absolute';
   menu.style.top = `${rect.bottom + window.scrollY}px`;
-  menu.style.left = `${rect.left + window.scrollX - 100}px`;
+  menu.style.left = `${Math.min(window.innerWidth - 160, rect.left + window.scrollX - 80)}px`;
   document.body.appendChild(menu);
   setTimeout(() => {
     document.addEventListener('click', function close(e) {
@@ -309,5 +279,4 @@ window.toggleItem = (li, ii) => {
 };
 
 window.renderAllLists = renderAllLists;
-
 renderAllLists();
