@@ -168,25 +168,56 @@ window.showBatchAddDialog = (i) => {
   };
 };
 
+function showRenameDialog(title, currentName, onConfirm) {
+  const m = document.createElement("div");
+  m.className = "modal";
+  m.innerHTML = `
+    <div class="modal-content">
+      <h2>${title}</h2>
+      <input id="renameInput" value="${currentName}" />
+      <div class="modal-actions">
+        <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
+        <button onclick="confirmRename()">OK</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(m);
+
+  const input = document.getElementById("renameInput");
+  input.focus();
+  input.select(); // 👈 markerar hela texten
+
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") confirmRename();
+  });
+
+  window.confirmRename = () => {
+    const newName = input.value.trim();
+    if (newName) {
+      onConfirm(newName);
+      document.body.removeChild(m);
+    }
+  };
+}
+
 // ======= Menyer =======
 
-window.renameItem = (li, ii) => {
-  const item = lists[li].items[ii];
-  const newName = prompt("Nytt namn på vara:", item.name);
-  if (newName && newName.trim()) {
-    item.name = newName.trim();
-    saveAndRenderList(li);
-    closeAnyMenu();
-  }
-};
-
 window.renameList = i => {
-  const n = prompt("Nytt namn på lista:", lists[i].name);
-  if (n) {
-    lists[i].name = n.trim();
+  const currentName = lists[i].name;
+  showRenameDialog("Byt namn på lista", currentName, (newName) => {
+    lists[i].name = newName;
     saveAndRender();
     closeAnyMenu();
-  }
+  });
+};
+
+window.renameItem = (li, ii) => {
+  const currentName = lists[li].items[ii].name;
+  showRenameDialog("Byt namn på vara", currentName, (newName) => {
+    lists[li].items[ii].name = newName;
+    saveAndRenderList(li);
+    closeAnyMenu();
+  });
 };
 
 window.deleteItem = (li, ii) => {
