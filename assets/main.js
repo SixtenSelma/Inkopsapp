@@ -95,6 +95,21 @@ function addSwipeListeners(li, listIndex, itemIndex) {
   });
 }
 
+
+function applyFade() {
+  const app = document.getElementById('app');
+  app.classList.add('fade-enter');
+  requestAnimationFrame(() => {
+    app.classList.add('fade-enter-active');
+    app.addEventListener('transitionend', () => {
+      app.classList.remove('fade-enter', 'fade-enter-active');
+    }, { once: true });
+  });
+}
+
+window.renderAllLists = () => { renderAllListsOriginal(); applyFade() }
+window.renderListDetail = i => { renderListDetailOriginal(i); applyFade() }
+
 // --- Funktioner ---
 window.viewList = i => renderListDetail(i);
 
