@@ -1,190 +1,87 @@
-/* Grundläggande stil för hela sidan */
-body {
-    font-family: 'Inter', sans-serif; /* Modernare typsnitt */
-    background-color: #f4f5f7; /* Ljusgrå bakgrund */
-    margin: 0;
-    padding: 24px;
-    color: #172b4d; /* Mörkblå textfärg för bättre läsbarhet */
-}
-
-/* App-containern */
-#app {
-    max-width: 700px;
-    margin: 0 auto;
-    background: #ffffff;
-    border-radius: 16px; /* Mjukare, större rundade hörn */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
-}
-
-/* Allmänna stilar för rubriker */
-h1, h2 {
-    padding: 16px 24px;
-    margin: 0;
-    border-bottom: 1px solid #dfe1e6;
-}
-
-h1 {
-    font-size: 1.8em;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-h2 {
-    font-size: 1.1em;
-    color: #5e6c84;
-    background-color: #fafbfc;
-}
-
-/* Styling för listor (både inköpslistor och varulistor) */
-ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-li {
+.user-info {
     display: flex;
     align-items: center;
-    padding: 16px 24px;
-    border-bottom: 1px solid #dfe1e6;
-    transition: background-color 0.2s ease;
-}
-
-li:last-child {
-    border-bottom: none;
-}
-
-/* Specifik stil för en klickbar lista */
-.list-item {
-    justify-content: space-between;
-    cursor: pointer;
-}
-
-.list-item:hover {
-    background-color: #fafbfc;
-}
-
-.list-item-name {
-    font-weight: 500;
-}
-
-.list-item-count {
+    gap: 8px;
     font-size: 0.9em;
-    color: #5e6c84;
-    background-color: #e9ecef;
-    padding: 4px 8px;
-    border-radius: 8px;
 }
 
-/* Styling för enskilda varor i en lista */
-.todo-item .item-name {
-    flex-grow: 1;
-    margin-left: 12px;
-}
-
-/* Styling när en vara är avklarad */
-/*.todo-item.done .item-name {
-    text-decoration: line-through;
-    color: #5e6c84;
-}
-
-
----
-
-
-/* snyggare vid check i / ur */
-.todo-item.done {
-    color: #aaa;
-    font-style: italic;
-}
-.todo-item.done .item-name s {
-    text-decoration: line-through;
-}
-.todo-item small {
-    display: block;
-    font-size: 0.8em;
-    color: #666;
-}
-
-
-/* Styling för checkboxar */
-input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-}
-
-/* Formulär för att lägga till nya saker */
-.add-new-container {
-    background: #fafbfc;
-    padding: 24px;
-    display: flex;
-    gap: 12px; /* Mellanrum mellan input och knapp */
-    border-top: 1px solid #dfe1e6;
-}
-
-input[type="text"] {
-    flex-grow: 1;
-    border: 2px solid #dfe1e6;
-    border-radius: 8px;
-    padding: 12px;
-    font-size: 1em;
-    transition: border-color 0.2s ease;
-}
-
-input[type="text"]:focus {
-    outline: none;
-    border-color: #0052cc; /* Tydligare fokus-markering */
-}
-
-/* Allmänna knappstilar */
-button {
-    background-color: #0052cc; /* Ny blå accentfärg */
-    color: white;
-    border: none;
-    padding: 12px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 500;
-    font-size: 1em;
-    transition: background-color 0.2s ease;
-    white-space: nowrap; /* Förhindra textbrytning i knappar */
-}
-
-button:hover {
-    background-color: #0065ff;
-}
-
-/* Specialknappar */
-.btn-secondary {
-    background-color: #f4f5f7;
-    color: #172b4d;
-}
-.btn-secondary:hover {
-    background-color: #dfe1e6;
-}
-
-.btn-danger {
-    background-color: #de350b;
-}
-.btn-danger:hover {
-    background-color: #bf2600;
-}
-
-/* Knapp för att ta bort (soptunna-ikon) */
-.delete-btn {
+.edit-btn {
     background: none;
     border: none;
     cursor: pointer;
-    padding: 4px;
-    margin-left: auto; /* Flyttar knappen till höger */
-    opacity: 0.5;
-    transition: opacity 0.2s ease;
+    font-size: 1em;
 }
 
-.delete-btn:hover {
-    opacity: 1;
+.lists-wrapper {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
+.list-card {
+    background: #fff;
+    border: 1px solid #dfe1e6;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    cursor: pointer;
+    transition: box-shadow 0.2s ease;
+}
+
+.list-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.list-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.progress-bar {
+    background-color: #e4e6eb;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress {
+    background-color: #36b37e;
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+.progress-label {
+    font-size: 0.9em;
+    color: #5e6c84;
+    align-self: flex-end;
+}
+
+/* Dialog */
+dialog {
+    border: none;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 300px;
+    width: 100%;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+dialog::backdrop {
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.dialog-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.center {
+    justify-content: center;
+}
