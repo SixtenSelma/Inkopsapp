@@ -386,11 +386,12 @@ select {
   background-position: right 14px center;
   background-size: 16px 16px;
   padding-right: 40px;
+
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 select:focus {
+border-color: #4cd137;
+box-shadow: 0 0 0 2px rgba(76, 209, 55, 0.25);
   outline: none;
-  border-color: #4cd137;
-  box-shadow: 0 0 0 2px rgba(76, 209, 55, 0.2);
-  transition: all 0.2s ease;
 }
