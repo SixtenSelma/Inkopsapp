@@ -1,6 +1,5 @@
 // item.js – hantera varor (items) i listan
 
-// Dela upp input till namn/note
 window.splitItemInput = function(text) {
   text = text.trim();
   let name = text, note = "";
@@ -18,7 +17,6 @@ window.splitItemInput = function(text) {
   return { name, note };
 };
 
-// Hämta alla unika varunamn (utan note)
 window.getAllUniqueItemNames = function(lists) {
   const names = {};
   lists.forEach(list => {
@@ -30,7 +28,6 @@ window.getAllUniqueItemNames = function(lists) {
   return Object.values(names);
 };
 
-// Toggle “klar” för en vara
 window.toggleItem = function(li, ii, lists, user, saveAndRenderList) {
   const it = lists[li].items[ii];
   it.done = !it.done;
@@ -44,7 +41,6 @@ window.toggleItem = function(li, ii, lists, user, saveAndRenderList) {
   saveAndRenderList(li);
 };
 
-// Byt namn på vara
 window.renameItem = function(li, ii, lists, saveAndRenderList, closeAnyMenu) {
   const currentName = lists[li].items[ii].name;
   showRenameDialog("Byt namn på vara", currentName, (newName) => {
@@ -54,7 +50,6 @@ window.renameItem = function(li, ii, lists, saveAndRenderList, closeAnyMenu) {
   });
 };
 
-// Komplettera vara (lägg till note/kategori)
 window.complementItem = function(li, ii, lists, categoryMemory, saveAndRenderList, closeAnyMenu) {
   const itemName = lists[li].items[ii].name.trim().toLowerCase();
   const currentNote = lists[li].items[ii].note || '';
@@ -95,7 +90,6 @@ window.complementItem = function(li, ii, lists, categoryMemory, saveAndRenderLis
     lists[li].items[ii].note = input.value.trim();
     lists[li].items[ii].category = select.value;
 
-    // Uppdatera minnet om kategori per vara!
     const itemNameKey = lists[li].items[ii].name.trim().toLowerCase();
     if (select.value) {
       categoryMemory[itemNameKey] = select.value;
@@ -108,54 +102,8 @@ window.complementItem = function(li, ii, lists, categoryMemory, saveAndRenderLis
   };
 };
 
-// Ta bort vara
 window.deleteItem = function(li, ii, lists, saveAndRenderList, closeAnyMenu) {
   lists[li].items.splice(ii, 1);
   saveAndRenderList(li);
   closeAnyMenu();
-};
-
-// === NYTT! Lägg till flera varor, kolla kategori-minnet ===
-window.confirmBatchAdd = function(
-  index, lists, categoryMemory, saveAndRenderList, showCategoryPicker
-) {
-  const added = window._batchAddItems || [];
-  const input = document.getElementById("batchItemInput");
-  if (input && input.value.trim()) {
-    added.push(input.value.trim());
-  }
-
-  // Lägg till varor en och en
-  function addNextItem(arr) {
-    if (arr.length === 0) {
-      saveAndRenderList(index);
-      document.body.removeChild(document.querySelector('.modal'));
-      window._batchAddItems = [];
-      return;
-    }
-    const raw = arr.shift();
-    const { name, note } = splitItemInput(raw);
-    const nameKey = name.trim().toLowerCase();
-
-    // Kolla minnet först!
-    let category = categoryMemory[nameKey] || '';
-    let item = { name, note, done: false };
-
-    if (category) {
-      item.category = category;
-      lists[index].items.push(item);
-      addNextItem(arr); // Nästa
-    } else {
-      // Visa kategori-popup bara om ingen kategori minneslagrad
-      showCategoryPicker(name, (cat) => {
-        item.category = cat;
-        lists[index].items.push(item);
-        // Spara i minnet
-        categoryMemory[nameKey] = cat;
-        saveCategoryMemory(categoryMemory);
-        addNextItem(arr);
-      });
-    }
-  }
-  addNextItem(added.slice()); // Gör en kopia
 };
