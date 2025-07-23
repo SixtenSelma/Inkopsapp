@@ -235,11 +235,11 @@ window.showNewListDialog = () => {
   m.className = "modal";
   m.innerHTML = `
     <div class="modal-content">
-      <h2>Ny lista</h2>
+      <h2>Skapa ny lista med namn</h2>
       <input id="modalNewListInput" placeholder="Namn på lista…" />
       <div class="modal-actions">
         <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
-        <button onclick="confirmNewList()">Skapa</button>
+        <button onclick="confirmNewList()">OK</button>
       </div>
     </div>
   `;
