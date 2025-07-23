@@ -31,29 +31,24 @@ body {
   flex-wrap: wrap;
 }
 
-.list-header {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.back-link {
-  font-size: 0.9rem;
-  color: #666;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
-}
-
-.back-link:hover {
-  color: #000;
-  text-decoration: underline;
-}
-
 h1 {
   font-size: 20px;
   font-weight: 700;
   margin: 0;
+  cursor: default;
+}
+
+.back-title {
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #2f3640;
+  transition: color 0.2s ease;
+}
+
+.back-title:hover {
+  color: #000;
+  text-decoration: underline;
 }
 
 /* ===== User Badge ===== */
@@ -76,11 +71,7 @@ h1 {
   cursor: pointer;
   color: inherit;
   padding: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   opacity: 0.7;
-  transition: opacity 0.2s ease;
 }
 
 .icon-button:hover {
@@ -180,7 +171,6 @@ h1 {
 
 .todo-item.done {
   background-color: #f0f0f0;
-  opacity: 1;
 }
 
 .todo-item.done .item-name s {
@@ -231,7 +221,7 @@ input[type="checkbox"] {
   margin-left: 10px;
 }
 
-/* ===== Flytande meny för varor/listor ===== */
+/* ===== Meny-popup (vara/lista) ===== */
 .item-menu {
   background: #fff;
   border: 1px solid #ddd;
@@ -320,7 +310,7 @@ input[type="checkbox"] {
   color: white;
 }
 
-/* ===== Fade transition ===== */
+/* ===== Fade animation ===== */
 .fade-enter {
   opacity: 0;
   transform: scale(0.98);
@@ -330,16 +320,4 @@ input[type="checkbox"] {
   opacity: 1;
   transform: scale(1);
   transition: opacity 200ms, transform 200ms;
-}
-.delete-btn {
-  background: none;
-  border: none;
-  font-size: 1.4rem;    /* större kryss */
-  color: #ff4757;       /* röd ton */
-  cursor: pointer;
-  padding: 4px;
-  line-height: 1;
-}
-.delete-btn:hover {
-  color: #e84118;       /* mörkare vid hover */
 }
