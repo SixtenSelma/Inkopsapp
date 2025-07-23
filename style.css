@@ -276,12 +276,15 @@ input[type="checkbox"] {
 
 .modal-content input {
   width: 100%;
-  padding: 12px;
+  padding: 10px 14px;
   font-size: 1rem;
   border-radius: 8px;
   border: 1px solid #ccc;
+  box-sizing: border-box; /* 👈 detta är nyckeln */
   margin-top: 12px;
 }
+
+
 
 .modal-actions {
   display: flex;
