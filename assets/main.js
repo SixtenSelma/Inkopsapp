@@ -6,7 +6,7 @@ const app = document.getElementById("app");
 
 function formatDate(dateString) {
   const d = new Date(dateString);
-  return `${d.getDate()}/${d.getMonth() + 1} ${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`;
+  return `${new Date(dateString).toLocaleDateString('sv-SE')} ${new Date(dateString).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}`;
 }
 
 function saveAndRender() {
@@ -32,9 +32,7 @@ function renderAllLists() {
             <span class="list-card-title">${list.name}</span>
             <button class="menu-btn" onclick="event.stopPropagation(); openListMenu(${i}, this)">⋮</button>
           </div>
-          <div class="progress-bar">
-            <div class="progress-fill" style="width:${pct}%"></div>
-          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
           <div class="progress-text">${done} / ${total} klara</div>
         </div>
       </li>`;
@@ -62,34 +60,23 @@ function renderAllLists() {
 function renderListDetail(i) {
   const list = lists[i];
 
-  // Behåll originalindex för varje vara
-  const fullList = lists[i].items.map((item, realIdx) => {
-    return { ...item, realIdx };
-  });
-
-  // Sortera: obockade först
+  const fullList = lists[i].items.map((item, realIdx) => ({ ...item, realIdx }));
   const sortedItems = [
     ...fullList.filter(item => !item.done),
     ...fullList.filter(item => item.done)
   ];
 
-  // Bygg HTML för varje rad
   const items = sortedItems.map(item => `
     <li class="todo-item ${item.done ? 'done' : ''}">
       <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx})"/>
       <span class="item-name">
-        ${item.done
-          ? `<s>${item.name}</s>`
-          : `<strong>${item.name}</strong>`}
-        ${item.done && item.doneBy
-          ? `<small>${item.doneBy} • ${formatDate(item.doneAt)}</small>`
-          : ''}
+        ${item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`}
+        ${item.done && item.doneBy ? `<small>${item.doneBy} • ${formatDate(item.doneAt)}</small>` : ''}
       </span>
       <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
     </li>
   `).join("");
 
-  // Skriv ut vyn
   app.innerHTML = `
     <div class="top-bar">
       <div class="list-header">
@@ -105,37 +92,133 @@ function renderListDetail(i) {
       ${items || '<li>Inga varor än.</li>'}
     </ul>
     <div class="bottom-bar">
-      <button onclick="addItem(${i})">➕</button>
+      <button onclick="showNewItemDialog(${i})">➕</button>
     </div>
   `;
 
   applyFade();
 }
-// === Menyer ===
+
+// ==== Dialoger ====
+
+window.showNewListDialog = () => {
+  const m = document.createElement("div");
+  m.className = "modal";
+  m.innerHTML = `
+    <div class="modal-content">
+      <h2>Skapa ny lista med namn</h2>
+      <input id="modalNewListInput" placeholder="📝 Namn på lista…" />
+      <div class="modal-actions">
+        <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
+        <button onclick="confirmNewList()">OK</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(m);
+  const input = document.getElementById("modalNewListInput");
+  input.focus();
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") confirmNewList();
+  });
+};
+
+window.confirmNewList = () => {
+  const inp = document.getElementById("modalNewListInput");
+  if (inp && inp.value.trim()) {
+    addList(inp.value.trim());
+    document.body.removeChild(document.querySelector('.modal'));
+  }
+};
+
+window.showNewItemDialog = (i) => {
+  const m = document.createElement("div");
+  m.className = "modal";
+  m.innerHTML = `
+    <div class="modal-content">
+      <h2>Lägg till ny vara</h2>
+      <input id="modalNewItemInput" placeholder="🥦 Ny vara…" />
+      <div class="modal-actions">
+        <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
+        <button onclick="confirmNewItem(${i})">OK</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(m);
+  const input = document.getElementById("modalNewItemInput");
+  input.focus();
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") confirmNewItem(i);
+  });
+};
+
+window.confirmNewItem = (i) => {
+  const inp = document.getElementById("modalNewItemInput");
+  if (inp && inp.value.trim()) {
+    lists[i].items.push({ name: inp.value.trim(), done: false });
+    saveAndRenderList(i);
+    document.body.removeChild(document.querySelector('.modal'));
+  }
+};
+
+// ==== Menyer & inställningar ====
+
+window.renameItem = (li, ii) => {
+  const item = lists[li].items[ii];
+  const newName = prompt("Nytt namn på vara:", item.name);
+  if (newName && newName.trim()) {
+    item.name = newName.trim();
+    saveAndRenderList(li);
+  }
+};
+
+window.renameList = i => {
+  const n = prompt("Nytt namn på lista:", lists[i].name);
+  if (n) {
+    lists[i].name = n.trim();
+    saveAndRender();
+  }
+};
+
+window.deleteItem = (li, ii) => {
+  lists[li].items.splice(ii, 1);
+  saveAndRenderList(li);
+};
+
+window.deleteList = i => {
+  if (confirm("Vill du ta bort listan permanent?")) {
+    lists.splice(i, 1);
+    saveAndRender();
+  }
+};
+
+window.changeUser = () => {
+  const n = prompt("Vad heter du?", user);
+  if (n) {
+    user = n;
+    localStorage.setItem("user", user);
+    saveAndRender();
+  }
+};
 
 window.openItemMenu = (li, ii, btn) => {
   closeAnyMenu();
-
   const menu = document.createElement('div');
   menu.className = 'item-menu';
   menu.innerHTML = `
     <button onclick="renameItem(${li}, ${ii})">✎ Byt namn</button>
     <button onclick="deleteItem(${li}, ${ii})">🗑️ Ta bort</button>
   `;
-
   positionMenu(menu, btn);
 };
 
 window.openListMenu = (i, btn) => {
   closeAnyMenu();
-
   const menu = document.createElement('div');
   menu.className = 'item-menu';
   menu.innerHTML = `
     <button onclick="renameList(${i})">✎ Byt namn</button>
     <button onclick="deleteList(${i})">🗑️ Ta bort lista</button>
   `;
-
   positionMenu(menu, btn);
 };
 
@@ -150,7 +233,6 @@ function positionMenu(menu, btn) {
   menu.style.top = `${rect.bottom + window.scrollY}px`;
   menu.style.left = `${rect.left + window.scrollX - 100}px`;
   document.body.appendChild(menu);
-
   setTimeout(() => {
     document.addEventListener('click', function close(e) {
       if (!menu.contains(e.target)) {
@@ -161,52 +243,19 @@ function positionMenu(menu, btn) {
   }, 0);
 }
 
-// === CRUD ===
+// ==== Init ====
+
+function applyFade() {
+  app.classList.add('fade-enter');
+  requestAnimationFrame(() => {
+    app.classList.add('fade-enter-active');
+    app.addEventListener('transitionend', () => {
+      app.classList.remove('fade-enter', 'fade-enter-active');
+    }, { once: true });
+  });
+}
 
 window.viewList = i => renderListDetail(i);
-
-window.addList = name => {
-  if (!name.trim()) return;
-  lists.push({ name, items: [] });
-  saveAndRender();
-};
-
-window.renameList = i => {
-  const n = prompt("Nytt namn på lista:", lists[i].name);
-  if (n) {
-    lists[i].name = n.trim();
-    saveAndRender();
-  }
-};
-
-window.deleteList = i => {
-  if (confirm("Vill du ta bort listan permanent?")) {
-    lists.splice(i, 1);
-    saveAndRender();
-  }
-};
-
-window.addItem = i => {
-  const v = document.getElementById("newItemInput").value.trim();
-  if (!v) return;
-  lists[i].items.push({ name: v, done: false });
-  saveAndRenderList(i);
-};
-
-window.renameItem = (li, ii) => {
-  const item = lists[li].items[ii];
-  const newName = prompt("Nytt namn på vara:", item.name);
-  if (newName && newName.trim()) {
-    item.name = newName.trim();
-    saveAndRenderList(li);
-  }
-};
-
-window.deleteItem = (li, ii) => {
-  lists[li].items.splice(ii, 1);
-  saveAndRenderList(li);
-};
-
 window.toggleItem = (li, ii) => {
   const it = lists[li].items[ii];
   it.done = !it.done;
@@ -219,52 +268,10 @@ window.toggleItem = (li, ii) => {
   }
   saveAndRenderList(li);
 };
-
-window.changeUser = () => {
-  const n = prompt("Vad heter du?", user);
-  if (n) {
-    user = n;
-    localStorage.setItem("user", user);
-    saveAndRender();
-  }
-};
-
-// === Ny lista-dialog ===
-window.showNewListDialog = () => {
-  const m = document.createElement("div");
-  m.className = "modal";
-  m.innerHTML = `
-    <div class="modal-content">
-      <h2>Skapa ny lista med namn</h2>
-      <input id="modalNewListInput" placeholder="Namn på lista…" />
-      <div class="modal-actions">
-        <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
-        <button onclick="confirmNewList()">OK</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(m);
-  setTimeout(() => document.getElementById("modalNewListInput").focus(), 50);
-};
-
-window.confirmNewList = () => {
-  const inp = document.getElementById("modalNewListInput");
-  if (inp && inp.value.trim()) {
-    addList(inp.value.trim());
-    document.body.removeChild(document.querySelector('.modal'));
-  }
-};
-
-// === Animation ===
-function applyFade() {
-  app.classList.add('fade-enter');
-  requestAnimationFrame(() => {
-    app.classList.add('fade-enter-active');
-    app.addEventListener('transitionend', () => {
-      app.classList.remove('fade-enter', 'fade-enter-active');
-    }, { once: true });
-  });
-}
-
 window.renderAllLists = renderAllLists;
+window.addList = name => {
+  if (!name.trim()) return;
+  lists.push({ name, items: [] });
+  saveAndRender();
+};
 renderAllLists();
