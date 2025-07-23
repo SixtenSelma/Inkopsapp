@@ -85,10 +85,29 @@ li:last-child {
 }
 
 /* Styling när en vara är avklarad */
-.todo-item.done .item-name {
+/*.todo-item.done .item-name {
     text-decoration: line-through;
     color: #5e6c84;
 }
+
+
+---
+
+
+/* snyggare vid check i / ur */
+.todo-item.done {
+    color: #aaa;
+    font-style: italic;
+}
+.todo-item.done .item-name s {
+    text-decoration: line-through;
+}
+.todo-item small {
+    display: block;
+    font-size: 0.8em;
+    color: #666;
+}
+
 
 /* Styling för checkboxar */
 input[type="checkbox"] {
@@ -169,16 +188,3 @@ button:hover {
     opacity: 1;
 }
 
-/* snyggare vid check i / ur */
-.todo-item.done {
-    color: #aaa;
-    font-style: italic;
-}
-.todo-item.done .item-name s {
-    text-decoration: line-through;
-}
-.todo-item small {
-    display: block;
-    font-size: 0.8em;
-    color: #666;
-}
