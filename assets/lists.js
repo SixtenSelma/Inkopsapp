@@ -81,11 +81,11 @@ window.renderListDetail = function(i) {
       `;
     }).join("");
 
+  // ---- Sätt in denna kod: ----
   app.innerHTML = `
     <div class="top-bar">
-      <h1 class="back-title" onclick="renderAllLists()">
-        <span class="back-arrow">&#8592;</span> ${list.name}
-      </h1>
+      <h1 class="back-title" onclick="renderAllLists()">&lt; ${list.name}</h1>
+      <div style="width: 56px"></div>
     </div>
     <div class="category-list">
       ${itemsHTML || '<p>Inga varor än.</p>'}
@@ -97,7 +97,6 @@ window.renderListDetail = function(i) {
 
   applyFade && applyFade();
 };
-
 // === Skapa ny lista (popup) ===
 window.showNewListDialog = function() {
   const m = document.createElement("div");
