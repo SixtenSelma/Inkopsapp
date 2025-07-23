@@ -40,7 +40,7 @@ window.showRenameDialog = function(title, currentName, onConfirm) {
   };
 };
 
-// Ny lista-modal (du kan återanvända showRenameDialog men här är separat om du vill)
+// Ny lista-modal
 window.showNewListDialog = function(onConfirm) {
   const m = document.createElement("div");
   m.className = "modal";
@@ -74,7 +74,7 @@ window.showNewListDialog = function(onConfirm) {
 };
 
 // Batch add-modal (flera varor samtidigt)
-window.showBatchAddDialog = function(i, onDone) {
+window.showBatchAddDialog = function(i, lists, categoryMemory, saveAndRenderList, showCategoryPicker) {
   const m = document.createElement("div");
   m.className = "modal";
   m.innerHTML = `
@@ -92,7 +92,7 @@ window.showBatchAddDialog = function(i, onDone) {
 
   const input = document.getElementById("batchItemInput");
   const preview = document.getElementById("batchPreview");
-  let added = [];
+  window._batchAddItems = [];
 
   input.focus();
   window.scrollModalToTop && window.scrollModalToTop();
@@ -100,7 +100,7 @@ window.showBatchAddDialog = function(i, onDone) {
   input.addEventListener("keydown", e => {
     if (e.key === "Enter" && input.value.trim()) {
       const name = input.value.trim();
-      added.push(name);
+      window._batchAddItems.push(name);
       const li = document.createElement("li");
       li.textContent = name;
       preview.appendChild(li);
@@ -109,15 +109,17 @@ window.showBatchAddDialog = function(i, onDone) {
   });
 
   window.confirmBatchAdd = () => {
-    if (input && input.value.trim()) {
-      added.push(input.value.trim());
-    }
-    if (onDone) onDone(added);
-    document.body.removeChild(m);
+    window.confirmBatchAdd(
+      i,
+      lists,
+      categoryMemory,
+      saveAndRenderList,
+      showCategoryPicker
+    );
   };
 };
 
-// Info/modal för kategori (exempel)
+// Info/modal för kategori
 window.showCategoryPicker = function(name, onSave) {
   const m = document.createElement("div");
   m.className = "modal";
