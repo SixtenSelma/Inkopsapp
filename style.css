@@ -405,3 +405,29 @@ box-shadow: 0 0 0 2px rgba(76, 209, 55, 0.25);
     margin-bottom: 20px !important;
   }
 }
+.back-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.3rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.back-arrow {
+  font-size: 1.8em;
+  color: #2863c7;
+  font-weight: bold;
+  margin-right: 2px;
+  user-select: none;
+  transition: color 0.15s;
+}
+.back-title:hover .back-arrow {
+  color: #44bd32;
+}
+
+/* Om du kör SVG: */
+.back-arrow-svg {
+  margin-right: 6px;
+  vertical-align: middle;
+}
