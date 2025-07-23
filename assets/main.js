@@ -6,6 +6,12 @@ localStorage.setItem("user", user);
 let lists = JSON.parse(localStorage.getItem("lists") || "[]");
 const app = document.getElementById("app");
 
+// === Format-tid till 23/7 13.34 ===
+function formatDate(dateString) {
+  const d = new Date(dateString);
+  return `${d.getDate()}/${d.getMonth() + 1} ${d.getHours()}:${d.getMinutes().toString().padStart(2, '0')}`;
+}
+
 // === Helpers ===
 function saveAndRender() {
   localStorage.setItem("lists", JSON.stringify(lists));
@@ -17,7 +23,7 @@ function saveAndRenderList(i) {
   renderListDetail(i);
 }
 
-// === Startsida: Lista alla listor ===
+// === Startsida ===
 function renderAllLists() {
   const listCards = lists.map((list, i) => {
     const done = list.items.filter(x => x.done).length;
@@ -58,7 +64,7 @@ function renderAllLists() {
   applyFade();
 }
 
-// === Detaljvy: Visa lista med varor ===
+// === Detaljvy ===
 function renderListDetail(i) {
   const list = lists[i];
   const unchecked = list.items.filter(x => !x.done);
@@ -68,9 +74,9 @@ function renderListDetail(i) {
       <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${idx})"/>
       <span class="item-name">
         ${item.done ? `<s>${item.name}</s>` : item.name}
-        ${item.done && item.doneBy ? `<small>${item.doneBy}, ${item.doneAt}</small>` : ''}
+        ${item.done && item.doneBy ? `<small>${item.doneBy} • ${formatDate(item.doneAt)}</small>` : ''}
       </span>
-      <button class="delete-btn" onclick="deleteItem(${i},${idx})" title="Ta bort">🗑️</button>
+      <button class="menu-btn" onclick="openItemMenu(${i},${idx}, this)">⋮</button>
     </li>
   `).join("");
 
@@ -96,7 +102,7 @@ function renderListDetail(i) {
   applyFade();
 }
 
-// === Funktioner kopplade till användaren ===
+// === Användare & inställningar ===
 window.changeUser = () => {
   const n = prompt("Vad heter du?", user);
   if (n) {
@@ -104,15 +110,6 @@ window.changeUser = () => {
     localStorage.setItem("user", user);
     saveAndRender();
   }
-};
-
-// === Funktioner kopplade till listor ===
-window.viewList = i => renderListDetail(i);
-
-window.addList = name => {
-  if (!name.trim()) return;
-  lists.push({ name, items: [] });
-  saveAndRender();
 };
 
 window.renameList = i => {
@@ -123,7 +120,15 @@ window.renameList = i => {
   }
 };
 
-// === Funktioner kopplade till varor ===
+// === Lista-hantering ===
+window.viewList = i => renderListDetail(i);
+window.addList = name => {
+  if (!name.trim()) return;
+  lists.push({ name, items: [] });
+  saveAndRender();
+};
+
+// === Vara-hantering ===
 window.addItem = i => {
   const v = document.getElementById("newItemInput").value.trim();
   if (!v) return;
@@ -131,17 +136,12 @@ window.addItem = i => {
   saveAndRenderList(i);
 };
 
-window.deleteItem = (li, ii) => {
-  lists[li].items.splice(ii, 1);
-  saveAndRenderList(li);
-};
-
 window.toggleItem = (li, ii) => {
   const it = lists[li].items[ii];
   it.done = !it.done;
   if (it.done) {
     it.doneBy = user;
-    it.doneAt = new Date().toLocaleString();
+    it.doneAt = new Date().toISOString();
   } else {
     delete it.doneBy;
     delete it.doneAt;
@@ -149,7 +149,49 @@ window.toggleItem = (li, ii) => {
   saveAndRenderList(li);
 };
 
-// === Modal för ny lista ===
+window.deleteItem = (li, ii) => {
+  lists[li].items.splice(ii, 1);
+  saveAndRenderList(li);
+};
+
+window.renameItem = (li, ii) => {
+  const item = lists[li].items[ii];
+  const newName = prompt("Nytt namn på vara:", item.name);
+  if (newName && newName.trim()) {
+    item.name = newName.trim();
+    saveAndRenderList(li);
+  }
+};
+
+// === Visa meny för vara ===
+window.openItemMenu = (li, ii, btn) => {
+  const existing = document.querySelector('.item-menu');
+  if (existing) existing.remove();
+
+  const menu = document.createElement('div');
+  menu.className = 'item-menu';
+  menu.innerHTML = `
+    <button onclick="renameItem(${li}, ${ii})">✏️ Byt namn</button>
+    <button onclick="deleteItem(${li}, ${ii})">🗑️ Ta bort</button>
+  `;
+
+  const rect = btn.getBoundingClientRect();
+  menu.style.position = 'absolute';
+  menu.style.top = `${rect.bottom + window.scrollY}px`;
+  menu.style.left = `${rect.left + window.scrollX - 100}px`;
+
+  document.body.appendChild(menu);
+
+  const closeMenu = (e) => {
+    if (!menu.contains(e.target)) {
+      menu.remove();
+      document.removeEventListener('click', closeMenu);
+    }
+  };
+  setTimeout(() => document.addEventListener('click', closeMenu), 0);
+};
+
+// === Modal ny lista ===
 window.showNewListDialog = () => {
   const m = document.createElement("div");
   m.className = "modal";
@@ -175,7 +217,7 @@ window.confirmNewList = () => {
   }
 };
 
-// === Enkel fade-animation ===
+// === Fade-animation ===
 function applyFade() {
   app.classList.add('fade-enter');
   requestAnimationFrame(() => {
