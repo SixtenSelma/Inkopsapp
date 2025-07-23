@@ -70,6 +70,7 @@ function renderListDetail(i) {
       <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx})"/>
       <span class="item-name">
         ${item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`}
+        ${item.note ? `<small class="item-note">(${item.note})</small>` : ''}
         ${item.done && item.doneBy ? `<small>${item.doneBy} • ${formatDate(item.doneAt)}</small>` : ''}
       </span>
       <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
@@ -95,7 +96,6 @@ function renderListDetail(i) {
   applyFade();
 }
 
-// === Modal: Ny lista ===
 window.showNewListDialog = () => {
   const m = document.createElement("div");
   m.className = "modal";
@@ -126,7 +126,6 @@ window._confirmNewList = () => {
   }
 };
 
-// === Modal: Byt namn ===
 function showRenameDialog(title, currentName, onConfirm) {
   const m = document.createElement("div");
   m.className = "modal";
@@ -159,7 +158,6 @@ function showRenameDialog(title, currentName, onConfirm) {
   };
 }
 
-// === Modal: Snabbinmatning av varor ===
 window.showBatchAddDialog = (i) => {
   const m = document.createElement("div");
   m.className = "modal";
@@ -198,7 +196,6 @@ window.confirmBatchAdd = (index) => {
   const added = window._batchAddItems || [];
   const input = document.getElementById("batchItemInput");
 
-  // Om det finns text kvar i inputfältet – spara den också
   if (input && input.value.trim()) {
     added.push(input.value.trim());
   }
@@ -209,7 +206,6 @@ window.confirmBatchAdd = (index) => {
   window._batchAddItems = [];
 };
 
-// === Menyer ===
 window.renameItem = (li, ii) => {
   const currentName = lists[li].items[ii].name;
   showRenameDialog("Byt namn på vara", currentName, (newName) => {
@@ -217,6 +213,38 @@ window.renameItem = (li, ii) => {
     saveAndRenderList(li);
     closeAnyMenu();
   });
+};
+
+window.complementItem = (li, ii) => {
+  const current = lists[li].items[ii].note || '';
+  const m = document.createElement("div");
+  m.className = "modal";
+  m.innerHTML = `
+    <div class="modal-content">
+      <h2>Komplettering</h2>
+      <input id="noteInput" placeholder="T.ex. 1 liter…" value="${current}" />
+      <div class="modal-actions">
+        <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
+        <button onclick="confirmNote()">OK</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(m);
+  const input = document.getElementById("noteInput");
+  input.focus();
+  input.select();
+
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") confirmNote();
+  });
+
+  window.confirmNote = () => {
+    const val = input.value.trim();
+    lists[li].items[ii].note = val;
+    saveAndRenderList(li);
+    document.body.removeChild(m);
+    closeAnyMenu();
+  };
 };
 
 window.renameList = i => {
@@ -257,6 +285,7 @@ window.openItemMenu = (li, ii, btn) => {
   menu.className = 'item-menu';
   menu.innerHTML = `
     <button onclick="renameItem(${li}, ${ii})">🖊 Byt namn</button>
+    <button onclick="complementItem(${li}, ${ii})">ⓘ Komplettera</button>
     <button onclick="deleteItem(${li}, ${ii})">✖ Ta bort</button>
   `;
   positionMenu(menu, btn);
@@ -294,7 +323,6 @@ function positionMenu(menu, btn) {
   }, 0);
 }
 
-// === Övrigt ===
 function applyFade() {
   app.classList.add('fade-enter');
   requestAnimationFrame(() => {
