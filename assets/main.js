@@ -244,7 +244,7 @@ window.openItemMenu = (li, ii, btn) => {
   menu.className = 'item-menu';
   menu.innerHTML = `
     <button onclick="renameItem(${li}, ${ii})">✎ Byt namn</button>
-    <button onclick="deleteItem(${li}, ${ii})">🗑️ Ta bort</button>
+    <button onclick="deleteItem(${li}, ${ii})">✖ Ta bort</button>
   `;
   positionMenu(menu, btn);
 };
@@ -255,7 +255,7 @@ window.openListMenu = (i, btn) => {
   menu.className = 'item-menu';
   menu.innerHTML = `
     <button onclick="renameList(${i})">✎ Byt namn</button>
-    <button onclick="deleteList(${i})">🗑️ Ta bort lista</button>
+    <button onclick="deleteList(${i})">✖ Ta bort lista</button>
   `;
   positionMenu(menu, btn);
 };
