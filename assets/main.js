@@ -64,7 +64,7 @@ function renderListDetail(i) {
         <span class="item-name">
           ${item.done ? `<s>${item.name}</s><small>${item.doneBy}, ${item.doneAt}</small>` : `<strong>${item.name}</strong>`}
         </span>
-        <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
+        <button class="menu-btn" onclick="event.stopPropagation(); openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
       </li>`).join("");
 
   app.innerHTML = `
