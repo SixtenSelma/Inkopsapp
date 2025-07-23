@@ -39,7 +39,7 @@ window.renderAllLists = function() {
       ${listCards || '<p class="no-lists">Inga listor än.</p>'}
     </ul>
     <div class="bottom-bar">
-      <button onclick="showNewListDialog(window._confirmNewList)" title="Ny lista">➕</button>
+      <button onclick="showNewListDialog()" title="Ny lista">➕</button>
     </div>
   `;
 
@@ -95,40 +95,92 @@ window.renderListDetail = function(i) {
       ${itemsHTML || '<p>Inga varor än.</p>'}
     </div>
     <div class="bottom-bar">
-      <button onclick="handleBatchAdd(${i})" title="Lägg till vara">➕</button>
+      <button onclick="showBatchAddDialog(${i})" title="Lägg till vara">➕</button>
     </div>
   `;
 
   applyFade && applyFade();
 };
 
-// === Lägg till vara (batch-dialog) ===
-window.handleBatchAdd = function(i) {
-  showBatchAddDialog(i, function(added) {
-    if (!Array.isArray(added) || !added.length) return;
-    // Hantera split av input (namn/note)
-    added.forEach(text => {
-      const { name, note } = window.splitItemInput ? splitItemInput(text) : { name: text, note: "" };
-      lists[i].items.push({ name, note, done: false });
-    });
-    saveLists(lists);
-    renderListDetail(i);
+// === Skapa ny lista (popup) ===
+window.showNewListDialog = function() {
+  const m = document.createElement("div");
+  m.className = "modal";
+  m.innerHTML = `
+    <div class="modal-content">
+      <h2>Skapa ny lista</h2>
+      <input id="modalNewListInput" placeholder="Namn på lista…" />
+      <div class="modal-actions">
+        <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
+        <button onclick="window._confirmNewList()">OK</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(m);
+  const input = document.getElementById("modalNewListInput");
+  input.focus();
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") window._confirmNewList();
   });
 };
 
-// === Skapa ny lista (popup) ===
-window._confirmNewList = function(val) {
-  // Kan kallas antingen av showNewListDialog (nytt) eller som gammal fallback
-  let name = val;
-  if (!name) {
-    const inp = document.getElementById("modalNewListInput");
-    if (inp && inp.value.trim()) name = inp.value.trim();
-    else return;
+window._confirmNewList = function() {
+  const inp = document.getElementById("modalNewListInput");
+  if (inp && inp.value.trim()) {
+    lists.push({ name: inp.value.trim(), items: [] });
+    saveLists(lists);
+    renderAllLists();
+    document.body.removeChild(document.querySelector('.modal'));
   }
-  lists.push({ name: name, items: [] });
-  saveLists(lists);
-  renderAllLists();
-  // Modal stängs redan av showNewListDialog-callbacken
+};
+
+// === Lägg till vara/varor (batch), hantera minne av kategori ===
+window.showBatchAddDialog = function(listIndex) {
+  showBatchAddDialog(listIndex, function(added) {
+    let changed = false;
+    let toPrompt = [];
+    added.forEach(rawText => {
+      const { name, note } = splitItemInput(rawText);
+      if (!name) return;
+      const key = name.trim().toLowerCase();
+      let category = categoryMemory[key] || "";
+      if (!category) {
+        // Vi saknar kategori, fråga användaren och pausa tills de väljer
+        toPrompt.push({ name, note, key });
+      } else {
+        // Vi har minne, lägg till direkt
+        lists[listIndex].items.push({ name, note, category });
+        changed = true;
+      }
+    });
+
+    // Om någon ska promptas, fråga en i taget i följd
+    function promptNext() {
+      if (!toPrompt.length) {
+        if (changed) {
+          saveLists(lists);
+          renderListDetail(listIndex);
+        }
+        return;
+      }
+      const { name, note, key } = toPrompt.shift();
+      showCategoryPicker(name, (cat) => {
+        categoryMemory[key] = cat;
+        saveCategoryMemory(categoryMemory);
+        lists[listIndex].items.push({ name, note, category: cat });
+        saveLists(lists);
+        renderListDetail(listIndex);
+        promptNext(); // Nästa (om fler saknar kategori)
+      });
+    }
+    promptNext();
+
+    // Om vi lagt till någon direkt (med kategori i minne), rendera (senaste ändringar syns direkt)
+    if (changed && !toPrompt.length) {
+      saveLists(lists);
+      renderListDetail(listIndex);
+    }
+  });
 };
 
 // === Byt namn på lista (använder modal.js) ===
@@ -149,48 +201,6 @@ window.deleteList = function(i) {
     saveLists(lists);
     renderAllLists();
     closeAnyMenu && closeAnyMenu();
-  }
-};
-
-// === Meny för listor ===
-window.openListMenu = function(i, btn) {
-  closeAnyMenu && closeAnyMenu();
-  const menu = document.createElement('div');
-  menu.className = 'item-menu';
-  menu.innerHTML = `
-    <button onclick="renameList(${i})">🖊 Byt namn</button>
-    <button onclick="deleteList(${i})">✖ Ta bort lista</button>
-  `;
-  positionMenu(menu, btn);
-};
-
-window.closeAnyMenu = function() {
-  const existing = document.querySelector('.item-menu');
-  if (existing) existing.remove();
-};
-
-window.positionMenu = function(menu, btn) {
-  const rect = btn.getBoundingClientRect();
-  menu.style.position = 'absolute';
-  menu.style.top = `${rect.bottom + window.scrollY}px`;
-  menu.style.left = `${Math.min(window.innerWidth - 180, rect.left + window.scrollX - 100)}px`;
-  document.body.appendChild(menu);
-  setTimeout(() => {
-    document.addEventListener('click', function close(e) {
-      if (!menu.contains(e.target)) {
-        menu.remove();
-        document.removeEventListener('click', close);
-      }
-    });
-  }, 0);
-};
-
-window.changeUser = function() {
-  const n = prompt("Vad heter du?", user);
-  if (n) {
-    user = n;
-    setUser(user);
-    renderAllLists();
   }
 };
 
