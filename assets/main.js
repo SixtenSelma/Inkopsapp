@@ -24,10 +24,10 @@ function renderAllLists() {
     const pct = total ? Math.round((done / total) * 100) : 0;
     return `
       <li class="list-item">
-        <div class="list-card" onclick="viewList(${i})">
+        <div class="list-card" onclick="handleListClick(event, ${i})">
           <div class="list-card-header">
             <span class="list-card-title">${list.name}</span>
-            <button class="menu-btn" onclick="event.stopPropagation(); openListMenu(${i}, this)">⋮</button>
+            <button class="menu-btn" onclick="event.stopPropagation(); openListMenu(${i}, this)">✏</button>
           </div>
           <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
           <div class="progress-text">${done} / ${total} klara</div>
@@ -49,14 +49,17 @@ function renderAllLists() {
   applyFade();
 }
 
+function handleListClick(e, i) {
+  if (e.target.closest('.menu-btn')) return;
+  viewList(i);
+}
+
+// del2
 // --- Rendera detaljvy ---
 function renderListDetail(i) {
   const list = lists[i];
   const items = [...list.items]
-    .map((item, idx) => ({
-      ...item,
-      realIdx: idx
-    }))
+    .map((item, idx) => ({ ...item, realIdx: idx }))
     .sort((a, b) => a.done - b.done)
     .map((item) => `
       <li class="todo-item ${item.done ? 'done' : ''}">
@@ -64,7 +67,7 @@ function renderListDetail(i) {
         <span class="item-name">
           ${item.done ? `<s>${item.name}</s><small>${item.doneBy}, ${item.doneAt}</small>` : `<strong>${item.name}</strong>`}
         </span>
-        <button class="menu-btn" onclick="event.stopPropagation(); openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
+        <button class="menu-btn" onclick="event.stopPropagation(); openItemMenu(${i}, ${item.realIdx}, this)">✏</button>
       </li>`).join("");
 
   app.innerHTML = `
@@ -81,6 +84,7 @@ function renderListDetail(i) {
   applyFade();
 }
 
+// del3
 // --- Menyer ---
 function openListMenu(i, btn) {
   closeAnyMenu();
@@ -116,22 +120,21 @@ function closeAnyMenu() {
   document.querySelectorAll('.item-menu').forEach(m => m.remove());
 }
 
-// --- List- och vara-funktioner ---
-window.viewList = i => renderListDetail(i);
-
-window.addItem = (i, name) => {
+// --- Funktioner för varor & listor ---
+function viewList(i) {
+  renderListDetail(i);
+}
+function addItem(i, name) {
   if (!name.trim()) return;
   lists[i].items.push({ name: name.trim(), done: false });
   saveAndRenderList(i);
-};
-
-window.deleteItem = (li, ii) => {
+}
+function deleteItem(li, ii) {
   lists[li].items.splice(ii, 1);
   saveAndRenderList(li);
   closeAnyMenu();
-};
-
-window.toggleItem = (li, ii) => {
+}
+function toggleItem(li, ii) {
   const it = lists[li].items[ii];
   it.done = !it.done;
   if (it.done) {
@@ -142,9 +145,8 @@ window.toggleItem = (li, ii) => {
     delete it.doneAt;
   }
   saveAndRenderList(li);
-};
-
-window.renameItem = (li, ii) => {
+}
+function renameItem(li, ii) {
   const item = lists[li].items[ii];
   const m = document.createElement("div");
   m.className = "modal";
@@ -153,7 +155,7 @@ window.renameItem = (li, ii) => {
       <h2>Byt namn på vara</h2>
       <input id="renameInput" value="${item.name}" />
       <div class="modal-actions">
-        <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
+        <button onclick="document.body.removeChild(this.closest('.modal')); closeAnyMenu()">Avbryt</button>
         <button onclick="doRenameItem(${li}, ${ii})">OK</button>
       </div>
     </div>`;
@@ -164,9 +166,8 @@ window.renameItem = (li, ii) => {
   input.addEventListener("keydown", e => {
     if (e.key === "Enter") doRenameItem(li, ii);
   });
-};
-
-window.doRenameItem = (li, ii) => {
+}
+function doRenameItem(li, ii) {
   const input = document.getElementById("renameInput");
   if (input && input.value.trim()) {
     lists[li].items[ii].name = input.value.trim();
@@ -174,9 +175,8 @@ window.doRenameItem = (li, ii) => {
     document.body.removeChild(document.querySelector('.modal'));
     closeAnyMenu();
   }
-};
-
-window.renameList = i => {
+}
+function renameList(i) {
   const m = document.createElement("div");
   m.className = "modal";
   m.innerHTML = `
@@ -184,7 +184,7 @@ window.renameList = i => {
       <h2>Byt namn på lista</h2>
       <input id="renameListInput" value="${lists[i].name}" />
       <div class="modal-actions">
-        <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
+        <button onclick="document.body.removeChild(this.closest('.modal')); closeAnyMenu()">Avbryt</button>
         <button onclick="doRenameList(${i})">OK</button>
       </div>
     </div>`;
@@ -195,9 +195,8 @@ window.renameList = i => {
   input.addEventListener("keydown", e => {
     if (e.key === "Enter") doRenameList(i);
   });
-};
-
-window.doRenameList = i => {
+}
+function doRenameList(i) {
   const input = document.getElementById("renameListInput");
   if (input && input.value.trim()) {
     lists[i].name = input.value.trim();
@@ -205,25 +204,24 @@ window.doRenameList = i => {
     document.body.removeChild(document.querySelector('.modal'));
     closeAnyMenu();
   }
-};
-
-window.deleteList = i => {
+}
+function deleteList(i) {
   lists.splice(i, 1);
   saveAndRender();
   closeAnyMenu();
-};
-
-window.changeUser = () => {
+}
+function changeUser() {
   const n = prompt("Vad heter du?", user);
   if (n) {
     user = n;
     localStorage.setItem("user", user);
     saveAndRender();
   }
-};
+}
 
 // --- Dialoger ---
-window.showNewListDialog = () => {
+function showNewListDialog() {
+  closeAnyMenu();
   const m = document.createElement("div");
   m.className = "modal";
   m.innerHTML = `
@@ -241,23 +239,21 @@ window.showNewListDialog = () => {
   input.addEventListener("keydown", e => {
     if (e.key === "Enter") confirmNewList();
   });
-};
-
-window.confirmNewList = () => {
+}
+function confirmNewList() {
   const inp = document.getElementById("modalNewListInput");
   if (inp && inp.value.trim()) {
     addList(inp.value.trim());
     document.body.removeChild(document.querySelector('.modal'));
   }
-};
-
-window.addList = name => {
+}
+function addList(name) {
   if (!name.trim()) return;
   lists.push({ name, items: [] });
   saveAndRender();
-};
-
-window.showBatchAddDialog = (i) => {
+}
+function showBatchAddDialog(i) {
+  closeAnyMenu();
   const m = document.createElement("div");
   m.className = "modal";
   m.innerHTML = `
@@ -275,15 +271,14 @@ window.showBatchAddDialog = (i) => {
   input.addEventListener("keydown", e => {
     if (e.key === "Enter") confirmNewItem(i);
   });
-};
-
-window.confirmNewItem = (i) => {
+}
+function confirmNewItem(i) {
   const inp = document.getElementById("modalNewItemInput");
   if (inp && inp.value.trim()) {
     addItem(i, inp.value.trim());
     document.body.removeChild(document.querySelector('.modal'));
   }
-};
+}
 
 // --- Animation ---
 function applyFade() {
