@@ -83,7 +83,12 @@ window.renderListDetail = function(i) {
 
   app.innerHTML = `
     <div class="top-bar">
-      <h1 class="back-title" onclick="renderAllLists()">&lt; ${list.name}</h1>
+      <h1 class="back-title" onclick="renderAllLists()">
+        <svg class="back-arrow-svg" width="26" height="26" viewBox="0 0 24 24" fill="none">
+          <path d="M15.5 19l-7-7 7-7" stroke="#222" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        ${list.name}
+      </h1>
       <div class="user-badge">
         ${user}
         <button class="icon-button" onclick="changeUser()" title="Byt namn">🖊</button>
