@@ -53,8 +53,7 @@ function renderAllLists() {
       ${listCards || '<p class="no-lists">Inga listor än.</p>'}
     </ul>
     <div class="bottom-bar">
-      <button onclick="showNewListDialog()" title="Ny lista">🆕</button>
-      <button onclick="showBatchAddDialog()" title="Snabbinmatning">➕</button>
+      <button onclick="showNewListDialog()" title="Ny lista">➕</button>
     </div>
   `;
 
@@ -96,7 +95,7 @@ function renderListDetail(i) {
   applyFade();
 }
 
-// === Modal: Ny Lista ===
+// === Modal: Ny lista ===
 window.showNewListDialog = () => {
   const m = document.createElement("div");
   m.className = "modal";
@@ -127,7 +126,7 @@ window._confirmNewList = () => {
   }
 };
 
-// === Modal: Byt namn (lista eller vara) ===
+// === Modal: Byt namn ===
 function showRenameDialog(title, currentName, onConfirm) {
   const m = document.createElement("div");
   m.className = "modal";
