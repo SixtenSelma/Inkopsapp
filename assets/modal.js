@@ -1,6 +1,5 @@
 // modal.js – återanvändbara modaler med bättre mobilhantering
 
-// Flytta modal upp om mobil och tangentbord
 window.scrollModalToTop = function() {
   setTimeout(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -40,7 +39,7 @@ window.showRenameDialog = function(title, currentName, onConfirm) {
   };
 };
 
-// Ny lista-modal
+// Ny lista-modal (callback-version)
 window.showNewListDialog = function(onConfirm) {
   const m = document.createElement("div");
   m.className = "modal";
@@ -73,8 +72,8 @@ window.showNewListDialog = function(onConfirm) {
   };
 };
 
-// Batch add-modal (flera varor samtidigt)
-window.showBatchAddDialog = function(i, lists, categoryMemory, saveAndRenderList, showCategoryPicker) {
+// Batch add-modal (flera varor, callback)
+window.showBatchAddDialog = function(i, onDone) {
   const m = document.createElement("div");
   m.className = "modal";
   m.innerHTML = `
@@ -92,7 +91,7 @@ window.showBatchAddDialog = function(i, lists, categoryMemory, saveAndRenderList
 
   const input = document.getElementById("batchItemInput");
   const preview = document.getElementById("batchPreview");
-  window._batchAddItems = [];
+  let added = [];
 
   input.focus();
   window.scrollModalToTop && window.scrollModalToTop();
@@ -100,7 +99,7 @@ window.showBatchAddDialog = function(i, lists, categoryMemory, saveAndRenderList
   input.addEventListener("keydown", e => {
     if (e.key === "Enter" && input.value.trim()) {
       const name = input.value.trim();
-      window._batchAddItems.push(name);
+      added.push(name);
       const li = document.createElement("li");
       li.textContent = name;
       preview.appendChild(li);
@@ -109,17 +108,15 @@ window.showBatchAddDialog = function(i, lists, categoryMemory, saveAndRenderList
   });
 
   window.confirmBatchAdd = () => {
-    window.confirmBatchAdd(
-      i,
-      lists,
-      categoryMemory,
-      saveAndRenderList,
-      showCategoryPicker
-    );
+    if (input && input.value.trim()) {
+      added.push(input.value.trim());
+    }
+    if (onDone) onDone(added);
+    document.body.removeChild(m);
   };
 };
 
-// Info/modal för kategori
+// Info/modal för kategori (exempel)
 window.showCategoryPicker = function(name, onSave) {
   const m = document.createElement("div");
   m.className = "modal";
