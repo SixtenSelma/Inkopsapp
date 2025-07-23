@@ -43,7 +43,7 @@ function renderAllLists() {
       <h1>Inköpslista</h1>
       <div class="user-badge">
         ${user}
-        <button class="icon-button" onclick="changeUser()" title="Byt namn">🖉</button>
+        <button class="icon-button" onclick="changeUser()" title="Byt namn">U+1F58A</button>
       </div>
     </div>
     <ul class="list-wrapper">
