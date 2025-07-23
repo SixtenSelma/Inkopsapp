@@ -43,7 +43,7 @@ window.renderAllLists = function() {
     </div>
   `;
 
-  applyFade && applyFade();
+  if (typeof applyFade === "function") applyFade();
 };
 
 // === Renderar en enskild lista ===
@@ -99,7 +99,7 @@ window.renderListDetail = function(i) {
     </div>
   `;
 
-  applyFade && applyFade();
+  if (typeof applyFade === "function") applyFade();
 };
 
 // --- Lägg till denna funktion i lists.js! ---
@@ -107,7 +107,6 @@ window.addItemsWithCategory = function(listIndex) {
   showBatchAddDialog(listIndex, function(added) {
     if (!added || !added.length) return;
     let toAdd = [...added];
-    let handled = 0;
     function handleNext() {
       if (!toAdd.length) {
         saveLists(lists);
@@ -118,16 +117,14 @@ window.addItemsWithCategory = function(listIndex) {
       const { name: itemName, note } = splitItemInput(raw);
       const itemNameKey = itemName.trim().toLowerCase();
       const suggestedCategory = categoryMemory[itemNameKey];
-      // Om kategori redan finns i minnet, använd den direkt
       if (suggestedCategory) {
         lists[listIndex].items.push({ name: itemName, note: note, done: false, category: suggestedCategory });
         handleNext();
       } else {
-        // Visa kategori-popup
         showCategoryPicker(itemName, (chosenCat) => {
           lists[listIndex].items.push({ name: itemName, note: note, done: false, category: chosenCat });
           categoryMemory[itemNameKey] = chosenCat;
-          saveCategoryMemory && saveCategoryMemory(categoryMemory);
+          if (typeof saveCategoryMemory === "function") saveCategoryMemory(categoryMemory);
           handleNext();
         });
       }
@@ -135,6 +132,7 @@ window.addItemsWithCategory = function(listIndex) {
     handleNext();
   });
 };
+
 // === Skapa ny lista (popup) ===
 window.showNewListDialog = function() {
   showNewListModal(function(listName) {
@@ -151,7 +149,7 @@ window.renameList = function(i) {
     lists[i].name = newName;
     saveLists(lists);
     renderAllLists();
-    closeAnyMenu && closeAnyMenu();
+    if (typeof closeAnyMenu === "function") closeAnyMenu();
   });
 };
 
@@ -161,9 +159,12 @@ window.deleteList = function(i) {
     lists.splice(i, 1);
     saveLists(lists);
     renderAllLists();
-    closeAnyMenu && closeAnyMenu();
+    if (typeof closeAnyMenu === "function") closeAnyMenu();
   }
 };
+
+// === Gör detaljvy klickbar ===
+window.viewList = renderListDetail;
 
 // === Initiera första renderingen ===
 if (typeof renderAllLists === "function") {
