@@ -1,17 +1,17 @@
 const standardKategorier = [
-  "Frukt & Grönt",
-  "Bröd & Bageri",
-  "Mejeri",
-  "Kött, Fisk, Fågel & Chark",
-  "Frysvaror",
-  "Skafferi / Torrvaror",
-  "Dryck",
-  "Godis, Snacks & Nötter",
-  "Hygien & Apotek",
-  "Städ & Tvätt",
-  "Barn & Baby",
-  "Djur",
-  "Övrigt (Hem, Teknik, Kläder, Säsong)"
+  "🥦 Frukt & Grönt",
+  "🍞 Bröd & Bageri",
+  "🧀 Mejeri",
+  "🍗 Kött, Fisk, Fågel & Chark",
+  "❄️ Frysvaror",
+  "🍝 Skafferi / Torrvaror",
+  "🥤 Dryck",
+  "🍫 Godis, Snacks & Nötter",
+  "🧴 Hygien & Apotek",
+  "🧽 Städ & Tvätt",
+  "👶 Barn & Baby",
+  "🐾 Djur",
+  "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)"
 ];
 
 let user = localStorage.getItem("user") || prompt("Vad heter du?");
@@ -259,11 +259,11 @@ window.complementItem = (li, ii) => {
       <input id="noteInput" placeholder="T.ex. 1 liter…" value="${currentNote}" />
       <label style="margin-top:12px;">Kategori:</label>
       <select id="categorySelect">
-        <option value="">Välj kategori…</option>
-        ${standardKategorier.map(cat => `
-          <option value="${cat}" ${cat === currentCat ? 'selected' : ''}>${cat}</option>
-        `).join('')}
-      </select>
+  <option value="">Välj kategori…</option>
+  ${standardKategorier.map(cat => `
+    <option value="${cat}" ${cat === currentCat ? 'selected' : ''}>${cat}</option>
+  `).join('')}
+</select>
       <div class="modal-actions" style="margin-top:16px;">
         <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
         <button onclick="confirmNote()">OK</button>
