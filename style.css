@@ -1,20 +1,19 @@
 /* ===== Bas & Layout ===== */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
-  background-color: #f2f4f6;
+  font-family: 'Inter', sans-serif;
+  background-color: #f5f6fa;
   margin: 0;
   padding: 0;
-  color: #1e272e;
+  color: #2f3640;
 }
 
 #app {
   max-width: 480px;
   margin: 0 auto;
   min-height: 100vh;
-  background-color: #ffffff;
+  background-color: #fff;
   display: flex;
   flex-direction: column;
-  position: relative;
 }
 
 /* ===== Top-bar ===== */
@@ -23,40 +22,25 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 18px 20px;
-  background-color: #ffffff;
-  border-bottom: 1px solid #e3e6ea;
+  background-color: #fff;
+  border-bottom: 1px solid #e1e4e8;
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
-h1 {
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0;
-}
-
 .user-badge {
-  background: #4cd137;
+  background: #44bd32;
   color: white;
   padding: 6px 14px;
-  border-radius: 20px;
+  border-radius: 50px;
   font-size: 14px;
-  font-weight: 500;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.icon-button {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-  color: inherit;
-}
-
-/* ===== List Wrapper & Cards ===== */
+/* ===== Listkort på startsidan ===== */
 .list-wrapper {
   padding: 16px;
 }
@@ -64,18 +48,19 @@ h1 {
 .list-item {
   margin-bottom: 16px;
   list-style: none;
+  cursor: pointer;
 }
 
 .list-card {
-  background: #f9fafe;
-  border-radius: 14px;
-  padding: 16px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-  transition: background 0.2s ease;
+  background: #f1f2f6;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  transition: background 0.3s;
 }
 
 .list-card:hover {
-  background: #eef1f5;
+  background: #dcdde1;
 }
 
 .list-card-header {
@@ -88,9 +73,9 @@ h1 {
 }
 
 .progress-bar {
-  background-color: #dfe4ea;
-  height: 8px;
-  border-radius: 8px;
+  background-color: #dcdde1;
+  height: 10px;
+  border-radius: 10px;
   overflow: hidden;
   margin: 8px 0;
 }
@@ -99,7 +84,8 @@ h1 {
   background-color: #4cd137;
   height: 100%;
   width: 0%;
-  transition: width 0.3s ease;
+  transition: width 0.4s ease;
+  border-radius: 10px;
 }
 
 .progress-text {
@@ -107,36 +93,49 @@ h1 {
   color: #636e72;
 }
 
-/* ===== To-Do View ===== */
+/* ===== Att göra-lista (detaljvy) ===== */
+.todo-list {
+  margin: 0;
+  padding: 0;
+}
+
 .todo-item {
   display: flex;
   align-items: center;
-  padding: 14px 16px;
+  padding: 16px;
   border-bottom: 1px solid #eaeaea;
   background: #fff;
+  transition: background-color 0.2s ease;
 }
 
-.todo-item:last-child {
-  border-bottom: none;
+.todo-item.done {
+  background-color: #ecf0f1;
+  transition: background-color 0.3s ease;
 }
 
 .todo-item .item-name {
   flex-grow: 1;
   margin-left: 12px;
   font-size: 1rem;
+  word-break: break-word;
 }
 
-.todo-item.done {
-  opacity: 0.6;
+.todo-item.done .item-name {
+  text-decoration: line-through;
+  color: #888;
 }
 
-.todo-item.done .item-name s {
+.todo-item.done small {
+  display: block;
+  font-size: 0.75rem;
   color: #999;
 }
 
 input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
+  accent-color: #4cd137;
+  cursor: pointer;
 }
 
 /* ===== Lägg till ny vara ===== */
@@ -153,6 +152,12 @@ input[type="text"] {
   border-radius: 10px;
   padding: 12px;
   font-size: 1rem;
+  transition: border 0.2s ease;
+}
+
+input[type="text"]:focus {
+  border-color: #4cd137;
+  outline: none;
 }
 
 button {
@@ -173,11 +178,11 @@ button:hover {
 
 /* Sekundärknapp */
 .btn-secondary {
-  background-color: #eaeef1;
-  color: #2f3542;
+  background-color: #dcdde1;
+  color: #2f3640;
 }
 .btn-secondary:hover {
-  background-color: #dcdde1;
+  background-color: #c8d6e5;
 }
 
 /* Flytande plus-knapp */
@@ -204,7 +209,7 @@ button:hover {
   border: none;
   cursor: pointer;
   font-size: 1.2rem;
-  color: #ff4757;
+  color: #e84118;
   margin-left: auto;
 }
 
@@ -242,6 +247,7 @@ button:hover {
   border: 1px solid #ccc;
 }
 
+/* In/ut-animationer */
 .fade-enter {
   opacity: 0;
   transform: scale(0.98);
