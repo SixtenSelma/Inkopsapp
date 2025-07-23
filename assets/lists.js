@@ -15,7 +15,7 @@ window.renderAllLists = function() {
     const pct = total ? Math.round((done / total) * 100) : 0;
 
     return `
-      <li class="list-item" data-index="${i}"> <!-- NYTT: data-index istället för onclick -->
+      <li class="list-item" data-index="${i}">
         <div class="list-card">
           <div class="list-card-header">
             <span class="list-card-title">${list.name}</span>
@@ -35,7 +35,7 @@ window.renderAllLists = function() {
         <button class="icon-button" onclick="changeUser()" title="Byt namn">🖊</button>
       </div>
     </div>
-    <ul class="list-wrapper" id="allLists"> <!-- NYTT: id för event delegation -->
+    <ul class="list-wrapper" id="allLists">
       ${listCards || '<p class="no-lists">Inga listor än.</p>'}
     </ul>
     <div class="bottom-bar">
@@ -43,7 +43,7 @@ window.renderAllLists = function() {
     </div>
   `;
 
-  // NYTT: Event delegation på hela listan
+  // Event delegation för listkort
   const ul = document.getElementById("allLists");
   if (ul) {
     ul.onclick = function(e) {
@@ -58,20 +58,6 @@ window.renderAllLists = function() {
       }
     };
   }
-
-  applyFade && applyFade();
-};
-  // ---- Event delegation för att öppna listor ----
-  const ul = document.querySelector('.list-wrapper');
-  ul && ul.addEventListener('click', function(ev) {
-    const li = ev.target.closest('.list-item');
-    if (li && !ev.target.classList.contains('menu-btn')) {
-      const idx = li.getAttribute('data-listindex');
-      if (typeof idx !== 'undefined' && idx !== null) {
-        viewList(Number(idx));
-      }
-    }
-  });
 
   applyFade && applyFade();
 };
