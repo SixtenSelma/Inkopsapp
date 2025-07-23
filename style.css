@@ -447,11 +447,3 @@ select:focus {
   margin-right: 6px;
   vertical-align: middle;
 }
-
-.back-arrow svg {
-  vertical-align: middle;
-  transition: stroke 0.2s;
-}
-.back-arrow:hover svg {
-  stroke: #4cd137;
-}
