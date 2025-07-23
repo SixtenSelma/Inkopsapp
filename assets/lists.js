@@ -10,15 +10,15 @@ const app = document.getElementById("app");
 // === Renderar alla listor ===
 window.renderAllLists = function() {
   const listCards = lists.map((list, i) => {
-    const done = list.items.filter(x => x.done).length;
-    const total = list.items.length;
+    const done = Array.isArray(list.items) ? list.items.filter(x => x && x.done).length : 0;
+    const total = Array.isArray(list.items) ? list.items.length : 0;
     const pct = total ? Math.round((done / total) * 100) : 0;
 
     return `
       <li class="list-item" onclick="viewList(${i})">
         <div class="list-card">
           <div class="list-card-header">
-            <span class="list-card-title">${list.name}</span>
+            <span class="list-card-title" style="font-size:1.15em">${escapeHtml(list.name)}</span>
             <button class="menu-btn" onclick="event.stopPropagation(); openListMenu(${i}, this)">⋮</button>
           </div>
           <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
@@ -43,18 +43,22 @@ window.renderAllLists = function() {
     </div>
   `;
 
-  if (typeof applyFade === "function") applyFade();
+  applyFade && applyFade();
 };
 
 // === Renderar en enskild lista ===
 window.renderListDetail = function(i) {
   const list = lists[i];
-  const allItems = list.items.map((item, realIdx) => ({ ...item, realIdx }));
+  if (!list) return; // Extra skydd
+  const allItems = Array.isArray(list.items)
+    ? list.items.map((item, realIdx) => ({ ...item, realIdx }))
+    : [];
 
   // Gruppindelning på kategori
   const grouped = {};
   standardKategorier.forEach(cat => grouped[cat] = []);
   allItems.forEach(item => {
+    if (!item) return;
     const cat = item.category || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)";
     if (!grouped[cat]) grouped[cat] = [];
     grouped[cat].push(item);
@@ -65,11 +69,17 @@ window.renderListDetail = function(i) {
     .map(([cat, items]) => {
       const itemList = items.map(item => `
         <li class="todo-item ${item.done ? 'done' : ''}">
-          <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx}, lists, user, saveAndRenderList)" />
+          <input type="checkbox"
+            ${item.done ? 'checked' : ''}
+            onchange="toggleItem(${i},${item.realIdx}, lists, user, saveAndRenderList)" />
           <span class="item-name">
-            ${item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`}
-            ${item.note ? `<small class="item-note">(${item.note})</small>` : ''}
-            ${item.done && item.doneBy ? `<small>${item.doneBy} • ${formatDate(item.doneAt)}</small>` : ''}
+            ${item.done ? `<s>${escapeHtml(item.name)}</s>` : `<strong>${escapeHtml(item.name)}</strong>`}
+            ${item.note ? `<small class="item-note">(${escapeHtml(item.note)})</small>` : ''}
+            ${
+              item.done && item.doneBy && item.doneAt
+                ? `<small>${escapeHtml(item.doneBy)} • ${formatDate(item.doneAt)}</small>`
+                : ''
+            }
           </span>
           <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
         </li>
@@ -88,7 +98,7 @@ window.renderListDetail = function(i) {
           <polyline points="15 18 9 12 15 6"/>
         </svg>
       </span>
-      <h1 class="back-title" style="font-size:1.45em; font-weight:700; margin:0;">${list.name}</h1>
+      <h1 class="back-title" style="font-size:1.45em; font-weight:700; margin:0;">${escapeHtml(list.name)}</h1>
       <div style="width: 56px"></div>
     </div>
     <div class="category-list">
@@ -99,7 +109,7 @@ window.renderListDetail = function(i) {
     </div>
   `;
 
-  if (typeof applyFade === "function") applyFade();
+  applyFade && applyFade();
 };
 
 // --- Lägg till denna funktion i lists.js! ---
@@ -115,16 +125,28 @@ window.addItemsWithCategory = function(listIndex) {
       }
       const raw = toAdd.shift();
       const { name: itemName, note } = splitItemInput(raw);
-      const itemNameKey = itemName.trim().toLowerCase();
+      const itemNameKey = (itemName || '').trim().toLowerCase();
       const suggestedCategory = categoryMemory[itemNameKey];
+      // Om kategori redan finns i minnet, använd den direkt
       if (suggestedCategory) {
-        lists[listIndex].items.push({ name: itemName, note: note, done: false, category: suggestedCategory });
+        lists[listIndex].items.push({
+          name: itemName,
+          note: note,
+          done: false,
+          category: suggestedCategory
+        });
         handleNext();
       } else {
+        // Visa kategori-popup
         showCategoryPicker(itemName, (chosenCat) => {
-          lists[listIndex].items.push({ name: itemName, note: note, done: false, category: chosenCat });
+          lists[listIndex].items.push({
+            name: itemName,
+            note: note,
+            done: false,
+            category: chosenCat
+          });
           categoryMemory[itemNameKey] = chosenCat;
-          if (typeof saveCategoryMemory === "function") saveCategoryMemory(categoryMemory);
+          saveCategoryMemory && saveCategoryMemory(categoryMemory);
           handleNext();
         });
       }
@@ -149,7 +171,7 @@ window.renameList = function(i) {
     lists[i].name = newName;
     saveLists(lists);
     renderAllLists();
-    if (typeof closeAnyMenu === "function") closeAnyMenu();
+    closeAnyMenu && closeAnyMenu();
   });
 };
 
@@ -159,12 +181,20 @@ window.deleteList = function(i) {
     lists.splice(i, 1);
     saveLists(lists);
     renderAllLists();
-    if (typeof closeAnyMenu === "function") closeAnyMenu();
+    closeAnyMenu && closeAnyMenu();
   }
 };
 
-// === Gör detaljvy klickbar ===
-window.viewList = renderListDetail;
+// === Escape HTML helper ===
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
 // === Initiera första renderingen ===
 if (typeof renderAllLists === "function") {
