@@ -1,5 +1,6 @@
 // modal.js – återanvändbara modaler med bättre mobilhantering
 
+// Flytta modal upp om mobil och tangentbord
 window.scrollModalToTop = function() {
   setTimeout(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -73,7 +74,7 @@ window.showNewListDialog = function(onConfirm) {
 };
 
 // Batch add-modal (flera varor samtidigt)
-window.showBatchAddDialog = function(i, onDone) {
+window.showBatchAddDialog = function(i) {
   const m = document.createElement("div");
   m.className = "modal";
   m.innerHTML = `
@@ -111,7 +112,41 @@ window.showBatchAddDialog = function(i, onDone) {
     if (input && input.value.trim()) {
       added.push(input.value.trim());
     }
-    if (onDone) onDone(added);
+    // Kör batch-add via item.js (frågar efter kategori direkt om saknas)
+    window.handleBatchAdd(lists, i, added, categoryMemory, saveAndRenderList);
+    document.body.removeChild(m);
+  };
+};
+
+// Kategoriväljare (popup)
+window.showCategoryPicker = function(name, onSave) {
+  const m = document.createElement("div");
+  m.className = "modal";
+  m.innerHTML = `
+    <div class="modal-content">
+      <h2>Kategori för "${name}"</h2>
+      <select id="categorySelectPopup" style="width:100%;margin-top:14px;font-size:1.1rem;padding:10px;border-radius:8px;border:2px solid #2863c7;">
+        <option value="">Välj kategori…</option>
+        ${standardKategorier.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+      </select>
+      <div class="modal-actions" style="margin-top:16px;">
+        <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
+        <button onclick="pickCategoryOK()">OK</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(m);
+  const select = document.getElementById("categorySelectPopup");
+  select.focus();
+  window.scrollModalToTop && window.scrollModalToTop();
+  window.pickCategoryOK = () => {
+    const value = select.value;
+    if (!value) {
+      select.style.border = "2px solid red";
+      select.focus();
+      return;
+    }
+    onSave(value);
     document.body.removeChild(m);
   };
 };
