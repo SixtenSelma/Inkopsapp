@@ -1,5 +1,4 @@
 
-alert("assets/main.js är inläst!");
 // --- Användarhantering ---
 let user = localStorage.getItem("user") || prompt("Vad heter du?");
 localStorage.setItem("user", user);
