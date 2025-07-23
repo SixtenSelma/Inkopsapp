@@ -50,7 +50,7 @@ function renderAllLists() {
       ${listCards || '<p class="no-lists">Inga listor än.</p>'}
     </ul>
     <div class="bottom-bar">
-      <button onclick="showBatchAddDialog()" title="Snabbinmatning">➕</button>
+      <button onclick="showNewListDialog()" title="Ny lista">➕</button>
     </div>
   `;
 
