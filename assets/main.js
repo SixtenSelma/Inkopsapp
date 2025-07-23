@@ -85,6 +85,16 @@ function renderListDetail(index) {
   document.getElementById("newItemInput").focus();
 }
 
+function addSwipeListeners(li, listIndex, itemIndex) {
+  let startX = 0;
+  li.addEventListener('touchstart', e => startX = e.changedTouches[0].clientX);
+  li.addEventListener('touchend', e => {
+    const deltaX = e.changedTouches[0].clientX - startX;
+    if (deltaX > 80) toggleItem(listIndex, itemIndex);
+    if (deltaX < -80) deleteItem(listIndex, itemIndex);
+  });
+}
+
 // --- Funktioner ---
 window.viewList = i => renderListDetail(i);
 
@@ -156,6 +166,13 @@ window.confirmNewList = () => {
   if (!input || !input.value.trim()) return;
   window.addList(input.value.trim());
   document.body.removeChild(document.querySelector(".modal"));
+};
+
+
+window.renderListDetail = index => {
+  // ... existerande kod ...
+  const lis = document.querySelectorAll('.todo-item');
+  lis.forEach((li, i) => addSwipeListeners(li, index, i));
 };
 
 // Starta appen
