@@ -44,6 +44,24 @@ function saveAndRenderList(i) {
   renderListDetail(i);
 }
 
+// NY! Dela upp vara i namn och note
+function splitItemInput(text) {
+  text = text.trim();
+  let name = text, note = "";
+  // parentes
+  const paren = text.match(/^(.+?)\s*\((.+)\)$/);
+  if (paren) {
+    name = paren[1].trim();
+    note = paren[2].trim();
+  } else if (text.includes(",")) {
+    // kommatecken
+    const idx = text.indexOf(",");
+    name = text.slice(0, idx).trim();
+    note = text.slice(idx + 1).trim();
+  }
+  return { name, note };
+}
+
 function renderAllLists() {
   const listCards = lists.map((list, i) => {
     const done = list.items.filter(x => x.done).length;
@@ -264,7 +282,7 @@ function showCategoryPicker(name, onSave) {
   };
 }
 
-// NY: Batch-funktion som ser till att kategorier finns
+// NY: Batch-funktion som ser till att kategorier finns och tolkar note
 window.confirmBatchAdd = function (index) {
   const added = window._batchAddItems || [];
   const input = document.getElementById("batchItemInput");
@@ -272,17 +290,18 @@ window.confirmBatchAdd = function (index) {
     added.push(input.value.trim());
   }
 
-  // Lista på varor som saknar kategori
-  let uncategorized = added.filter(name => !categoryMemory[name.trim().toLowerCase()]);
+  // Dela upp namn och note
+  const splitAdded = added.map(txt => splitItemInput(txt));
+  let uncategorized = splitAdded.filter(({ name }) => !categoryMemory[name.toLowerCase()]);
   let toAdd = [];
 
   function handleNext() {
     if (uncategorized.length === 0) {
       // Alla kategoriserade - spara!
-      added.forEach(name => {
-        const key = name.trim().toLowerCase();
+      splitAdded.forEach(({ name, note }) => {
+        const key = name.toLowerCase();
         const cat = categoryMemory[key] || "";
-        lists[index].items.push({ name, done: false, category: cat });
+        lists[index].items.push({ name, done: false, note, category: cat });
       });
       saveAndRenderList(index);
       document.body.removeChild(document.querySelector('.modal'));
@@ -291,9 +310,9 @@ window.confirmBatchAdd = function (index) {
     }
 
     // Ta första okategoriserade varan
-    const current = uncategorized.shift();
-    showCategoryPicker(current, (cat) => {
-      categoryMemory[current.trim().toLowerCase()] = cat;
+    const { name } = uncategorized.shift();
+    showCategoryPicker(name, (cat) => {
+      categoryMemory[name.toLowerCase()] = cat;
       localStorage.setItem("categoryMemory", JSON.stringify(categoryMemory));
       handleNext();
     });
@@ -302,11 +321,10 @@ window.confirmBatchAdd = function (index) {
   if (uncategorized.length > 0) {
     handleNext();
   } else {
-    // Alla har kategori, fortsätt som vanligt
-    added.forEach(name => {
-      const key = name.trim().toLowerCase();
+    splitAdded.forEach(({ name, note }) => {
+      const key = name.toLowerCase();
       const cat = categoryMemory[key] || "";
-      lists[index].items.push({ name, done: false, category: cat });
+      lists[index].items.push({ name, done: false, note, category: cat });
     });
     saveAndRenderList(index);
     document.body.removeChild(document.querySelector('.modal'));
