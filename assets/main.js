@@ -29,7 +29,7 @@ function renderAllLists() {
         <div class="list-card">
           <div class="list-card-header">
             <span class="list-card-title">${list.name}</span>
-            <button class="icon-button" onclick="event.stopPropagation(); renameList(${i})" title="Byt namn">✏️</button>
+            <button class="icon-button" onclick="event.stopPropagation(); renameList(${i})" title="Byt namn">✎</button>
           </div>
           <div class="progress-bar">
             <div class="progress-fill" style="width:${pct}%"></div>
@@ -44,7 +44,7 @@ function renderAllLists() {
       <h1>Inköpslista</h1>
       <div class="user-badge">
         ${user}
-        <button class="icon-button" onclick="changeUser()" title="Byt namn">✏️</button>
+        <button class="icon-button" onclick="changeUser()" title="Byt namn">✎</button>
       </div>
     </div>
     <ul class="list-wrapper">
@@ -79,7 +79,7 @@ function renderListDetail(i) {
       <h1>${list.name}</h1>
       <div class="user-badge">
         ${user}
-        <button class="icon-button" onclick="changeUser()" title="Byt namn">✏️</button>
+        <button class="icon-button" onclick="changeUser()" title="Byt namn">✎</button>
       </div>
     </div>
     <ul class="todo-list">
