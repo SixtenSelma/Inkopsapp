@@ -239,7 +239,7 @@ function positionMenu(menu, btn) {
   const rect = btn.getBoundingClientRect();
   menu.style.position = 'absolute';
   menu.style.top = `${rect.bottom + window.scrollY}px`;
-  menu.style.left = `${Math.min(window.innerWidth - 160, rect.left + window.scrollX - 80)}px`;
+  menu.style.left = `${Math.min(window.innerWidth - 180, rect.left + window.scrollX - 100)}px`;
   document.body.appendChild(menu);
   setTimeout(() => {
     document.addEventListener('click', function close(e) {
