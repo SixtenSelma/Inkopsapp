@@ -1,3 +1,19 @@
+const standardKategorier = [
+  "Frukt & Grönt",
+  "Bröd & Bageri",
+  "Mejeri",
+  "Kött, Fisk, Fågel & Chark",
+  "Frysvaror",
+  "Skafferi / Torrvaror",
+  "Dryck",
+  "Godis, Snacks & Nötter",
+  "Hygien & Apotek",
+  "Städ & Tvätt",
+  "Barn & Baby",
+  "Djur",
+  "Övrigt (Hem, Teknik, Kläder, Säsong)"
+];
+
 let user = localStorage.getItem("user") || prompt("Vad heter du?");
 localStorage.setItem("user", user);
 
@@ -62,20 +78,36 @@ function renderAllLists() {
 
 function renderListDetail(i) {
   const list = lists[i];
-  const fullList = list.items.map((item, realIdx) => ({ ...item, realIdx }));
-  const sortedItems = [...fullList.filter(x => !x.done), ...fullList.filter(x => x.done)];
+  const allItems = list.items.map((item, realIdx) => ({ ...item, realIdx }));
 
-  const items = sortedItems.map(item => `
-    <li class="todo-item ${item.done ? 'done' : ''}">
-      <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx})"/>
-      <span class="item-name">
-        ${item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`}
-        ${item.note ? `<small class="item-note">(${item.note})</small>` : ''}
-        ${item.done && item.doneBy ? `<small>${item.doneBy} • ${formatDate(item.doneAt)}</small>` : ''}
-      </span>
-      <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
-    </li>
-  `).join("");
+  const grouped = {};
+  standardKategorier.forEach(cat => grouped[cat] = []);
+  allItems.forEach(item => {
+    const cat = item.category || "Övrigt (Hem, Teknik, Kläder, Säsong)";
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(item);
+  });
+
+  const itemsHTML = Object.entries(grouped)
+    .filter(([, items]) => items.length)
+    .map(([cat, items]) => {
+      const itemList = items.map(item => `
+        <li class="todo-item ${item.done ? 'done' : ''}">
+          <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx})"/>
+          <span class="item-name">
+            ${item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`}
+            ${item.note ? `<small class="item-note">(${item.note})</small>` : ''}
+            ${item.done && item.doneBy ? `<small>${item.doneBy} • ${formatDate(item.doneAt)}</small>` : ''}
+          </span>
+          <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
+        </li>
+      `).join("");
+
+      return `
+        <h3 class="category-heading">${cat}</h3>
+        <ul class="todo-list">${itemList}</ul>
+      `;
+    }).join("");
 
   app.innerHTML = `
     <div class="top-bar">
@@ -85,9 +117,9 @@ function renderListDetail(i) {
         <button class="icon-button" onclick="changeUser()" title="Byt namn">🖊</button>
       </div>
     </div>
-    <ul class="todo-list">
-      ${items || '<li>Inga varor än.</li>'}
-    </ul>
+    <div class="category-list">
+      ${itemsHTML || '<p>Inga varor än.</p>'}
+    </div>
     <div class="bottom-bar">
       <button onclick="showBatchAddDialog(${i})" title="Lägg till vara">➕</button>
     </div>
@@ -216,21 +248,32 @@ window.renameItem = (li, ii) => {
 };
 
 window.complementItem = (li, ii) => {
-  const current = lists[li].items[ii].note || '';
+  const currentNote = lists[li].items[ii].note || '';
+  const currentCat = lists[li].items[ii].category || '';
   const m = document.createElement("div");
   m.className = "modal";
   m.innerHTML = `
     <div class="modal-content">
       <h2>Komplettering</h2>
-      <input id="noteInput" placeholder="T.ex. 1 liter…" value="${current}" />
-      <div class="modal-actions">
+      <label>Beskrivning:</label>
+      <input id="noteInput" placeholder="T.ex. 1 liter…" value="${currentNote}" />
+      <label style="margin-top:12px;">Kategori:</label>
+      <select id="categorySelect">
+        <option value="">Välj kategori…</option>
+        ${standardKategorier.map(cat => `
+          <option value="${cat}" ${cat === currentCat ? 'selected' : ''}>${cat}</option>
+        `).join('')}
+      </select>
+      <div class="modal-actions" style="margin-top:16px;">
         <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
         <button onclick="confirmNote()">OK</button>
       </div>
     </div>
   `;
   document.body.appendChild(m);
+
   const input = document.getElementById("noteInput");
+  const select = document.getElementById("categorySelect");
   input.focus();
   input.select();
 
@@ -239,8 +282,8 @@ window.complementItem = (li, ii) => {
   });
 
   window.confirmNote = () => {
-    const val = input.value.trim();
-    lists[li].items[ii].note = val;
+    lists[li].items[ii].note = input.value.trim();
+    lists[li].items[ii].category = select.value;
     saveAndRenderList(li);
     document.body.removeChild(m);
     closeAnyMenu();
