@@ -194,7 +194,7 @@ input[type="checkbox"] {
   cursor: pointer;
 }
 
-/* ===== Ny vara (plusknapp) ===== */
+/* ===== Flytande plus-knapp ===== */
 .bottom-bar {
   position: fixed;
   bottom: 24px;
@@ -258,7 +258,7 @@ input[type="checkbox"] {
   background-color: #f1f2f6;
 }
 
-/* ===== Modal (ny lista) ===== */
+/* ===== Modal (dialog) ===== */
 .modal {
   position: fixed;
   inset: 0;
@@ -278,10 +278,10 @@ input[type="checkbox"] {
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
-.modal-actions {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 16px;
+.modal-content h2 {
+  margin-top: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
 }
 
 .modal-content input {
@@ -290,6 +290,34 @@ input[type="checkbox"] {
   font-size: 1rem;
   border-radius: 8px;
   border: 1px solid #ccc;
+  margin-top: 12px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.modal-actions button {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+}
+
+.modal-actions button:first-child {
+  background: #f1f2f6;
+  color: #2f3640;
+}
+
+.modal-actions button:last-child {
+  background: #4cd137;
+  color: white;
 }
 
 /* ===== Fade transition ===== */
@@ -302,4 +330,16 @@ input[type="checkbox"] {
   opacity: 1;
   transform: scale(1);
   transition: opacity 200ms, transform 200ms;
+}
+.delete-btn {
+  background: none;
+  border: none;
+  font-size: 1.4rem;    /* större kryss */
+  color: #ff4757;       /* röd ton */
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+.delete-btn:hover {
+  color: #e84118;       /* mörkare vid hover */
 }
