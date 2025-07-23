@@ -324,3 +324,11 @@ input[type="checkbox"] {
   transform: scale(1);
   transition: opacity 200ms, transform 200ms;
 }
+
+.preview-list {
+  list-style: disc;
+  margin: 12px 0 0 20px;
+  padding: 0;
+  font-size: 0.95rem;
+  color: #2f3640;
+}
