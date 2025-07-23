@@ -6,7 +6,7 @@ const app = document.getElementById("app");
 
 function formatDate(dateString) {
   const d = new Date(dateString);
-  return `${new Date(dateString).toLocaleDateString('sv-SE')} ${new Date(dateString).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}`;
+  return `${d.toLocaleDateString('sv-SE')} ${d.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}`;
 }
 
 function saveAndRender() {
@@ -79,10 +79,7 @@ function renderListDetail(i) {
 
   app.innerHTML = `
     <div class="top-bar">
-      <div class="list-header">
-        <a href="#" onclick="renderAllLists()" class="back-link">&lt; Tillbaka</a>
-        <h1>${list.name}</h1>
-      </div>
+      <h1 class="back-title" onclick="renderAllLists()">&lt; ${list.name}</h1>
       <div class="user-badge">
         ${user}
         <button class="icon-button" onclick="changeUser()" title="Byt namn">✎</button>
@@ -99,7 +96,7 @@ function renderListDetail(i) {
   applyFade();
 }
 
-// ==== Dialoger ====
+// ===== Dialoger =====
 
 window.showNewListDialog = () => {
   const m = document.createElement("div");
@@ -125,7 +122,8 @@ window.showNewListDialog = () => {
 window.confirmNewList = () => {
   const inp = document.getElementById("modalNewListInput");
   if (inp && inp.value.trim()) {
-    addList(inp.value.trim());
+    lists.push({ name: inp.value.trim(), items: [] });
+    saveAndRender();
     document.body.removeChild(document.querySelector('.modal'));
   }
 };
@@ -160,7 +158,7 @@ window.confirmNewItem = (i) => {
   }
 };
 
-// ==== Menyer & inställningar ====
+// ===== Menyer =====
 
 window.renameItem = (li, ii) => {
   const item = lists[li].items[ii];
@@ -243,7 +241,7 @@ function positionMenu(menu, btn) {
   }, 0);
 }
 
-// ==== Init ====
+// ===== Init =====
 
 function applyFade() {
   app.classList.add('fade-enter');
@@ -256,6 +254,7 @@ function applyFade() {
 }
 
 window.viewList = i => renderListDetail(i);
+
 window.toggleItem = (li, ii) => {
   const it = lists[li].items[ii];
   it.done = !it.done;
@@ -268,10 +267,7 @@ window.toggleItem = (li, ii) => {
   }
   saveAndRenderList(li);
 };
+
 window.renderAllLists = renderAllLists;
-window.addList = name => {
-  if (!name.trim()) return;
-  lists.push({ name, items: [] });
-  saveAndRender();
-};
+
 renderAllLists();
