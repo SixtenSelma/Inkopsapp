@@ -147,26 +147,30 @@ window.showBatchAddDialog = (i) => {
 
   const input = document.getElementById("batchItemInput");
   const preview = document.getElementById("batchPreview");
-  const added = [];
+
+  // Spara den här batchen separat i window-scope så confirmBatchAdd kan nå den
+  window._batchAddItems = [];
 
   input.focus();
   input.addEventListener("keydown", e => {
     if (e.key === "Enter" && input.value.trim()) {
       const name = input.value.trim();
-      added.push(name);
+      window._batchAddItems.push(name);
       const li = document.createElement("li");
       li.textContent = name;
       preview.appendChild(li);
       input.value = "";
     }
   });
-
-  window.confirmBatchAdd = (index) => {
-    added.forEach(name => lists[index].items.push({ name, done: false }));
-    saveAndRenderList(index);
-    document.body.removeChild(document.querySelector('.modal'));
-  };
 };
+window.confirmBatchAdd = (index) => {
+  const added = window._batchAddItems || [];
+  added.forEach(name => lists[index].items.push({ name, done: false }));
+  saveAndRenderList(index);
+  document.body.removeChild(document.querySelector('.modal'));
+  window._batchAddItems = []; // rensa
+};
+
 
 function showRenameDialog(title, currentName, onConfirm) {
   const m = document.createElement("div");
