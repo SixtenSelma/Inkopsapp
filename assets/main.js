@@ -59,14 +59,24 @@ function renderAllLists() {
   applyFade();
 }
 
-
 function renderListDetail(i) {
   const list = lists[i];
-  const unchecked = list.items.filter(x => !x.done);
-  const checked = list.items.filter(x => x.done);
-  const items = [...unchecked, ...checked].map((item, idx) => `
+
+  // Behåll originalindex för varje vara
+  const fullList = lists[i].items.map((item, realIdx) => {
+    return { ...item, realIdx };
+  });
+
+  // Sortera: obockade först
+  const sortedItems = [
+    ...fullList.filter(item => !item.done),
+    ...fullList.filter(item => item.done)
+  ];
+
+  // Bygg HTML för varje rad
+  const items = sortedItems.map(item => `
     <li class="todo-item ${item.done ? 'done' : ''}">
-      <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${idx})"/>
+      <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx})"/>
       <span class="item-name">
         ${item.done
           ? `<s>${item.name}</s>`
@@ -75,10 +85,11 @@ function renderListDetail(i) {
           ? `<small>${item.doneBy} • ${formatDate(item.doneAt)}</small>`
           : ''}
       </span>
-      <button class="menu-btn" onclick="openItemMenu(${i}, ${idx}, this)">⋮</button>
+      <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
     </li>
   `).join("");
 
+  // Skriv ut vyn
   app.innerHTML = `
     <div class="top-bar">
       <div class="list-header">
@@ -100,7 +111,6 @@ function renderListDetail(i) {
 
   applyFade();
 }
-
 // === Menyer ===
 
 window.openItemMenu = (li, ii, btn) => {
