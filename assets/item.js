@@ -114,3 +114,48 @@ window.deleteItem = function(li, ii, lists, saveAndRenderList, closeAnyMenu) {
   saveAndRenderList(li);
   closeAnyMenu();
 };
+
+// === NYTT! Lägg till flera varor, kolla kategori-minnet ===
+window.confirmBatchAdd = function(
+  index, lists, categoryMemory, saveAndRenderList, showCategoryPicker
+) {
+  const added = window._batchAddItems || [];
+  const input = document.getElementById("batchItemInput");
+  if (input && input.value.trim()) {
+    added.push(input.value.trim());
+  }
+
+  // Lägg till varor en och en
+  function addNextItem(arr) {
+    if (arr.length === 0) {
+      saveAndRenderList(index);
+      document.body.removeChild(document.querySelector('.modal'));
+      window._batchAddItems = [];
+      return;
+    }
+    const raw = arr.shift();
+    const { name, note } = splitItemInput(raw);
+    const nameKey = name.trim().toLowerCase();
+
+    // Kolla minnet först!
+    let category = categoryMemory[nameKey] || '';
+    let item = { name, note, done: false };
+
+    if (category) {
+      item.category = category;
+      lists[index].items.push(item);
+      addNextItem(arr); // Nästa
+    } else {
+      // Visa kategori-popup bara om ingen kategori minneslagrad
+      showCategoryPicker(name, (cat) => {
+        item.category = cat;
+        lists[index].items.push(item);
+        // Spara i minnet
+        categoryMemory[nameKey] = cat;
+        saveCategoryMemory(categoryMemory);
+        addNextItem(arr);
+      });
+    }
+  }
+  addNextItem(added.slice()); // Gör en kopia
+};
