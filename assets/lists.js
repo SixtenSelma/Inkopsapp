@@ -81,23 +81,24 @@ window.renderListDetail = function(i) {
       `;
     }).join("");
 
-  // ---- Sätt in denna kod: ----app.innerHTML = `
-  <div class="top-bar">
-    <span class="back-arrow" onclick="renderAllLists()" style="margin-right:10px; cursor:pointer; display:flex; align-items:center;">
-      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
-        <polyline points="15 18 9 12 15 6"/>
-      </svg>
-    </span>
-    <h1 class="back-title" style="font-size:1.45em; font-weight:700; margin:0;">${list.name}</h1>
-    <div style="width: 56px"></div>
-  </div>
-  <div class="category-list">
-    ${itemsHTML || '<p>Inga varor än.</p>'}
-  </div>
-  <div class="bottom-bar">
-    <button onclick="showBatchAddDialog(${i})" title="Lägg till vara">➕</button>
-  </div>
-`;
+  app.innerHTML = `
+    <div class="top-bar">
+      <span class="back-arrow" onclick="renderAllLists()" style="margin-right:10px; cursor:pointer; display:flex; align-items:center;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </span>
+      <h1 class="back-title" style="font-size:1.45em; font-weight:700; margin:0;">${list.name}</h1>
+      <div style="width: 56px"></div>
+    </div>
+    <div class="category-list">
+      ${itemsHTML || '<p>Inga varor än.</p>'}
+    </div>
+    <div class="bottom-bar">
+      <button onclick="showBatchAddDialog(${i})" title="Lägg till vara">➕</button>
+    </div>
+  `;
+
   applyFade && applyFade();
 };
 // === Skapa ny lista (popup) ===
