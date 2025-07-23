@@ -20,6 +20,9 @@ localStorage.setItem("user", user);
 let lists = JSON.parse(localStorage.getItem("lists") || "[]");
 const app = document.getElementById("app");
 
+// NYTT: kategori-minne per vara
+let categoryMemory = JSON.parse(localStorage.getItem("categoryMemory") || "{}");
+
 function formatDate(dateString) {
   const d = new Date(dateString);
   return `${d.toLocaleDateString('sv-SE')} ${d.toLocaleTimeString('sv-SE', {
@@ -30,11 +33,13 @@ function formatDate(dateString) {
 
 function saveAndRender() {
   localStorage.setItem("lists", JSON.stringify(lists));
+  localStorage.setItem("categoryMemory", JSON.stringify(categoryMemory));
   renderAllLists();
 }
 
 function saveAndRenderList(i) {
   localStorage.setItem("lists", JSON.stringify(lists));
+  localStorage.setItem("categoryMemory", JSON.stringify(categoryMemory));
   renderListDetail(i);
 }
 
@@ -83,7 +88,7 @@ function renderListDetail(i) {
   const grouped = {};
   standardKategorier.forEach(cat => grouped[cat] = []);
   allItems.forEach(item => {
-    const cat = item.category || "Övrigt (Hem, Teknik, Kläder, Säsong)";
+    const cat = item.category || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)";
     if (!grouped[cat]) grouped[cat] = [];
     grouped[cat].push(item);
   });
@@ -97,6 +102,7 @@ function renderListDetail(i) {
           <span class="item-name">
             ${item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`}
             ${item.note ? `<small class="item-note">(${item.note})</small>` : ''}
+            ${item.category ? `<small class="item-category">• ${item.category}</small>` : ''}
             ${item.done && item.doneBy ? `<small>${item.doneBy} • ${formatDate(item.doneAt)}</small>` : ''}
           </span>
           <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
@@ -232,7 +238,13 @@ window.confirmBatchAdd = (index) => {
     added.push(input.value.trim());
   }
 
-  added.forEach(name => lists[index].items.push({ name, done: false }));
+  // Här sker kategori-minne!
+  added.forEach(name => {
+    const key = name.trim().toLowerCase();
+    const category = categoryMemory[key] || '';
+    lists[index].items.push({ name, done: false, category });
+  });
+
   saveAndRenderList(index);
   document.body.removeChild(document.querySelector('.modal'));
   window._batchAddItems = [];
@@ -248,8 +260,10 @@ window.renameItem = (li, ii) => {
 };
 
 window.complementItem = (li, ii) => {
+  const itemName = lists[li].items[ii].name.trim().toLowerCase();
   const currentNote = lists[li].items[ii].note || '';
-  const currentCat = lists[li].items[ii].category || '';
+  const rememberedCat = categoryMemory[itemName] || '';
+  const currentCat = lists[li].items[ii].category || rememberedCat || '';
   const m = document.createElement("div");
   m.className = "modal";
   m.innerHTML = `
@@ -259,11 +273,11 @@ window.complementItem = (li, ii) => {
       <input id="noteInput" placeholder="T.ex. 1 liter…" value="${currentNote}" />
       <label style="margin-top:12px;">Kategori:</label>
       <select id="categorySelect">
-  <option value="">Välj kategori…</option>
-  ${standardKategorier.map(cat => `
-    <option value="${cat}" ${cat === currentCat ? 'selected' : ''}>${cat}</option>
-  `).join('')}
-</select>
+        <option value="">Välj kategori…</option>
+        ${standardKategorier.map(cat => `
+          <option value="${cat}" ${cat === currentCat ? 'selected' : ''}>${cat}</option>
+        `).join('')}
+      </select>
       <div class="modal-actions" style="margin-top:16px;">
         <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
         <button onclick="confirmNote()">OK</button>
@@ -284,6 +298,14 @@ window.complementItem = (li, ii) => {
   window.confirmNote = () => {
     lists[li].items[ii].note = input.value.trim();
     lists[li].items[ii].category = select.value;
+
+    // Uppdatera minnet om kategori per vara!
+    const itemNameKey = lists[li].items[ii].name.trim().toLowerCase();
+    if (select.value) {
+      categoryMemory[itemNameKey] = select.value;
+      localStorage.setItem("categoryMemory", JSON.stringify(categoryMemory));
+    }
+
     saveAndRenderList(li);
     document.body.removeChild(m);
     closeAnyMenu();
