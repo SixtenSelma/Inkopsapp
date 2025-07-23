@@ -354,3 +354,9 @@ button:hover {
   font-style: italic;
 }
 
+.category-heading {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 24px 16px 4px;
+  color: #333;
+}
