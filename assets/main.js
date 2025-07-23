@@ -47,20 +47,28 @@ function renderAllLists() {
 function renderListDetail(listIndex) {
     const list = lists[listIndex];
 
-    // Separera klara och ej klara varor
-    const uncheckedItems = list.items.filter(item => !item.done);
-    const checkedItems = list.items.filter(item => item.done);
+    const unchecked = [];
+    const checked = [];
 
-    const itemsHtml = [...uncheckedItems, ...checkedItems].map((item, itemIndex) => `
-        <li class="todo-item ${item.done ? 'done' : ''}">
-            <input type="checkbox" ${item.done ? "checked" : ""} onchange="window.toggleItem(${listIndex}, ${itemIndex})" />
-            <span class="item-name">
-                ${item.done ? `<s>${item.name}</s>` : item.name}
-                ${item.done && item.doneBy ? `<small><br><em>${item.doneBy}, ${item.doneAt}</em></small>` : ""}
-            </span>
-            <button class="delete-btn" onclick="window.deleteItem(${listIndex}, ${itemIndex})">🗑️</button>
-        </li>
-    `).join("");
+    list.items.forEach((item, index) => {
+        const html = `
+            <li class="todo-item ${item.done ? 'done' : ''}">
+                <input type="checkbox" ${item.done ? "checked" : ""} onchange="window.toggleItem(${listIndex}, ${index})" />
+                <span class="item-name">
+                    ${item.done ? `<s>${item.name}</s>` : item.name}
+                    ${item.done && item.doneBy ? `<small><br><em>${item.doneBy}, ${item.doneAt}</em></small>` : ""}
+                </span>
+                <button class="delete-btn" onclick="window.deleteItem(${listIndex}, ${index})">🗑️</button>
+            </li>
+        `;
+        if (item.done) {
+            checked.push(html);
+        } else {
+            unchecked.push(html);
+        }
+    });
+
+    const itemsHtml = [...unchecked, ...checked].join("");
 
     appContainer.innerHTML = `
         <h1>${list.name}</h1>
@@ -75,8 +83,6 @@ function renderListDetail(listIndex) {
     `;
     document.getElementById("newItemInput").focus();
 }
-
-
 // --- FUNKTIONALITET (exponerad på window-objektet) ---
 
 // Lägg till en ny lista
