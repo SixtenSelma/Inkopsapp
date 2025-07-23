@@ -176,6 +176,7 @@ window.renameItem = (li, ii) => {
   if (newName && newName.trim()) {
     item.name = newName.trim();
     saveAndRenderList(li);
+    closeAnyMenu();
   }
 };
 
@@ -184,18 +185,21 @@ window.renameList = i => {
   if (n) {
     lists[i].name = n.trim();
     saveAndRender();
+    closeAnyMenu();
   }
 };
 
 window.deleteItem = (li, ii) => {
   lists[li].items.splice(ii, 1);
   saveAndRenderList(li);
+  closeAnyMenu();
 };
 
 window.deleteList = i => {
   if (confirm("Vill du ta bort listan permanent?")) {
     lists.splice(i, 1);
     saveAndRender();
+    closeAnyMenu();
   }
 };
 
