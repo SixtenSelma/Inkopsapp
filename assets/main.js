@@ -88,8 +88,7 @@ function renderListDetail(i) {
       ${items || '<li>Inga varor än.</li>'}
     </ul>
     <div class="bottom-bar">
-      <button onclick="showNewItemDialog(${i})" title="Lägg till en vara">➕</button>
-      <button onclick="showBatchAddDialog(${i})" title="Snabbinmatning">➕➕</button>
+      <button onclick="showBatchAddDialog(${i})" title="Lägg till en vara">➕</button>
     </div>
   `;
 
