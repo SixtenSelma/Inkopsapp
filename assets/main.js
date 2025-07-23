@@ -102,7 +102,6 @@ function renderListDetail(i) {
           <span class="item-name">
             ${item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`}
             ${item.note ? `<small class="item-note">(${item.note})</small>` : ''}
-            ${item.category ? `<small class="item-category">• ${item.category}</small>` : ''}
             ${item.done && item.doneBy ? `<small>${item.doneBy} • ${formatDate(item.doneAt)}</small>` : ''}
           </span>
           <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
