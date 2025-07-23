@@ -361,3 +361,9 @@ button:hover {
   color: #333;
 }
 
+/* ===== Förhindra iOS-autozoom på input/select ===== */
+input,
+select,
+textarea {
+  font-size: 16px !important;
+}
