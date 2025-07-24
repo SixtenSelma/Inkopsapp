@@ -76,6 +76,16 @@ h1 {
   color: #000;
 }
 
+/* Masterlist särskiljning */
+.master-list .list-card {
+  background-color: #fff8e1; /* Ljusgul bakgrund */
+  border-left: 5px solid #f1c40f; /* Gul kant */
+}
+
+.master-list .list-card-header {
+  color: #b7950b; /* Mörkare gul text */
+}
+
 /* ===== List Wrapper & Cards ===== */
 .list-wrapper {
   padding: 16px;
