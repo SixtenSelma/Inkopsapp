@@ -48,14 +48,13 @@ window.renderAllLists = function() {
 
 // === Renderar en enskild lista ===
 window.renderListDetail = function(i) {
-  alert("Steg 1: renderListDetail " + i);
+  alert("Steg 1: renderListDetail för index " + i);
   const list = lists[i];
-  alert("Steg 2: list hämtad: " + (list ? list.name : 'INTE HITTAD'));
-  // Dela upp i två listor: ej klara först, sedan klara
+  alert("Steg 2: Hämtat listobjekt: " + (list ? JSON.stringify(list) : "null"));
+
   const allItems = list.items.map((item, realIdx) => ({ ...item, realIdx }));
   alert("Steg 3: allItems length = " + allItems.length);
 
-  // Sortera inom kategori: först ej klara, sen klara. Inom varje: namnordning
   const grouped = {};
   standardKategorier.forEach(cat => grouped[cat] = []);
   allItems.forEach(item => {
@@ -64,32 +63,48 @@ window.renderListDetail = function(i) {
     grouped[cat].push(item);
   });
 
-  const itemsHTML = Object.entries(grouped)
-    .filter(([, items]) => items.length)
-    .map(([cat, items]) => {
-      const sorted = [
-        ...items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv')),
-        ...items.filter(x => x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'))
-      ];
-      const itemList = sorted.map(item => `
-        <li class="todo-item ${item.done ? 'done' : ''}">
-          <input type="checkbox" ${item.done ? 'checked' : ''} onchange="debugToggle(${i},${item.realIdx})" />
-          <span class="item-name">
-            ${item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`}
-            ${item.note ? `<small class="item-note">(${item.note})</small>` : ''}
-            ${item.done && item.doneBy ? `<small>${item.doneBy} • ${formatDate(item.doneAt)}</small>` : ''}
-          </span>
-          <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
-        </li>
-      `).join("");
-
-      return `
-        <h3 class="category-heading">${cat}</h3>
-        <ul class="todo-list">${itemList}</ul>
-      `;
-    }).join("");
-
-  alert("Steg 4: itemsHTML genererad: " + itemsHTML.length);
+  let itemsHTML;
+  try {
+    itemsHTML = Object.entries(grouped)
+      .filter(([, items]) => items.length)
+      .map(([cat, items]) => {
+        try {
+          // Sortera: Ej klara först, inom varje: namn A-Ö
+          const sorted = [
+            ...items.filter(x => !x.done).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'sv')),
+            ...items.filter(x => x.done).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'sv'))
+          ];
+          const itemList = sorted.map(item => {
+            // Felsökning: Kolla om name finns
+            if (!item || typeof item !== "object" || typeof item.name !== "string") {
+              alert("FEL: item saknar korrekt name!\n" + JSON.stringify(item));
+            }
+            return `
+              <li class="todo-item ${item.done ? 'done' : ''}">
+                <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx}, window.lists, window.user, window.saveAndRenderList)" />
+                <span class="item-name">
+                  ${item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`}
+                  ${item.note ? `<small class="item-note">(${item.note})</small>` : ''}
+                  ${item.done && item.doneBy ? `<small>${item.doneBy} • ${formatDate(item.doneAt)}</small>` : ''}
+                </span>
+                <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
+              </li>
+            `;
+          }).join("");
+          return `
+            <h3 class="category-heading">${cat}</h3>
+            <ul class="todo-list">${itemList}</ul>
+          `;
+        } catch (e) {
+          alert("Krasch i kategori " + cat + ": " + e.message + "\nDATA: " + JSON.stringify(items));
+          return `<div style="color:red">Fel i kategori ${cat}</div>`;
+        }
+      }).join("");
+  } catch (err) {
+    alert("Krasch i itemsHTML-generering: " + err.message);
+    itemsHTML = "<div style='color:red'>Fel vid generering av varor.</div>";
+  }
+  alert("Steg 4: itemsHTML genererad");
 
   app.innerHTML = `
     <div class="top-bar">
@@ -109,10 +124,9 @@ window.renderListDetail = function(i) {
     </div>
   `;
 
-  alert("Steg 5: DOM inmatad och klar");
   applyFade && applyFade();
+  alert("Steg 5: Klar med renderListDetail");
 };
-
 // --- Lägg till denna funktion i lists.js! ---
 window.addItemsWithCategory = function(listIndex) {
   showBatchAddDialog(listIndex, function(added) {
