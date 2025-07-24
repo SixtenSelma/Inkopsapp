@@ -76,19 +76,15 @@ h1 {
   color: #000;
 }
 
-/* Masterlist särskiljning */
-.list-card-master {
-  background-color: #fff9e6 !important;
-  border-left: 6px solid #f1c40f;
+/* ===== Mall-listor ===== */
+.list-card-template {
+  background-color: #f9f6ee !important;
+  opacity: 0.7;
+  border-left: 5px solid #bcbcbc;
 }
 
-.master-list .list-card {
-  background-color: #fff8e1; /* Ljusgul bakgrund */
-  border-left: 5px solid #f1c40f; /* Gul kant */
-}
-
-.master-list .list-card-header {
-  color: #b7950b; /* Mörkare gul text */
+.list-card-template .list-card-header {
+  color: #bcbcbc;
 }
 
 /* ===== List Wrapper & Cards ===== */
@@ -175,12 +171,10 @@ h1 {
   border-bottom: none;
 }
 
-/* När en vara är klar (checkad) – samtliga textfärger i samma gråa nyans */
 .todo-item.done {
-  opacity: 1; /* Behåll full opacitet, vi styr färg istället */
-  color: #888 !important; /* Mjuk grå textfärg för hela raden */
+  opacity: 1;
+  color: #888 !important;
 }
-
 .todo-item.done .item-name,
 .todo-item.done .item-name strong,
 .todo-item.done .item-name s,
@@ -188,14 +182,12 @@ h1 {
 .todo-item.done .item-note-sign-wrapper > .item-note,
 .todo-item.done .item-note-sign-wrapper > .item-sign-date {
   color: #888 !important;
-  font-style: italic !important; /* Ta bort kursiv på komplettering */
+  font-style: italic !important;
 }
-
 .todo-item.done .item-name s {
   color: #888 !important;
-  opacity: 1; /* Ta bort blekning */
+  opacity: 1;
 }
-
 .todo-item .item-name {
   flex-grow: 1;
   margin-left: 12px;
@@ -213,13 +205,13 @@ h1 {
   line-height: 1.1;
   font-family: inherit;
   color: #888;
-  font-style: italic; /* Kursiv på hela rad 2 */
+  font-style: italic;
 }
 
 .item-note-sign-wrapper > .item-note {
   flex: 1;
   color: #888;
-  font-style: inherit; /* Ärvs, alltså också kursiv */
+  font-style: inherit;
 }
 
 .item-note-sign-wrapper > .item-sign-date {
@@ -227,21 +219,24 @@ h1 {
   font-weight: 600;
   color: #555;
   margin-left: 10px;
-  font-style: inherit; /* Ärvs, alltså också kursiv */
+  font-style: inherit;
 }
+
 /* ===== Checkboxes ===== */
 input[type="checkbox"] {
   width: 18px;
   height: 18px;
-  accent-color: #999999; /* Eller den grå nyans du vill ha */
+  accent-color: #999999;
 }
+
 /* ===== Input & Buttons ===== */
-input[type="text"] {
+input[type="text"], input[type="search"] {
   border: 1.5px solid #dcdde1;
   border-radius: 10px;
   padding: 12px;
   font-size: 1rem;
   width: 100%;
+  box-sizing: border-box;
 }
 
 button {
@@ -297,6 +292,7 @@ button:hover {
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(4px);
 }
 
 .modal-content {
@@ -306,9 +302,11 @@ button:hover {
   width: 90%;
   max-width: 400px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  animation: popIn 0.25s ease-out;
 }
 
-.modal-content input {
+.modal-content input,
+.modal-content .batch-search-row input {
   width: 100%;
   padding: 10px 14px;
   font-size: 1rem;
@@ -324,12 +322,115 @@ button:hover {
   margin-top: 16px;
 }
 
-.preview-list {
+.preview-list,
+.add-batch-preview-list {
   list-style: disc;
   margin: 12px 0 0 20px;
   padding: 0;
   font-size: 0.95rem;
   color: #2f3640;
+}
+
+.add-batch-preview-list {
+  margin: 12px 0 0 0;
+  list-style: none;
+}
+.add-batch-preview-list li {
+  background: #f8f8fa;
+  border-radius: 7px;
+  padding: 7px 13px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+}
+.add-batch-preview-list li .remove-btn {
+  margin-left: auto;
+  background: none;
+  color: #d44;
+  border: none;
+  font-size: 1.2em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.add-batch-preview-list li .remove-btn:hover {
+  background: #ffd6d6;
+}
+
+/* ===== Nya Batch Add med Sök ===== */
+.batch-search-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+.batch-search-row input[type="search"] {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1.5px solid #dcdde1;
+  font-size: 1rem;
+}
+
+.batch-search-btn {
+  background: none;
+  border: none;
+  padding: 0 6px;
+  font-size: 1.6em;
+  color: #4cd137;
+  cursor: pointer;
+  margin-top: 0.12em;
+  margin-left: 0;
+  margin-right: 2px;
+  border-radius: 7px;
+  transition: background 0.2s;
+}
+.batch-search-btn:hover,
+.batch-search-btn.active {
+  background: #eaeef1;
+}
+
+.add-batch-search-list {
+  max-height: 150px;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 7px;
+  border: 1px solid #e0e0e0;
+  margin-top: 2px;
+  margin-bottom: 10px;
+  padding: 4px 0;
+  box-shadow: 0 1px 4px rgba(80,80,80,0.08);
+}
+.add-batch-search-list li {
+  padding: 7px 14px;
+  cursor: pointer;
+  font-size: 1rem;
+  border-radius: 7px;
+  color: #252525;
+  transition: background 0.15s, color 0.15s;
+  display: flex;
+  align-items: center;
+}
+.add-batch-search-list li:hover,
+.add-batch-search-list li.selected {
+  background: #eaf9ea;
+  color: #38963c;
+}
+.add-batch-search-list li.inactive {
+  opacity: 0.44;
+  pointer-events: none;
+}
+
+.add-batch-search-list li .checkmark {
+  font-size: 1.3em;
+  margin-left: auto;
+  color: #4cd137;
+  font-weight: bold;
+  display: none;
+}
+.add-batch-search-list li.selected .checkmark {
+  display: inline-block;
 }
 
 /* ===== Meny (popup) ===== */
@@ -357,7 +458,6 @@ button:hover {
   cursor: pointer;
   color: #333;
 }
-
 .item-menu button:hover {
   background-color: #f1f2f6;
 }
@@ -389,12 +489,7 @@ button:hover {
   animation: popIn 0.25s ease-out;
 }
 
-/* Lätt bakgrundsblur på modalen (valfritt, snygg effekt) */
-.modal {
-  backdrop-filter: blur(4px);
-}
-
-/* Smidig "toast"-liknande feedback – kan användas om du vill visa sparad/notifiering */
+/* Smidig "toast"-liknande feedback */
 .toast {
   position: fixed;
   bottom: 80px;
@@ -462,7 +557,6 @@ button:hover {
   padding: 0;
   user-select: none;
 }
-
 .category-add-btn:hover {
   background-color: #ddd;
 }
@@ -519,7 +613,6 @@ select:focus {
   font-weight: 800;
   cursor: pointer;
 }
-
 .back-arrow {
   font-size: 1.8em;
   color: #2863c7;
@@ -531,8 +624,6 @@ select:focus {
 .back-title:hover .back-arrow {
   color: #44bd32;
 }
-
-/* Om du kör SVG: */
 .back-arrow-svg {
   margin-right: 6px;
   vertical-align: middle;
@@ -545,4 +636,12 @@ select:focus {
 
 .filter-row {
   background: #f6f7fa;
-  border-bottom: 1px solid #
+  border-bottom: 1px solid #e0e0e0;
+}
+
+/* ===== Extra: Placeholder text gråare ===== */
+input::placeholder,
+input[type="search"]::placeholder {
+  color: #aaa !important;
+  opacity: 1;
+}
