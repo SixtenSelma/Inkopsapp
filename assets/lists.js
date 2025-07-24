@@ -57,10 +57,18 @@ window.renderAllLists = function() {
 };
 window.renderListDetail = function(i) {
   const list = lists[i];
-  // Dela upp i två listor: ej klara först, sedan klara
-  const allItems = list.items.map((item, realIdx) => ({ ...item, realIdx }));
+
+  // Spara/döp toggle i localStorage
+  const HIDE_DONE_KEY = "hideDoneItems";
+  let hideDone = true;
+  if (localStorage.getItem(HIDE_DONE_KEY) !== null) {
+    hideDone = localStorage.getItem(HIDE_DONE_KEY) === "true";
+  } else {
+    localStorage.setItem(HIDE_DONE_KEY, "true");
+  }
 
   // Gruppindelning på kategori
+  const allItems = list.items.map((item, realIdx) => ({ ...item, realIdx }));
   const grouped = {};
   standardKategorier.forEach(cat => grouped[cat] = []);
   allItems.forEach(item => {
@@ -69,15 +77,30 @@ window.renderListDetail = function(i) {
     grouped[cat].push(item);
   });
 
+  // Visa checkrutan högst upp
+  let checkHideHtml = `
+    <label style="display:flex;align-items:center;gap:8px;padding: 10px 16px 2px 2px;">
+      <input id="hideDoneItemsToggle" type="checkbox" ${hideDone ? "checked" : ""} style="width:20px;height:20px;margin-right:6px;" />
+      <span style="font-size:1.08em;">Dölj klara varor och kategorier (dölj klara)</span>
+    </label>
+  `;
+
+  // Bygg HTML för varorna
   const itemsHTML = Object.entries(grouped)
-    .filter(([, items]) => items.length)
     .map(([cat, items]) => {
       try {
-        // Sortera: Ej klara först (A-Ö), sedan klara (A-Ö)
-        const sorted = [
+        let sorted = [
           ...items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv')),
           ...items.filter(x => x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'))
         ];
+
+        // Dölj klara varor/kategorier om boxen är ikryssad
+        if (hideDone) {
+          // Visa kategori endast om det finns minst en som INTE är klar
+          sorted = sorted.filter(x => !x.done);
+          if (sorted.length === 0) return "";
+        }
+
         const itemList = sorted.map(item => {
           // Rad 2 = note + stämpel eller bara stämpel eller bara note
           let infoLine = '';
@@ -130,6 +153,7 @@ window.renderListDetail = function(i) {
       <div style="width: 56px"></div>
     </div>
     <div class="category-list">
+      ${checkHideHtml}
       ${itemsHTML || '<p>Inga varor än.</p>'}
     </div>
     <div class="bottom-bar">
@@ -137,9 +161,17 @@ window.renderListDetail = function(i) {
     </div>
   `;
 
+  // Lyssna på togglen (MÅSTE göras efter DOM är renderad)
+  const toggle = document.getElementById("hideDoneItemsToggle");
+  if (toggle) {
+    toggle.onchange = function() {
+      localStorage.setItem(HIDE_DONE_KEY, toggle.checked ? "true" : "false");
+      renderListDetail(i);
+    };
+  }
+
   applyFade && applyFade();
-};
-// --- Lägg till denna funktion i lists.js! ---
+};// --- Lägg till denna funktion i lists.js! ---
 window.addItemsWithCategory = function(listIndex) {
   showBatchAddDialog(listIndex, function(added) {
     if (!added || !added.length) return;
