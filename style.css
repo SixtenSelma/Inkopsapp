@@ -31,18 +31,8 @@ body {
 }
 
 .top-bar h1 {
-  font-size: 2rem; /* Större huvudrubrik */
+  font-size: 2rem;
   font-weight: 800;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-}
-
-h1 {
-  font-size: 20px;
-  font-weight: 700;
   margin: 0;
   display: flex;
   align-items: center;
@@ -71,10 +61,7 @@ h1 {
   padding: 2px;
   transition: color 0.2s ease;
 }
-
-.icon-button:hover {
-  color: #000;
-}
+.icon-button:hover { color: #000; }
 
 /* ===== List Wrapper & Cards ===== */
 .list-wrapper {
@@ -93,10 +80,7 @@ h1 {
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   transition: background 0.2s ease;
 }
-
-.list-card:hover {
-  background: #eef1f5;
-}
+.list-card:hover { background: #eef1f5; }
 
 .list-card-header {
   display: flex;
@@ -108,7 +92,7 @@ h1 {
 }
 
 .list-card-title {
-  font-size: 1.22rem; /* Större listnamn */
+  font-size: 1.22rem;
   font-weight: 700;
 }
 
@@ -129,14 +113,12 @@ h1 {
   overflow: hidden;
   margin: 8px 0;
 }
-
 .progress-fill {
   background-color: #4cd137;
   height: 100%;
   width: 0%;
   transition: width 0.3s ease;
 }
-
 .progress-text {
   font-size: 0.85rem;
   color: #636e72;
@@ -144,52 +126,47 @@ h1 {
 
 /* ===== To-Do View ===== */
 .category-list {
-  padding: 0 16px 80px; /* Extra utrymme för flytande knapp */
+  flex: 1 0 auto;
+  overflow-y: auto;
 }
 
 .category-block {
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
 .category-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   font-size: 1.22rem;
   font-weight: 800;
   color: #232323;
-  margin: 36px 0 8px 0;
+  margin: 32px 0 8px 0;
   padding: 6px 16px 6px 10px;
   background: #f4faf4;
   border-left: 6px solid #4cd137;
   border-radius: 9px 30px 30px 9px;
   box-shadow: 0 1px 0 #e0e0e0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  position: relative;
 }
 
 .category-add-btn {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   background-color: #eee;
   border-radius: 50%;
   border: none;
   font-size: 20px;
-  line-height: 28px;
+  line-height: 32px;
   text-align: center;
   color: #555;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  padding: 0;
+  margin-left: 12px;
+  flex-shrink: 0;
 }
+.category-add-btn:hover { background-color: #ddd; }
 
-.category-add-btn:hover {
-  background-color: #ddd;
-}
-
+/* ===== Items ===== */
 .todo-list {
   padding: 0;
   margin: 0;
@@ -198,56 +175,45 @@ h1 {
 .todo-item {
   display: flex;
   align-items: center;
-  padding: 14px 12px;
+  padding: 14px 16px;
   border-bottom: 1px solid #eaeaea;
   background: #fff;
 }
-
-.todo-item:last-child {
-  border-bottom: none;
-}
-
-.todo-item .item-name {
-  flex-grow: 1;
-  margin-left: 12px;
-  font-size: 1rem;
-  display: flex;
-  flex-direction: column;
-}
+.todo-item:last-child { border-bottom: none; }
 
 .todo-item.done {
   opacity: 0.6;
 }
 
-.todo-item.done .item-name s {
-  color: #999;
-}
-
-/* ===== Komplement + signatur/datum ===== */
-.item-note-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.85rem;
-  color: #888;
-  margin-top: 4px;
-  font-style: italic;
-}
-
-.item-note-left {
-  overflow-wrap: anywhere;
-}
-
-.item-note-right {
-  white-space: nowrap;
-  color: #555;
-  font-weight: 500;
-  user-select: none;
-}
-
-/* ===== Checkboxes ===== */
 input[type="checkbox"] {
   width: 18px;
   height: 18px;
+  flex-shrink: 0;
+}
+
+/* Bryt ut textdelen till en flex-kolumn, och metadelen till höger */
+.item-name {
+  display: flex;
+  flex-direction: column;
+  margin-left: 12px;
+  font-size: 1rem;
+  flex-grow: 1;
+}
+
+.item-note {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: #888;
+  margin-top: 2px;
+}
+
+/* Metaraden (user + datum/tid) */
+.item-meta {
+  font-size: 0.85rem;
+  color: #636e72;
+  margin-left: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* ===== Input & Buttons ===== */
@@ -270,20 +236,7 @@ button {
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
-
-button:hover {
-  background-color: #44bd32;
-}
-
-/* ===== Sekundärknapp ===== */
-.btn-secondary {
-  background-color: #eaeef1;
-  color: #2f3542;
-}
-
-.btn-secondary:hover {
-  background-color: #dcdde1;
-}
+button:hover { background-color: #44bd32; }
 
 /* ===== Flytande plus-knapp ===== */
 .bottom-bar {
@@ -292,7 +245,6 @@ button:hover {
   right: 24px;
   z-index: 50;
 }
-
 .bottom-bar button {
   width: 56px;
   height: 56px;
@@ -313,7 +265,6 @@ button:hover {
   align-items: center;
   z-index: 1000;
 }
-
 .modal-content {
   background: #fff;
   padding: 24px;
@@ -321,18 +272,22 @@ button:hover {
   width: 90%;
   max-width: 400px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  animation: popIn 0.25s ease-out;
 }
-
-.modal-content input {
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.modal-content input,
+.modal-content select {
   width: 100%;
   padding: 10px 14px;
-  font-size: 1rem;
+  font-size: 1rem !important;
   border-radius: 8px;
   border: 1px solid #ccc;
   box-sizing: border-box;
   margin-top: 12px;
 }
-
 .modal-actions {
   display: flex;
   justify-content: space-between;
@@ -350,7 +305,6 @@ button:hover {
   box-shadow: 0 2px 10px rgba(0,0,0,0.15);
   width: 160px;
 }
-
 .item-menu button {
   background: none;
   border: none;
@@ -361,12 +315,9 @@ button:hover {
   cursor: pointer;
   color: #333;
 }
+.item-menu button:hover { background-color: #f1f2f6; }
 
-.item-menu button:hover {
-  background-color: #f1f2f6;
-}
-
-/* ===== Animation ===== */
+/* ===== Animation – fade ===== */
 .fade-enter {
   opacity: 0;
   transform: scale(0.98);
@@ -377,115 +328,13 @@ button:hover {
   transition: opacity 200ms, transform 200ms;
 }
 
-/* ===== Extra Modalanimation ===== */
-@keyframes popIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.modal-content {
-  animation: popIn 0.25s ease-out;
-}
-
-/* ===== Toast ===== */
-.toast {
-  position: fixed;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #4cd137;
-  color: white;
-  padding: 12px 20px;
-  border-radius: 20px;
-  font-weight: 500;
-  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
-  opacity: 0;
-  animation: fadeToast 2.5s ease-out forwards;
-  z-index: 2000;
-}
-
-@keyframes fadeToast {
-  0% { opacity: 0; transform: translate(-50%, 20px); }
-  10% { opacity: 1; transform: translate(-50%, 0); }
-  90% { opacity: 1; }
-  100% { opacity: 0; transform: translate(-50%, -10px); }
-}
-
-/* ===== Förhindra iOS-autozoom på input/select ===== */
-input,
-select,
-textarea {
+/* ===== iOS-fix input/select ===== */
+input, select, textarea {
   font-size: 16px !important;
 }
 
-select {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-
-  background-color: #fff;
-  border: 1.5px solid #dcdde1;
-  border-radius: 10px;
-  padding: 12px 14px;
-  font-size: 16px;
-  width: 100%;
-  box-sizing: border-box;
-
-  background-image: url("data:image/svg+xml;utf8,<svg fill='gray' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
-  background-repeat: no-repeat;
-  background-position: right 14px center;
-  background-size: 16px 16px;
-  padding-right: 40px;
-
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-select:focus {
-  border-color: #4cd137;
-  box-shadow: 0 0 0 2px rgba(76, 209, 55, 0.25);
-  outline: none;
-}
-
+/* Responsiv för modal på små skärmar */
 @media (max-width: 700px) {
-  .modal {
-    align-items: flex-start !important;
-  }
-  .modal-content {
-    margin-top: 30px !important;
-    margin-bottom: 20px !important;
-  }
-}
-
-/* ===== Back title och pil ===== */
-.back-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 1.5rem;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.back-arrow {
-  font-size: 1.8em;
-  color: #2863c7;
-  font-weight: bold;
-  margin-right: 2px;
-  user-select: none;
-  transition: color 0.15s;
-}
-
-.back-title:hover .back-arrow {
-  color: #44bd32;
-}
-
-.back-arrow-svg {
-  margin-right: 6px;
-  vertical-align: middle;
+  .modal { align-items: flex-start !important; }
+  .modal-content { margin-top: 30px !important; margin-bottom: 20px !important; }
 }
