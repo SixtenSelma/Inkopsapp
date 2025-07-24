@@ -7,11 +7,10 @@ window.scrollModalToTop = function () {
   }, 100);
 };
 
-// Byt namn-modal
+// Byt namn-modal (används för att ändra namn på listor eller varor)
 window.showRenameDialog = function (title, currentName, onConfirm, suggestions = []) {
   const m = document.createElement("div");
   m.className = "modal";
-
   // Skapa datalist options för autocomplete om finns
   const dataListId = "itemNamesListModal";
   let dataListHTML = "";
@@ -84,163 +83,151 @@ window.showNewListModal = function (onConfirm) {
   };
 };
 
-// Batch add-modal (flera varor samtidigt, manuellt)
-window.showBatchAddDialog = function (listIndex, onDone) {
+// Universell add-items-dialog (både för kategori och global plus)
+window.showAddItemsDialog = function({ kategori = null, allaVaror = [], mallVaror = [], kategoriVaror = [], onDone }) {
   const m = document.createElement("div");
   m.className = "modal";
-  m.innerHTML = `
-    <div class="modal-content">
-      <h2>Lägg till vara</h2>
-      <input id="batchItemInput" placeholder="Skriv vara och tryck Enter…" autocomplete="off" />
-      <ul id="batchPreview" class="preview-list"></ul>
-      <div class="modal-actions">
-        <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
-        <button onclick="confirmBatchAdd()">Klar</button>
-        <button id="searchAllBtn" title="Sök i alla listor" style="margin-left:auto;font-size:1.3em;">🔍</button>
-        <button id="searchTemplateBtn" title="Sök i mallar" style="font-size:1.3em;">🔎</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(m);
 
-  const input = document.getElementById("batchItemInput");
-  const preview = document.getElementById("batchPreview");
-  let added = [];
+  let tempList = []; // Temporärt array för nya varor
+  let searchResults = []; // Sista visade sökresultat
+  let currentSearch = "alla"; // "alla", "mall", "kategori"
 
-  input.focus();
-  window.scrollModalToTop && window.scrollModalToTop();
+  // Hämta lista för aktuell sökning
+  function getSearchSource() {
+    if (currentSearch === "kategori") return kategoriVaror;
+    if (currentSearch === "mall") return mallVaror;
+    return allaVaror;
+  }
 
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && input.value.trim()) {
-      const name = input.value.trim();
-      added.push(name);
-      const li = document.createElement("li");
-      li.textContent = name;
-      preview.appendChild(li);
-      input.value = "";
-    }
-  });
+  // Filtrera lista (case-insensitive)
+  function filterSource(q) {
+    if (!q) return getSearchSource();
+    const lower = q.toLowerCase();
+    return getSearchSource().filter(v => v.toLowerCase().includes(lower));
+  }
 
-  window.confirmBatchAdd = () => {
-    if (input && input.value.trim()) {
-      added.push(input.value.trim());
-    }
-    if (onDone) onDone(added);
-    document.body.removeChild(m);
-  };
-
-  // SÖK-knapp 1 – Sök i ALLA listor
-  document.getElementById("searchAllBtn").onclick = function () {
-    if (!window.lists) return;
-    // Hämta alla unika varor från alla listor (ej mallar)
-    const all = [];
-    window.lists.forEach(list => {
-      if (list.name && !list.name.startsWith("Mall:")) {
-        list.items.forEach(item => {
-          if (!all.find(x => x.name === item.name)) {
-            all.push({ name: item.name, note: item.note || "" });
-          }
-        });
-      }
-    });
-    window.showSearchListDialog("Välj från alla listor", all, (picked) => {
-      picked.forEach(name => {
-        if (!added.includes(name)) {
-          added.push(name);
-          const li = document.createElement("li");
-          li.textContent = name;
-          preview.appendChild(li);
-        }
-      });
-    });
-  };
-
-  // SÖK-knapp 2 – Sök i alla MALL-listor
-  document.getElementById("searchTemplateBtn").onclick = function () {
-    if (!window.lists) return;
-    // Hämta alla unika varor från Mall-listor
-    const all = [];
-    window.lists.forEach(list => {
-      if (list.name && list.name.startsWith("Mall:")) {
-        list.items.forEach(item => {
-          if (!all.find(x => x.name === item.name)) {
-            all.push({ name: item.name, note: item.note || "" });
-          }
-        });
-      }
-    });
-    window.showSearchListDialog("Välj från mallar", all, (picked) => {
-      picked.forEach(name => {
-        if (!added.includes(name)) {
-          added.push(name);
-          const li = document.createElement("li");
-          li.textContent = name;
-          preview.appendChild(li);
-        }
-      });
-    });
-  };
-};
-
-// Sök-dialog som visar varor (med checkbox) och returnerar de som användaren markerar
-window.showSearchListDialog = function (title, items, onPickMany) {
-  const m = document.createElement("div");
-  m.className = "modal";
-  m.innerHTML = `
-    <div class="modal-content">
-      <h2>${title}</h2>
-      <div class="batch-search-row">
-        <input id="searchInput" type="search" placeholder="Sök vara…" autocomplete="off" />
-      </div>
-      <ul id="searchResultList" class="add-batch-search-list"></ul>
-      <div class="modal-actions">
-        <button onclick="document.body.removeChild(this.closest('.modal'))">Stäng</button>
-        <button id="pickManyOK">Lägg till</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(m);
-
-  const searchInput = document.getElementById("searchInput");
-  const resultList = document.getElementById("searchResultList");
-  let selected = new Set();
-
-  // Rendera listan direkt (alla varor vid öppning, oavsett sök)
-  function renderList() {
-    const query = searchInput.value.trim().toLowerCase();
-    const filtered = !query ? items : items.filter(it => it.name.toLowerCase().includes(query));
-    resultList.innerHTML = filtered.map(it => `
-      <li class="batch-list-row">
-        <label class="batch-checkbox-label">
-          <input type="checkbox" class="batch-checkbox" data-name="${it.name.replace(/"/g, '&quot;')}">
-          <span class="batch-checkbox-title">${it.name}</span>
-          ${it.note ? `<span class="batch-checkbox-desc">${it.note}</span>` : ""}
+  // Skapa söklistan visuellt
+  function renderSearchList(q = "") {
+    const arr = filterSource(q);
+    searchResults = arr;
+    const html = arr.length
+      ? arr.map(name => `
+        <label class="search-item-row">
+          <input type="checkbox" data-searchname="${name.replace(/"/g,"&quot;")}" ${tempList.includes(name) ? "checked" : ""}>
+          <span>${name}</span>
         </label>
-      </li>
-    `).join("");
-    // Återställ redan valda checkboxar
-    filtered.forEach(it => {
-      if (selected.has(it.name)) {
-        resultList.querySelector(`input[data-name="${it.name.replace(/"/g, '&quot;')}"]`).checked = true;
-      }
-    });
-    // Eventlyssnare för checkboxes
-    resultList.querySelectorAll("input.batch-checkbox").forEach(cb => {
-      cb.addEventListener("change", function () {
-        const name = this.getAttribute("data-name");
-        if (this.checked) selected.add(name);
-        else selected.delete(name);
+      `).join("")
+      : "<div style='color:#aaa;margin:12px 0;'>Inga träffar…</div>";
+    resultDiv.innerHTML = html;
+
+    // Lägg till click event på alla checkboxes
+    Array.from(resultDiv.querySelectorAll('input[type="checkbox"]')).forEach(chk => {
+      chk.addEventListener("change", function() {
+        const name = this.getAttribute("data-searchname");
+        if (this.checked) {
+          if (!tempList.includes(name)) tempList.push(name);
+        } else {
+          tempList = tempList.filter(n => n !== name);
+        }
+        renderPreviewList();
       });
     });
   }
 
-  searchInput.addEventListener("input", renderList);
-  renderList(); // Visa direkt alla varor vid öppning
+  // Rendera temporära preview-listan
+  function renderPreviewList() {
+    previewList.innerHTML = tempList.map((name, idx) =>
+      `<li>
+        ${name}
+        <button type="button" style="margin-left:8px;" onclick="(function(){
+          window._removeTempListItem_${idx} && window._removeTempListItem_${idx}();
+        })()">❌</button>
+      </li>`
+    ).join("");
+    // Gör så varje knapp funkar!
+    tempList.forEach((n, idx) => {
+      window["_removeTempListItem_" + idx] = function() {
+        tempList = tempList.filter((v, i) => i !== idx);
+        renderPreviewList();
+        renderSearchList(searchInput.value);
+      };
+    });
+  }
 
-  document.getElementById("pickManyOK").onclick = () => {
-    onPickMany(Array.from(selected));
+  // Huvuddialog
+  m.innerHTML = `
+    <div class="modal-content" style="min-width:290px;">
+      <h2>${kategori ? `Lägg till vara i kategori "${kategori}"` : "Lägg till varor"}</h2>
+      <div style="display:flex;gap:6px;margin-bottom:12px;">
+        <input id="batchItemInput" autocomplete="off" placeholder="Skriv vara och tryck Enter…" style="flex:1;" />
+        <button id="searchAllBtn" title="Visa alla varor i alla listor" style="padding:0 12px;">🔍</button>
+        <button id="searchMallBtn" title="Visa varor i mallar" style="padding:0 12px;">📋</button>
+        ${kategori ? `<button id="searchCatBtn" title="Visa varor i denna kategori" style="padding:0 12px;">🏷️</button>` : ""}
+      </div>
+      <div id="searchResult" style="max-height:180px;overflow:auto;margin-bottom:10px;"></div>
+      <ul id="batchPreview" class="preview-list"></ul>
+      <div class="modal-actions">
+        <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
+        <button id="doneBtn">Klar</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(m);
+
+  // --- Elementreferenser
+  const input = m.querySelector("#batchItemInput");
+  const resultDiv = m.querySelector("#searchResult");
+  const previewList = m.querySelector("#batchPreview");
+  const doneBtn = m.querySelector("#doneBtn");
+  const searchAllBtn = m.querySelector("#searchAllBtn");
+  const searchMallBtn = m.querySelector("#searchMallBtn");
+  const searchCatBtn = m.querySelector("#searchCatBtn");
+
+  // --- Enter = lägg till rad manuellt
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter" && input.value.trim()) {
+      const name = input.value.trim();
+      if (!tempList.includes(name)) tempList.push(name);
+      input.value = "";
+      renderPreviewList();
+      renderSearchList(searchInput.value);
+    }
+  });
+
+  // --- Klar-knapp
+  doneBtn.onclick = function() {
+    if (input.value.trim()) {
+      const name = input.value.trim();
+      if (!tempList.includes(name)) tempList.push(name);
+    }
+    if (onDone) onDone([...tempList]);
     document.body.removeChild(m);
   };
+
+  // --- Sökfunktionalitet
+  const searchInput = input; // Använder samma inputfält för sök och ny vara
+  function switchSearch(type) {
+    currentSearch = type;
+    renderSearchList(searchInput.value);
+    searchInput.focus();
+  }
+
+  searchAllBtn.onclick = () => switchSearch("alla");
+  searchMallBtn.onclick = () => switchSearch("mall");
+  if (searchCatBtn) searchCatBtn.onclick = () => switchSearch("kategori");
+
+  // Direkt visa ALLA från start (alt. kategori om inkommen från kategori-plus)
+  switchSearch(kategori ? "kategori" : "alla");
+
+  // Extra: klick på label = toggle checkbox
+  resultDiv.addEventListener("click", function(e) {
+    if (e.target.tagName === "SPAN" && e.target.previousElementSibling && e.target.previousElementSibling.type === "checkbox") {
+      e.target.previousElementSibling.click();
+    }
+  });
+
+  input.focus();
+  window.scrollModalToTop && window.scrollModalToTop();
 };
 
 // Info/modal för kategori (exempel)
@@ -277,17 +264,3 @@ window.showCategoryPicker = function (name, onSave) {
     document.body.removeChild(m);
   };
 };
-
-/*
-Så här använder du batch-dialogen för ny vara (exempel):
-window.showBatchAddDialog(index, function(addedNames){
-  // Lägg till alla "addedNames" i din lista!
-});
-
-Och så här använder du sök-dialogen:
-window.showSearchListDialog("Välj från alla listor", itemsArray, function(valdaNamnArr){
-  // Gör vad du vill med de valda namnen
-});
-*/
-
-// --- SLUT PÅ FIL ---
