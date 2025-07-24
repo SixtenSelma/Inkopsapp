@@ -19,6 +19,9 @@ window.renderAllLists = function() {
     // Lägg till extra klass om det är en mall-lista
     const extraClass = list.name.startsWith("Mall:") ? "list-card-template" : "";
 
+    // Hitta rätt index (eftersom sortering inte är samma ordning som i lists-arrayen)
+    const origIndex = lists.findIndex(l => l.name === list.name);
+
     return `
       <li class="list-item" onclick="viewListByName('${list.name.replace(/'/g, "\\'")}')">
         <div class="list-card ${extraClass}">
@@ -44,7 +47,7 @@ window.renderAllLists = function() {
       ${listCards || '<p class="no-lists">Inga listor än.</p>'}
     </ul>
     <div class="bottom-bar">
-      <button onclick="showNewListDialog()" title="Ny lista">➕</button>
+      <button onclick="addItemsWithCategory()" title="Ny vara">➕</button>
     </div>
   `;
 
@@ -92,6 +95,29 @@ window.getAllUniqueItemNames = function(lists) {
     list.items.forEach(item => {
       if (item.name) namesSet.add(item.name.trim());
     });
+  });
+  return Array.from(namesSet).sort();
+};
+
+// Hjälpfunktion: Hämta unika varunamn i mall-listor
+window.getTemplateItemNames = function(lists) {
+  const namesSet = new Set();
+  lists.forEach(list => {
+    if (!list.name.startsWith("Mall:")) return;
+    list.items.forEach(item => {
+      if (item.name) namesSet.add(item.name.trim());
+    });
+  });
+  return Array.from(namesSet).sort();
+};
+
+// Hjälpfunktion: Hämta unika varunamn i en kategori i denna lista
+window.getCategoryItemNames = function(list, kategori) {
+  const namesSet = new Set();
+  list.items.forEach(item => {
+    if ((item.category || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)") === kategori && item.name) {
+      namesSet.add(item.name.trim());
+    }
   });
   return Array.from(namesSet).sort();
 };
@@ -209,72 +235,63 @@ window.renderListDetail = function(i) {
   applyFade && applyFade();
 };
 
-// --- Funktion för att lägga till vara via kategori-knapp ---
+// --- Funktion för att lägga till varor via kategori-knapp (batch) ---
 window.addItemViaCategory = function(listIndex, category) {
-  const allNames = getAllUniqueItemNames(lists);
+  // Hämta alla varunamn i systemet, mallarna och denna kategori
+  const allaVaror = getAllUniqueItemNames(lists);
+  const mallVaror = getTemplateItemNames(lists);
+  const kategoriVaror = getCategoryItemNames(lists[listIndex], category);
 
-  function addNewItemWithCheck(itemName) {
-    const key = itemName.trim().toLowerCase();
-    const prevCat = categoryMemory[key];
-
-    function doAdd(catToUse) {
-      lists[listIndex].items.push({ name: itemName, note: "", done: false, category: catToUse });
-      categoryMemory[key] = catToUse;
-      saveCategoryMemory && saveCategoryMemory(categoryMemory);
+  showAddItemsDialog({
+    kategori: category,
+    allaVaror,
+    mallVaror,
+    kategoriVaror,
+    onDone: function(added) {
+      if (!added || !added.length) return;
+      added.forEach(name => {
+        // Undvik att lägga till dubbletter direkt efter varandra
+        if (!lists[listIndex].items.some(item => item.name.trim().toLowerCase() === name.trim().toLowerCase() && (item.category || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)") === category)) {
+          lists[listIndex].items.push({ name, note: "", done: false, category });
+        }
+      });
       saveLists(lists);
       renderListDetail(listIndex);
     }
-
-    if (prevCat && prevCat !== category) {
-      if (confirm(`Varan "${itemName}" är redan kopplad till kategori "${prevCat}". Vill du byta till "${category}"?`)) {
-        doAdd(category);
-      } else {
-        doAdd(prevCat);
-      }
-    } else {
-      doAdd(category);
-    }
-  }
-
-  showRenameDialog(
-    `Lägg till vara i kategori "${category}"`,
-    "",
-    function(newItemName) {
-      if (!newItemName) return;
-      addNewItemWithCheck(newItemName);
-    },
-    allNames
-  );
+  });
 };
 
-// --- Lägg till varor med kategori (batch) ---
-window.addItemsWithCategory = function(listIndex) {
-  showBatchAddDialog(listIndex, function(added) {
-    if (!added || !added.length) return;
-    let toAdd = [...added];
-    function handleNext() {
-      if (!toAdd.length) {
-        saveLists(lists);
-        renderListDetail(listIndex);
-        return;
-      }
-      const raw = toAdd.shift();
-      const { name: itemName, note } = splitItemInput(raw);
-      const itemNameKey = itemName.trim().toLowerCase();
-      const suggestedCategory = categoryMemory[itemNameKey];
-      if (suggestedCategory) {
-        lists[listIndex].items.push({ name: itemName, note: note, done: false, category: suggestedCategory });
-        handleNext();
-      } else {
-        showCategoryPicker(itemName, (chosenCat) => {
-          lists[listIndex].items.push({ name: itemName, note: note, done: false, category: chosenCat });
-          categoryMemory[itemNameKey] = chosenCat;
-          saveCategoryMemory && saveCategoryMemory(categoryMemory);
-          handleNext();
-        });
-      }
+// --- Lägg till varor via plusknapp nere till höger (batch) ---
+window.addItemsWithCategory = function(listIndex = null) {
+  // Standard: lägg till i aktuell lista om vi är i en lista, annars fråga
+  let i = listIndex;
+  if (i === null) {
+    // På startsidan: fråga användaren i vilken lista man vill lägga till
+    if (!lists.length) return;
+    let val = prompt("Vilken lista vill du lägga till i?\n" + lists.map((l, idx) => (idx + 1) + ": " + l.name).join("\n"));
+    if (!val) return;
+    val = parseInt(val, 10) - 1;
+    if (isNaN(val) || val < 0 || val >= lists.length) return;
+    i = val;
+  }
+  const allaVaror = getAllUniqueItemNames(lists);
+  const mallVaror = getTemplateItemNames(lists);
+
+  showAddItemsDialog({
+    allaVaror,
+    mallVaror,
+    kategoriVaror: [],
+    onDone: function(added) {
+      if (!added || !added.length) return;
+      added.forEach(name => {
+        // Undvik att lägga till dubbletter direkt efter varandra
+        if (!lists[i].items.some(item => item.name.trim().toLowerCase() === name.trim().toLowerCase())) {
+          lists[i].items.push({ name, note: "", done: false });
+        }
+      });
+      saveLists(lists);
+      renderListDetail(i);
     }
-    handleNext();
   });
 };
 
