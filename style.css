@@ -369,11 +369,23 @@ button:hover {
   font-style: italic;
 }
 
+/* ===== Kategori-rubrik (extra tydlig!) ===== */
 .category-heading {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin: 24px 16px 4px;
-  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.22rem;  /* Större rubrik */
+  font-weight: 800;    /* Fetare */
+  color: #232323;
+  margin: 36px 0 8px 0;   /* Extra luft ovanför, mindre nedåt */
+  padding: 6px 16px 6px 10px;
+  background: #f4faf4;     /* Diskret ljusgrön bakgrund */
+  border-left: 6px solid #4cd137;  /* Tydlig grön rand */
+  border-radius: 9px 30px 30px 9px;
+  box-shadow: 0 1px 0 #e0e0e0;
+  text-shadow: 0 1px 0 #fff;
+  min-height: 36px;
+  /* Emojis blir automatiskt större/fetare! */
 }
 
 /* ===== Förhindra iOS-autozoom på input/select ===== */
@@ -484,18 +496,4 @@ select:focus {
 }
 .hide-done-text {
   font-size: 0.97em;
-}
-
-.category-heading {
-  font-size: 1.16rem;
-  font-weight: 800;
-  margin: 30px 16px 5px 0px; /* Lite mer top, mindre bottom */
-  color: #262b38;
-  background: #f4f5fb;
-  padding: 7px 16px 6px 14px;
-  border-radius: 7px 16px 16px 0px;
-  letter-spacing: 0.02em;
-  border-left: 4px solid #4cd137;
-  box-shadow: 0 1px 0 #ebeef5;
-  display: inline-block;
 }
