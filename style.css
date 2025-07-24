@@ -40,74 +40,112 @@ body {
   cursor: pointer;
 }
 
-.back-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 1.45rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.back-arrow {
-  font-size: 1.8em;
-  color: #2863c7;
-  font-weight: bold;
-  margin-right: 2px;
-  user-select: none;
-  transition: color 0.15s;
-}
-.back-title:hover .back-arrow {
-  color: #44bd32;
-}
-
-/* ===== Kategori-rubrik ===== */
-.category-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 1.22rem;
-  font-weight: 800;
-  color: #232323;
-  margin: 36px 0 8px 0;
-  padding: 6px 16px 6px 10px;
-  background: #f4faf4;
-  border-left: 6px solid #4cd137;
-  border-radius: 9px 30px 30px 9px;
-  box-shadow: 0 1px 0 #e0e0e0;
-  text-shadow: 0 1px 0 #fff;
-  min-height: 36px;
-}
-
-/* Plusknapp i kategori-rad */
-.category-add-btn {
-  width: 28px;
-  height: 28px;
-  background-color: #eee;
-  border-radius: 50%;
-  border: none;
+h1 {
   font-size: 20px;
-  line-height: 28px;
-  text-align: center;
-  color: #555;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
-  user-select: none;
-  padding: 0;
-  margin-left: 8px;
-  margin-top: -6px;
 }
 
-.category-add-btn:hover {
-  background-color: #ddd;
+.user-badge {
+  background: #4cd137;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.icon-button {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  color: #666;
+  padding: 2px;
+  transition: color 0.2s ease;
+}
+
+.icon-button:hover {
+  color: #000;
+}
+
+/* ===== List Wrapper & Cards ===== */
+.list-wrapper {
+  padding: 16px;
+}
+
+.list-item {
+  margin-bottom: 16px;
+  list-style: none;
+}
+
+.list-card {
+  background: #f9fafe;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  transition: background 0.2s ease;
+}
+
+.list-card:hover {
+  background: #eef1f5;
+}
+
+.list-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+.list-card-title {
+  font-size: 1.22rem;
+  font-weight: 700;
+}
+
+.menu-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: #666;
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* ===== Progress ===== */
+.progress-bar {
+  background-color: #dfe4ea;
+  height: 8px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+
+.progress-fill {
+  background-color: #4cd137;
+  height: 100%;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 0.85rem;
+  color: #636e72;
 }
 
 /* ===== To-Do View ===== */
 .todo-list {
   padding: 0;
   margin: 0;
-  list-style: none;
 }
 
 .todo-item {
@@ -130,7 +168,6 @@ body {
   flex-direction: column;
 }
 
-/* Styling för genomstrukna klara varor */
 .todo-item.done {
   opacity: 0.6;
 }
@@ -139,84 +176,35 @@ body {
   color: #999;
 }
 
-/* Rad med komplettering och signatur/datum */
-.item-note-sign-wrapper {
+/* Rad 2 i item, vänster och höger */
+.item-row2 {
   display: flex;
   justify-content: space-between;
   font-size: 0.85rem;
-  color: #888;
-  font-style: italic;
+  color: #666;
   margin-top: 4px;
-  gap: 8px;
+  font-style: italic;
+  line-height: 1.2;
 }
 
-.item-note-sign-wrapper .item-note {
-  flex-grow: 1;
+.item-row2 .left {
   text-align: left;
+  flex: 1;
+  color: #888;
 }
 
-.item-note-sign-wrapper .item-sign-date {
-  flex-shrink: 0;
+.item-row2 .right {
   text-align: right;
-  font-weight: 600;
-  font-style: normal;
+  white-space: nowrap;
+  flex-shrink: 0;
   color: #555;
+  font-weight: 600;
 }
 
 /* ===== Checkboxes ===== */
 input[type="checkbox"] {
   width: 18px;
   height: 18px;
-}
-
-/* ===== Meny (popup) ===== */
-.item-menu {
-  position: absolute;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 6px 0;
-  z-index: 1000;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-  width: 160px;
-}
-
-.item-menu button {
-  background: none;
-  border: none;
-  width: 100%;
-  padding: 10px 16px;
-  text-align: left;
-  font-size: 1rem;
-  cursor: pointer;
-  color: #333;
-}
-
-.item-menu button:hover {
-  background-color: #f1f2f6;
-}
-
-/* ===== Dölj klara etikett ===== */
-.hide-done-label {
-  font-size: 0.93em;
-  color: #555;
-  font-weight: 400;
-  cursor: pointer;
-  margin-right: 0;
-  user-select: none;
-  display: flex;
-  align-items: center;
-}
-
-.hide-done-label input[type="checkbox"] {
-  accent-color: #4cd137;
-  width: 17px;
-  height: 17px;
-  margin-right: 8px;
-}
-
-.hide-done-text {
-  font-size: 0.97em;
 }
 
 /* ===== Input & Buttons ===== */
@@ -291,7 +279,6 @@ button:hover {
   max-width: 400px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
-
 .modal-content input {
   width: 100%;
   padding: 10px 14px;
@@ -301,11 +288,104 @@ button:hover {
   box-sizing: border-box;
   margin-top: 12px;
 }
-
 .modal-actions {
   display: flex;
   justify-content: space-between;
   margin-top: 16px;
+}
+
+.preview-list {
+  list-style: disc;
+  margin: 12px 0 0 20px;
+  padding: 0;
+  font-size: 0.95rem;
+  color: #2f3640;
+}
+
+/* ===== Meny (popup) ===== */
+.item-menu {
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 6px 0;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  width: 160px;
+}
+
+.item-menu button {
+  padding: 8px 14px;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  color: #333;
+}
+
+.item-menu button:hover {
+  background-color: #f1f2f6;
+}
+
+/* ===== Animation ===== */
+.fade-enter {
+  opacity: 0;
+  transform: scale(0.98);
+}
+.fade-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 200ms, transform 200ms;
+}
+
+/* ===== Extra Modalanimation & Responsivitet ===== */
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-content {
+  animation: popIn 0.25s ease-out;
+}
+
+/* Lätt bakgrundsblur på modalen (valfritt, snygg effekt) */
+.modal {
+  backdrop-filter: blur(4px);
+}
+
+/* Smidig "toast"-liknande feedback – kan användas om du vill visa sparad/notifiering */
+.toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #4cd137;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 20px;
+  font-weight: 500;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+  opacity: 0;
+  animation: fadeToast 2.5s ease-out forwards;
+  z-index: 2000;
+}
+
+@keyframes fadeToast {
+  0% { opacity: 0; transform: translate(-50%, 20px); }
+  10% { opacity: 1; transform: translate(-50%, 0); }
+  90% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -10px); }
 }
 
 /* ===== Komplettering / Note ===== */
@@ -314,6 +394,47 @@ button:hover {
   color: #888;
   margin-left: 6px;
   font-style: italic;
+}
+
+/* ===== Kategori-rubrik (extra tydlig!) ===== */
+.category-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 1.22rem;
+  font-weight: 800;
+  color: #232323;
+  margin: 36px 0 8px 0;
+  padding: 6px 16px 6px 10px;
+  background: #f4faf4;
+  border-left: 6px solid #4cd137;
+  border-radius: 9px 30px 30px 9px;
+  box-shadow: 0 1px 0 #e0e0e0;
+  text-shadow: 0 1px 0 #fff;
+  min-height: 36px;
+}
+
+/* Plusknapp i kategori-rad - mindre och höjdjusterad */
+.category-add-btn {
+  width: 28px;
+  height: 28px;
+  font-size: 20px;
+  line-height: 28px;
+  margin-left: 6px;
+  margin-top: -4px;
+  background-color: #eee;
+  border-radius: 50%;
+  border: none;
+  color: #555;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  padding: 0;
+  user-select: none;
+}
+
+.category-add-btn:hover {
+  background-color: #ddd;
 }
 
 /* ===== Förhindra iOS-autozoom på input/select ===== */
@@ -327,7 +448,6 @@ select {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-
   background-color: #fff;
   border: 1.5px solid #dcdde1;
   border-radius: 10px;
@@ -335,13 +455,11 @@ select {
   font-size: 16px;
   width: 100%;
   box-sizing: border-box;
-
   background-image: url("data:image/svg+xml;utf8,<svg fill='gray' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
   background-repeat: no-repeat;
   background-position: right 14px center;
   background-size: 16px 16px;
   padding-right: 40px;
-
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -351,6 +469,7 @@ select:focus {
   outline: none;
 }
 
+/* ===== Responsivitet ===== */
 @media (max-width: 700px) {
   .modal {
     align-items: flex-start !important;
@@ -359,4 +478,75 @@ select:focus {
     margin-top: 30px !important;
     margin-bottom: 20px !important;
   }
+}
+
+/* ===== Tillbaka knapp/rubrik ===== */
+.back-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.5rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.back-arrow {
+  font-size: 1.8em;
+  color: #2863c7;
+  font-weight: bold;
+  margin-right: 2px;
+  user-select: none;
+  transition: color 0.15s;
+}
+.back-title:hover .back-arrow {
+  color: #44bd32;
+}
+
+/* Om du kör SVG: */
+.back-arrow-svg {
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.progress-bar,
+.progress-fill {
+  pointer-events: none !important;
+}
+
+.filter-row {
+  background: #f6f7fa;
+  border-bottom: 1px solid #eaeaea;
+  margin-bottom: 0px;
+}
+
+.filter-row label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #2d3436;
+  cursor: pointer;
+  user-select: none;
+}
+
+.filter-row input[type="checkbox"] {
+  margin-right: 8px;
+  accent-color: #4cd137;
+}
+
+.hide-done-label {
+  font-size: 0.93em;
+  color: #555;
+  font-weight: 400;
+  cursor: pointer;
+  margin-right: 0;
+  user-select: none;
+}
+
+.hide-done-label input[type="checkbox"] {
+  accent-color: #4cd137;
+  width: 17px;
+  height: 17px;
+}
+
+.hide-done-text {
+  font-size: 0.97em;
 }
