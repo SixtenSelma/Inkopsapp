@@ -58,12 +58,12 @@ window.renderAllLists = function() {
 
 // === Renderar en enskild lista ===
 window.renderListDetail = function(i) {
-  alert("Steg 1: renderListDetail för index " + i);
+//  alert("Steg 1: renderListDetail för index " + i);
   const list = lists[i];
-  alert("Steg 2: Hämtat listobjekt: " + (list ? JSON.stringify(list) : "null"));
+//  alert("Steg 2: Hämtat listobjekt: " + (list ? JSON.stringify(list) : "null"));
 
   const allItems = list.items.map((item, realIdx) => ({ ...item, realIdx }));
-  alert("Steg 3: allItems length = " + allItems.length);
+//  alert("Steg 3: allItems length = " + allItems.length);
 
   const grouped = {};
   standardKategorier.forEach(cat => grouped[cat] = []);
@@ -114,7 +114,7 @@ window.renderListDetail = function(i) {
     alert("Krasch i itemsHTML-generering: " + err.message);
     itemsHTML = "<div style='color:red'>Fel vid generering av varor.</div>";
   }
-  alert("Steg 4: itemsHTML genererad");
+//  alert("Steg 4: itemsHTML genererad");
 
   app.innerHTML = `
     <div class="top-bar">
@@ -135,7 +135,7 @@ window.renderListDetail = function(i) {
   `;
 
   applyFade && applyFade();
-  alert("Steg 5: Klar med renderListDetail");
+//  alert("Steg 5: Klar med renderListDetail");
 };
 // --- Lägg till denna funktion i lists.js! ---
 window.addItemsWithCategory = function(listIndex) {
