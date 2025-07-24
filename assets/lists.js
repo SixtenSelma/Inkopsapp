@@ -38,7 +38,6 @@ window.renderAllLists = function() {
 
   applyFade && applyFade();
 };
-// lists.js – hanterar inköpslistor och rendering
 
 // === Hjälpfunktion: formatera datum
 window.formatDate = function(iso) {
@@ -57,6 +56,17 @@ window.user = getUser() || prompt("Vad heter du?");
 setUser(window.user);
 
 const app = document.getElementById("app");
+
+// Hjälpfunktion: Hämta unika varunamn i alla listor
+window.getAllUniqueItemNames = function(lists) {
+  const namesSet = new Set();
+  lists.forEach(list => {
+    list.items.forEach(item => {
+      if (item.name) namesSet.add(item.name.trim());
+    });
+  });
+  return Array.from(namesSet).sort();
+};
 
 // === Renderar en enskild lista ===
 window.renderListDetail = function(i) {
@@ -99,6 +109,9 @@ window.renderListDetail = function(i) {
   // Slå ihop kategorier: med varor + tomma om hideDone är false
   const finalCategories = hideDone ? categoriesWithItems : [...categoriesWithItems, ...emptyCategories];
 
+  // Hämta alla unika varunamn för autocomplete
+  const allNames = getAllUniqueItemNames(lists);
+
   const itemsHTML = finalCategories.map(({ cat, items }) => {
     const sorted = [
       ...items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv')),
@@ -106,10 +119,8 @@ window.renderListDetail = function(i) {
     ];
 
     const itemList = sorted.length > 0 ? sorted.map(item => {
-      // Rad 1: Namn, ev. genomstruket om done
       let row1 = item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`;
 
-      // Rad 2: vänster = kompletterande text, höger = signatur + datum (alltid med två span)
       let compText = item.note ? `<span class="left">${item.note}</span>` : `<span class="left"></span>`;
       let signDate = (item.done && item.doneBy) ? 
         `<span class="right">${item.doneBy} ${formatDate(item.doneAt)}</span>` : `<span class="right"></span>`;
@@ -133,7 +144,11 @@ window.renderListDetail = function(i) {
       <div class="category-block">
         <h3 class="category-heading">
           ${cat}
-          <button class="category-add-btn" title="Lägg till vara i ${cat}" onclick="addItemViaCategory(${i}, '${cat}')">+</button>
+          <button 
+            class="category-add-btn" 
+            title="Lägg till vara i ${cat}" 
+            onclick="addItemViaCategory(${i}, '${cat}', ${JSON.stringify(allNames).replace(/"/g, '&quot;')})"
+          >+</button>
         </h3>
         <ul class="todo-list">${itemList}</ul>
       </div>
@@ -162,7 +177,6 @@ window.renderListDetail = function(i) {
     </div>
   `;
 
-  // Checkbox-lyssnare
   const chk = document.getElementById("hideDoneCheckbox");
   if (chk) {
     chk.onchange = function() {
@@ -172,10 +186,11 @@ window.renderListDetail = function(i) {
   }
 
   applyFade && applyFade();
-};// --- Funktion för att lägga till vara via kategori-knapp ---
-window.addItemViaCategory = function(listIndex, category) {
-  const allNames = getAllUniqueItemNames(lists);
+};
 
+// --- Funktion för att lägga till vara via kategori-knapp ---
+// Nu med tredje parameter suggestions (array med namn) för autocomplete
+window.addItemViaCategory = function(listIndex, category, suggestions = []) {
   function addNewItemWithCheck(itemName) {
     const key = itemName.trim().toLowerCase();
     const prevCat = categoryMemory[key];
@@ -199,6 +214,7 @@ window.addItemViaCategory = function(listIndex, category) {
     }
   }
 
+  // Skicka med förslagslista till showRenameDialog för autocomplete
   showRenameDialog(
     `Lägg till vara i kategori "${category}"`,
     "",
@@ -206,7 +222,7 @@ window.addItemViaCategory = function(listIndex, category) {
       if (!newItemName) return;
       addNewItemWithCheck(newItemName);
     },
-    allNames
+    suggestions
   );
 };
 
