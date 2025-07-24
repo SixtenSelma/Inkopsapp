@@ -468,3 +468,20 @@ select:focus {
   margin-right: 8px;
   accent-color: #4cd137;
 }
+
+.hide-done-label {
+  font-size: 0.93em;
+  color: #555;
+  font-weight: 400;
+  cursor: pointer;
+  margin-right: 0;
+  user-select: none;
+}
+.hide-done-label input[type="checkbox"] {
+  accent-color: #4cd137;
+  width: 17px;
+  height: 17px;
+}
+.hide-done-text {
+  font-size: 0.97em;
+}
