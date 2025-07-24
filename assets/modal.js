@@ -1,20 +1,31 @@
 // modal.js – återanvändbara modaler med bättre mobilhantering
 
 // Flytta modal upp om mobil och tangentbord
-window.scrollModalToTop = function() {
+window.scrollModalToTop = function () {
   setTimeout(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, 100);
 };
 
 // Byt namn-modal
-window.showRenameDialog = function(title, currentName, onConfirm) {
+window.showRenameDialog = function (title, currentName, onConfirm, suggestions = []) {
   const m = document.createElement("div");
   m.className = "modal";
+
+  // Skapa datalist options för autocomplete om finns
+  const dataListId = "itemNamesListModal";
+  let dataListHTML = "";
+  if (suggestions.length) {
+    dataListHTML = `<datalist id="${dataListId}">${suggestions
+      .map((s) => `<option value="${s}">`)
+      .join("")}</datalist>`;
+  }
+
   m.innerHTML = `
     <div class="modal-content">
       <h2>${title}</h2>
-      <input id="renameInput" value="${currentName}" autocomplete="off" />
+      <input id="renameInput" value="${currentName || ""}" autocomplete="off" list="${dataListId}" />
+      ${dataListHTML}
       <div class="modal-actions">
         <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
         <button onclick="confirmRename()">OK</button>
@@ -27,7 +38,7 @@ window.showRenameDialog = function(title, currentName, onConfirm) {
   input.focus();
   window.scrollModalToTop && window.scrollModalToTop();
   input.select();
-  input.addEventListener("keydown", e => {
+  input.addEventListener("keydown", (e) => {
     if (e.key === "Enter") confirmRename();
   });
 
@@ -41,7 +52,7 @@ window.showRenameDialog = function(title, currentName, onConfirm) {
 };
 
 // Ny lista-modal
-window.showNewListModal = function(onConfirm) {
+window.showNewListModal = function (onConfirm) {
   const m = document.createElement("div");
   m.className = "modal";
   m.innerHTML = `
@@ -60,7 +71,7 @@ window.showNewListModal = function(onConfirm) {
   input.focus();
   window.scrollModalToTop && window.scrollModalToTop();
 
-  input.addEventListener("keydown", e => {
+  input.addEventListener("keydown", (e) => {
     if (e.key === "Enter") confirmNewList();
   });
 
@@ -74,7 +85,7 @@ window.showNewListModal = function(onConfirm) {
 };
 
 // Batch add-modal (flera varor samtidigt)
-window.showBatchAddDialog = function(i, onDone) {
+window.showBatchAddDialog = function (i, onDone) {
   const m = document.createElement("div");
   m.className = "modal";
   m.innerHTML = `
@@ -97,7 +108,7 @@ window.showBatchAddDialog = function(i, onDone) {
   input.focus();
   window.scrollModalToTop && window.scrollModalToTop();
 
-  input.addEventListener("keydown", e => {
+  input.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && input.value.trim()) {
       const name = input.value.trim();
       added.push(name);
@@ -118,7 +129,7 @@ window.showBatchAddDialog = function(i, onDone) {
 };
 
 // Info/modal för kategori (exempel)
-window.showCategoryPicker = function(name, onSave) {
+window.showCategoryPicker = function (name, onSave) {
   const m = document.createElement("div");
   m.className = "modal";
   m.innerHTML = `
@@ -126,7 +137,9 @@ window.showCategoryPicker = function(name, onSave) {
       <h2>Kategori för "${name}"</h2>
       <select id="categorySelectPopup" style="width:100%;margin-top:14px;font-size:1.1rem;padding:10px;border-radius:8px;border:2px solid #2863c7;">
         <option value="">Välj kategori…</option>
-        ${standardKategorier.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+        ${standardKategorier
+          .map((cat) => `<option value="${cat}">${cat}</option>`)
+          .join("")}
       </select>
       <div class="modal-actions" style="margin-top:16px;">
         <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
