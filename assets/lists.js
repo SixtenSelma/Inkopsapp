@@ -114,7 +114,7 @@ window.renderListDetail = function(i) {
       <button onclick="addItemsWithCategory(${i})" title="Lägg till vara">➕</button>
     </div>
   `;
-
+alert("Har renderat detaljvyn för lista " + i);
   applyFade && applyFade();
 };
 
