@@ -451,3 +451,20 @@ select:focus {
 .progress-fill {
   pointer-events: none !important;
 }
+.filter-row {
+  background: #f6f7fa;
+  border-bottom: 1px solid #eaeaea;
+  margin-bottom: 0px;
+}
+
+.filter-row label {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #2d3436;
+  cursor: pointer;
+  user-select: none;
+}
+.filter-row input[type="checkbox"] {
+  margin-right: 8px;
+  accent-color: #4cd137;
+}
