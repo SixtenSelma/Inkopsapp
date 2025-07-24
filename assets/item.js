@@ -1,5 +1,6 @@
 // item.js – hantera varor (items) i listan
 
+// Dela upp input till namn/note
 window.splitItemInput = function(text) {
   text = text.trim();
   let name = text, note = "";
@@ -17,6 +18,7 @@ window.splitItemInput = function(text) {
   return { name, note };
 };
 
+// Hämta alla unika varunamn (utan note)
 window.getAllUniqueItemNames = function(lists) {
   const names = {};
   lists.forEach(list => {
@@ -28,6 +30,7 @@ window.getAllUniqueItemNames = function(lists) {
   return Object.values(names);
 };
 
+// Toggle “klar” för en vara – med signatur och datum!
 window.toggleItem = function(li, ii, lists, user, saveAndRenderList) {
   const it = lists[li].items[ii];
   it.done = !it.done;
@@ -41,6 +44,7 @@ window.toggleItem = function(li, ii, lists, user, saveAndRenderList) {
   saveAndRenderList(li);
 };
 
+// Byt namn på vara
 window.renameItem = function(li, ii, lists, saveAndRenderList, closeAnyMenu) {
   const currentName = lists[li].items[ii].name;
   showRenameDialog("Byt namn på vara", currentName, (newName) => {
@@ -50,6 +54,7 @@ window.renameItem = function(li, ii, lists, saveAndRenderList, closeAnyMenu) {
   });
 };
 
+// Komplettera vara (lägg till note/kategori)
 window.complementItem = function(li, ii, lists, categoryMemory, saveAndRenderList, closeAnyMenu) {
   const itemName = lists[li].items[ii].name.trim().toLowerCase();
   const currentNote = lists[li].items[ii].note || '';
@@ -90,6 +95,7 @@ window.complementItem = function(li, ii, lists, categoryMemory, saveAndRenderLis
     lists[li].items[ii].note = input.value.trim();
     lists[li].items[ii].category = select.value;
 
+    // Uppdatera minnet om kategori per vara!
     const itemNameKey = lists[li].items[ii].name.trim().toLowerCase();
     if (select.value) {
       categoryMemory[itemNameKey] = select.value;
@@ -102,33 +108,9 @@ window.complementItem = function(li, ii, lists, categoryMemory, saveAndRenderLis
   };
 };
 
+// Ta bort vara
 window.deleteItem = function(li, ii, lists, saveAndRenderList, closeAnyMenu) {
   lists[li].items.splice(ii, 1);
   saveAndRenderList(li);
   closeAnyMenu();
-};
-
-// Ny batch-add som frågar efter kategori på nya varor utan minne
-window.handleBatchAdd = function(lists, listIndex, names, categoryMemory, saveAndRenderList) {
-  function addNext(idx) {
-    if (idx >= names.length) {
-      saveAndRenderList(listIndex);
-      return;
-    }
-    let { name, note } = splitItemInput(names[idx]);
-    let nameKey = name.trim().toLowerCase();
-    let cat = categoryMemory[nameKey] || "";
-    if (!cat) {
-      showCategoryPicker(name, (pickedCat) => {
-        lists[listIndex].items.push({ name, note, category: pickedCat, done: false });
-        categoryMemory[nameKey] = pickedCat;
-        saveCategoryMemory(categoryMemory);
-        addNext(idx + 1);
-      });
-    } else {
-      lists[listIndex].items.push({ name, note, category: cat, done: false });
-      addNext(idx + 1);
-    }
-  }
-  addNext(0);
 };
