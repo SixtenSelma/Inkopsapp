@@ -515,3 +515,9 @@ select:focus {
 .hide-done-text {
   font-size: 0.97em;
 }
+.empty-category {
+  font-style: italic;
+  color: #999;
+  padding-left: 24px;
+  margin: 8px 0 16px 0;
+}
