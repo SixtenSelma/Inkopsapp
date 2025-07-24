@@ -46,13 +46,12 @@ window.renderAllLists = function() {
   applyFade && applyFade();
 };
 
-// === Renderar en enskild lista ===
+
 window.renderListDetail = function(i) {
-alert("Renderar lista " + i);
+  alert("Renderar lista " + i);
   const list = lists[i];
-  // Dela upp i två listor: ej klara först, sedan klara
+  console.log("Klickad lista:", i, list);
   const allItems = list.items.map((item, realIdx) => ({ ...item, realIdx }));
-  // Sortera inom kategori: först ej klara, sen klara. Inom varje: namnordning
   const grouped = {};
   standardKategorier.forEach(cat => grouped[cat] = []);
   allItems.forEach(item => {
@@ -64,23 +63,25 @@ alert("Renderar lista " + i);
   const itemsHTML = Object.entries(grouped)
     .filter(([, items]) => items.length)
     .map(([cat, items]) => {
-      // Sortera: Ej klara först, inom varje: namn A-Ö
+      // LOGGA för felsök!
+      items.forEach(item => {
+        if (!item.name) console.error('Varning: item utan name:', item);
+      });
       const sorted = [
-        ...items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv')),
-        ...items.filter(x => x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'))
+        ...items.filter(x => !x.done).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'sv')),
+        ...items.filter(x => x.done).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'sv'))
       ];
       const itemList = sorted.map(item => `
         <li class="todo-item ${item.done ? 'done' : ''}">
           <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx}, window.lists, window.user, window.saveAndRenderList)" />
           <span class="item-name">
-            ${item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`}
+            ${item.done ? `<s>${item.name || ''}</s>` : `<strong>${item.name || ''}</strong>`}
             ${item.note ? `<small class="item-note">(${item.note})</small>` : ''}
-            ${item.done && item.doneBy ? `<small>${item.doneBy} • ${formatDate(item.doneAt)}</small>` : ''}
+            ${item.done && item.doneBy ? `<small>${item.doneBy || ''} • ${formatDate(item.doneAt || '')}</small>` : ''}
           </span>
           <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
         </li>
       `).join("");
-
       return `
         <h3 class="category-heading">${cat}</h3>
         <ul class="todo-list">${itemList}</ul>
@@ -107,7 +108,6 @@ alert("Renderar lista " + i);
 
   applyFade && applyFade();
 };
-
 // --- Lägg till denna funktion i lists.js! ---
 window.addItemsWithCategory = function(listIndex) {
   showBatchAddDialog(listIndex, function(added) {
