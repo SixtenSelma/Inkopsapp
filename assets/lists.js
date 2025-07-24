@@ -87,7 +87,7 @@ window.renderListDetail = function(i) {
 
       const itemList = sortedItems.map(item => `
         <li class="todo-item ${item.done ? 'done' : ''}">
-          <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx}, lists, user, saveAndRenderList)" />
+          <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx}, window.lists, window.user, window.saveAndRenderList)" />
           <span class="item-name">
             ${item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`}
             ${item.note ? `<small class="item-note">(${item.note})</small>` : ''}
@@ -122,8 +122,7 @@ window.renderListDetail = function(i) {
   `;
 
   applyFade && applyFade();
-};
-// --- Lägg till denna funktion i lists.js! ---
+};// --- Lägg till denna funktion i lists.js! ---
 window.addItemsWithCategory = function(listIndex) {
   showBatchAddDialog(listIndex, function(added) {
     if (!added || !added.length) return;
