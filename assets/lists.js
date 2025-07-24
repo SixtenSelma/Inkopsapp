@@ -60,12 +60,13 @@ window.renderAllLists = function() {
 // === Renderar en enskild lista ===
 window.renderListDetail = function(i) {
   const list = lists[i];
+
   // Hämta användarinställning för "dölj klara"
   let hideDone = true;
   try {
     hideDone = localStorage.getItem("hideDone") !== "false";
   } catch {}
-  
+
   const allItems = list.items.map((item, realIdx) => ({ ...item, realIdx }));
 
   // Gruppindelning på kategori
@@ -77,19 +78,20 @@ window.renderListDetail = function(i) {
     grouped[cat].push(item);
   });
 
+  // Skapa HTML för varje kategori med items
   const itemsHTML = Object.entries(grouped)
     .map(([cat, items]) => {
-      // Sortera: Ej klara först, inom varje: namn A-Ö
+      // Sortera: Ej klara först, sen klara. Inom varje sortera på namn A-Ö
       let sorted = [
         ...items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv')),
         ...items.filter(x => x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'))
       ];
       // Dölj klara om valt
       if (hideDone) sorted = sorted.filter(x => !x.done);
-      if (sorted.length === 0) return ''; // Dölj kategori om inga kvar
+      if (sorted.length === 0) return ''; // Dölj kategori om inga varor visas
 
       const itemList = sorted.map(item => {
-        // Rad 1: Namn, ev. note. Rad 2: signatur & datum och ev. note.
+        // Rad 1: namn, ev note; Rad 2: signatur + datum, ev note, med streck mellan
         let row1 = item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`;
         let row2 = '';
         if (item.done && item.doneBy) {
@@ -113,9 +115,9 @@ window.renderListDetail = function(i) {
 
       return `
         <div class="category-block">
-          <h3 class="category-heading" style="display:flex; align-items:center; justify-content: space-between;">
-            <span>${cat}</span>
-            <button class="category-add-btn" onclick="addItemsWithCategory(${i}, '${cat}')" title="Lägg till vara i ${cat}">＋</button>
+          <h3 class="category-heading">
+            ${cat}
+            <button class="btn-add-item" title="Lägg till vara" onclick="addItemsWithCategory(${i}, '${cat}')">＋</button>
           </h3>
           <ul class="todo-list">${itemList}</ul>
         </div>
@@ -156,11 +158,12 @@ window.renderListDetail = function(i) {
   applyFade && applyFade();
 };
 
-// --- Lägg till denna funktion i lists.js! ---
+// --- Lägg till vara med kategori, med kontroll om kategori ska ändras ---
 window.addItemsWithCategory = function(listIndex, category) {
   showBatchAddDialog(listIndex, function(added) {
     if (!added || !added.length) return;
     let toAdd = [...added];
+
     function handleNext() {
       if (!toAdd.length) {
         saveLists(lists);
@@ -170,20 +173,32 @@ window.addItemsWithCategory = function(listIndex, category) {
       const raw = toAdd.shift();
       const { name: itemName, note } = splitItemInput(raw);
       const itemNameKey = itemName.trim().toLowerCase();
-      const suggestedCategory = categoryMemory[itemNameKey];
-      const targetCategory = suggestedCategory || category || null;
-      if (targetCategory) {
-        lists[listIndex].items.push({ name: itemName, note: note, done: false, category: targetCategory });
-        categoryMemory[itemNameKey] = targetCategory;
-        saveCategoryMemory && saveCategoryMemory(categoryMemory);
+
+      const existingItemIndex = lists[listIndex].items.findIndex(it => it.name.trim().toLowerCase() === itemNameKey);
+
+      if (existingItemIndex !== -1) {
+        // Varan finns redan i listan
+        const existingCategory = lists[listIndex].items[existingItemIndex].category || "";
+        if (existingCategory.toLowerCase() !== category.toLowerCase()) {
+          // Fråga användaren om hen vill byta kategori
+          if (confirm(`Varan "${itemName}" är redan kopplad till kategori "${existingCategory}". Vill du byta till "${category}"?`)) {
+            lists[listIndex].items[existingItemIndex].category = category;
+            if (categoryMemory[itemNameKey] !== category) {
+              categoryMemory[itemNameKey] = category;
+              saveCategoryMemory && saveCategoryMemory(categoryMemory);
+            }
+          }
+          // Annars behålls gammal kategori
+        }
+        // Lägg inte till ny vara utan bara fortsätt
         handleNext();
       } else {
-        showCategoryPicker(itemName, (chosenCat) => {
-          lists[listIndex].items.push({ name: itemName, note: note, done: false, category: chosenCat });
-          categoryMemory[itemNameKey] = chosenCat;
-          saveCategoryMemory && saveCategoryMemory(categoryMemory);
-          handleNext();
-        });
+        // Varan finns inte, lägg till med vald kategori
+        lists[listIndex].items.push({ name: itemName, note: note, done: false, category: category });
+        // Spara kategori i minnet
+        categoryMemory[itemNameKey] = category;
+        saveCategoryMemory && saveCategoryMemory(categoryMemory);
+        handleNext();
       }
     }
     handleNext();
