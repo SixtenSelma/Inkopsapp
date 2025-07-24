@@ -55,16 +55,12 @@ window.renderAllLists = function() {
 
   applyFade && applyFade();
 };
-
-// === Renderar en enskild lista ===
 window.renderListDetail = function(i) {
-//  alert("Steg 1: renderListDetail för index " + i);
   const list = lists[i];
-//  alert("Steg 2: Hämtat listobjekt: " + (list ? JSON.stringify(list) : "null"));
-
+  // Dela upp i två listor: ej klara först, sedan klara
   const allItems = list.items.map((item, realIdx) => ({ ...item, realIdx }));
-//  alert("Steg 3: allItems length = " + allItems.length);
 
+  // Gruppindelning på kategori
   const grouped = {};
   standardKategorier.forEach(cat => grouped[cat] = []);
   allItems.forEach(item => {
@@ -73,48 +69,55 @@ window.renderListDetail = function(i) {
     grouped[cat].push(item);
   });
 
-  let itemsHTML;
-  try {
-    itemsHTML = Object.entries(grouped)
-      .filter(([, items]) => items.length)
-      .map(([cat, items]) => {
-        try {
-          // Sortera: Ej klara först, inom varje: namn A-Ö
-          const sorted = [
-            ...items.filter(x => !x.done).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'sv')),
-            ...items.filter(x => x.done).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'sv'))
-          ];
-          const itemList = sorted.map(item => {
-            // Felsökning: Kolla om name finns
-            if (!item || typeof item !== "object" || typeof item.name !== "string") {
-              alert("FEL: item saknar korrekt name!\n" + JSON.stringify(item));
+  const itemsHTML = Object.entries(grouped)
+    .filter(([, items]) => items.length)
+    .map(([cat, items]) => {
+      try {
+        // Sortera: Ej klara först (A-Ö), sedan klara (A-Ö)
+        const sorted = [
+          ...items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv')),
+          ...items.filter(x => x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'))
+        ];
+        const itemList = sorted.map(item => {
+          // Rad 2 = note + stämpel eller bara stämpel eller bara note
+          let infoLine = '';
+          if (item.done && item.doneBy) {
+            const dateTxt = `${item.doneBy} ${formatDate(item.doneAt)}`;
+            if (item.note) {
+              infoLine = `<span style="display:block;font-size:0.93em;color:#888;margin-top:2px;font-style:italic;">
+                            ${item.note} — ${dateTxt}
+                          </span>`;
+            } else {
+              infoLine = `<span style="display:block;font-size:0.93em;color:#888;margin-top:2px;">
+                            ${dateTxt}
+                          </span>`;
             }
-            return `
-              <li class="todo-item ${item.done ? 'done' : ''}">
-                <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx}, window.lists, window.user, window.saveAndRenderList)" />
-                <span class="item-name">
-                  ${item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`}
-                  ${item.note ? `<small class="item-note">(${item.note})</small>` : ''}
-                  ${item.done && item.doneBy ? `<small>${item.doneBy} • ${formatDate(item.doneAt)}</small>` : ''}
-                </span>
-                <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
-              </li>
-            `;
-          }).join("");
+          } else if (item.note) {
+            infoLine = `<span style="display:block;font-size:0.95em;color:#888;margin-top:2px;font-style:italic;">
+                          ${item.note}
+                        </span>`;
+          }
           return `
-            <h3 class="category-heading">${cat}</h3>
-            <ul class="todo-list">${itemList}</ul>
+            <li class="todo-item ${item.done ? 'done' : ''}">
+              <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx}, window.lists, window.user, window.saveAndRenderList)" />
+              <span class="item-name">
+                <span style="font-weight:600;">${item.name}</span>
+                ${infoLine}
+              </span>
+              <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
+            </li>
           `;
-        } catch (e) {
-          alert("Krasch i kategori " + cat + ": " + e.message + "\nDATA: " + JSON.stringify(items));
-          return `<div style="color:red">Fel i kategori ${cat}</div>`;
-        }
-      }).join("");
-  } catch (err) {
-    alert("Krasch i itemsHTML-generering: " + err.message);
-    itemsHTML = "<div style='color:red'>Fel vid generering av varor.</div>";
-  }
-//  alert("Steg 4: itemsHTML genererad");
+        }).join("");
+
+        return `
+          <h3 class="category-heading">${cat}</h3>
+          <ul class="todo-list">${itemList}</ul>
+        `;
+      } catch (err) {
+        alert(`Krasch i kategori ${cat}: ${err}\nDATA: ${JSON.stringify(items)}`);
+        return `<h3 class="category-heading">${cat}</h3><p style="color:red;">Kunde inte visa varor pga fel.</p>`;
+      }
+    }).join("");
 
   app.innerHTML = `
     <div class="top-bar">
@@ -135,7 +138,6 @@ window.renderListDetail = function(i) {
   `;
 
   applyFade && applyFade();
-//  alert("Steg 5: Klar med renderListDetail");
 };
 // --- Lägg till denna funktion i lists.js! ---
 window.addItemsWithCategory = function(listIndex) {
