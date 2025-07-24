@@ -160,6 +160,27 @@ h1 {
   border-bottom: none;
 }
 
+/* När en vara är klar (checkad) – samtliga textfärger i samma gråa nyans */
+.todo-item.done {
+  opacity: 1; /* Behåll full opacitet, vi styr färg istället */
+  color: #888 !important; /* Mjuk grå textfärg för hela raden */
+}
+
+.todo-item.done .item-name,
+.todo-item.done .item-name strong,
+.todo-item.done .item-name s,
+.todo-item.done .item-note-sign-wrapper,
+.todo-item.done .item-note-sign-wrapper > .item-note,
+.todo-item.done .item-note-sign-wrapper > .item-sign-date {
+  color: #888 !important;
+  font-style: normal !important; /* Ta bort kursiv på komplettering */
+}
+
+.todo-item.done .item-name s {
+  color: #888 !important;
+  opacity: 1; /* Ta bort blekning */
+}
+
 .todo-item .item-name {
   flex-grow: 1;
   margin-left: 12px;
@@ -168,16 +189,7 @@ h1 {
   flex-direction: column;
 }
 
-.todo-item.done {
-  opacity: 0.6;
-}
-
-.todo-item.done .item-name s {
-  color: #999;
-}
-
 /* Rad 2 i item, vänster och höger */
-/* Wrapper för komplettering och signatur/datum */
 .item-note-sign-wrapper {
   display: flex;
   justify-content: space-between;
@@ -186,7 +198,7 @@ h1 {
   line-height: 1.2;
   font-family: inherit;
   color: #888;
-  font-style: normal; /* normal text style */
+  font-style: normal;
 }
 
 .item-note-sign-wrapper > .item-note {
@@ -198,10 +210,9 @@ h1 {
 .item-note-sign-wrapper > .item-sign-date {
   white-space: nowrap;
   font-weight: 600;
-  color: #888; /* Samma färg som komplettering */
+  color: #555;
   margin-left: 10px;
   font-style: normal;
-  text-align: right;
 }
 
 /* ===== Checkboxes ===== */
@@ -342,7 +353,6 @@ button:hover {
   opacity: 0;
   transform: scale(0.98);
 }
-
 .fade-enter-active {
   opacity: 1;
   transform: scale(1);
@@ -504,7 +514,6 @@ select:focus {
   user-select: none;
   transition: color 0.15s;
 }
-
 .back-title:hover .back-arrow {
   color: #44bd32;
 }
@@ -522,38 +531,4 @@ select:focus {
 
 .filter-row {
   background: #f6f7fa;
-  border-bottom: 1px solid #eaeaea;
-  margin-bottom: 0px;
-}
-
-.filter-row label {
-  font-size: 1rem;
-  font-weight: 500;
-  color: #2d3436;
-  cursor: pointer;
-  user-select: none;
-}
-
-.filter-row input[type="checkbox"] {
-  margin-right: 8px;
-  accent-color: #4cd137;
-}
-
-.hide-done-label {
-  font-size: 0.93em;
-  color: #555;
-  font-weight: 400;
-  cursor: pointer;
-  margin-right: 0;
-  user-select: none;
-}
-
-.hide-done-label input[type="checkbox"] {
-  accent-color: #4cd137;
-  width: 17px;
-  height: 17px;
-}
-
-.hide-done-text {
-  font-size: 0.97em;
-}
+  border-bottom: 1px solid #
