@@ -92,4 +92,4 @@ window.applyFade = function() {
 };
 
 // --- Första rendering
-window.renderAllLists();
+//window.renderAllLists();
