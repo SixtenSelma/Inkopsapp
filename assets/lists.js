@@ -15,7 +15,7 @@ window.renderAllLists = function() {
     const pct = total ? Math.round((done / total) * 100) : 0;
 
     return `
-      <li class="list-item" onclick="renderListDetail(${i})">
+      <li class="list-item" onclick="viewList(${i})">
         <div class="list-card">
           <div class="list-card-header">
             <span class="list-card-title">${list.name}</span>
