@@ -6,6 +6,16 @@ window.user = getUser() || prompt("Vad heter du?");
 setUser(window.user);
 
 const app = document.getElementById("app");
+// lists.js – hanterar inköpslistor och rendering
+
+window.formatDate = function(dateString) {
+  if (!dateString) return '';
+  const d = new Date(dateString);
+  return `${d.toLocaleDateString('sv-SE')} ${d.toLocaleTimeString('sv-SE', {
+    hour: '2-digit',
+    minute: '2-digit'
+  })}`;
+};
 
 // === Renderar alla listor ===
 window.renderAllLists = function() {
