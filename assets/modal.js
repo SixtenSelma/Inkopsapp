@@ -7,7 +7,7 @@ window.scrollModalToTop = function () {
   }, 100);
 };
 
-// Byt namn-modal
+// Byt namn-modal (oförändrad)
 window.showRenameDialog = function (title, currentName, onConfirm, suggestions = []) {
   const m = document.createElement("div");
   m.className = "modal";
@@ -51,7 +51,7 @@ window.showRenameDialog = function (title, currentName, onConfirm, suggestions =
   };
 };
 
-// Ny lista-modal
+// Ny lista-modal (oförändrad)
 window.showNewListModal = function (onConfirm) {
   const m = document.createElement("div");
   m.className = "modal";
@@ -84,51 +84,142 @@ window.showNewListModal = function (onConfirm) {
   };
 };
 
-// Batch add-modal (flera varor samtidigt)
-window.showBatchAddDialog = function (i, onDone) {
+// === NY: "Lägg till varor" med manuell + sök från listor/mallar ===
+//  params: { onDone(array), kategori (eller null), allaVaror[], mallVaror[], kategoriVaror[] }
+window.showAddItemsDialog = function ({
+  onDone,
+  kategori = null,
+  allaVaror = [],
+  mallVaror = [],
+  kategoriVaror = [],
+}) {
   const m = document.createElement("div");
   m.className = "modal";
+  let added = [];
+  let currentList = kategoriVaror.length ? kategoriVaror : allaVaror;
+
+  function updatePreview() {
+    const ul = m.querySelector("#multiadd-preview");
+    ul.innerHTML = added.map(name => `<li>${name}</li>`).join("");
+  }
+
+  function addItem(val) {
+    const name = val.trim();
+    if (name && !added.includes(name)) {
+      added.push(name);
+      updatePreview();
+    }
+  }
+
+  // Sök-knappens popup
+  window.openVaruvalDialog = function(list, label) {
+    const mm = document.createElement("div");
+    mm.className = "modal";
+    mm.innerHTML = `
+      <div class="modal-content" style="max-width:340px;">
+        <h2>${label}</h2>
+        <input id="varuval-search" placeholder="Sök…" autocomplete="off" style="width:100%;margin-bottom:7px;">
+        <div id="varuval-list" style="max-height:220px;overflow:auto;border-radius:7px;border:1px solid #eee;padding:7px;background:#fafbfc;">
+          ${list.length
+            ? list.map((v, idx) =>
+                `<label style="display:flex;align-items:center;padding:2px 0;cursor:pointer;">
+                  <input type="checkbox" data-index="${idx}" style="margin-right:7px;">
+                  ${v}
+                </label>`
+              ).join("")
+            : '<div style="color:#aaa;font-style:italic;">Inga varor</div>'}
+        </div>
+        <div class="modal-actions">
+          <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
+          <button onclick="confirmVaruval()">Lägg till valda</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(mm);
+
+    // Sökfilter i popup
+    const search = mm.querySelector("#varuval-search");
+    const listDiv = mm.querySelector("#varuval-list");
+    search.addEventListener("input", function() {
+      const q = search.value.trim().toLowerCase();
+      [...listDiv.children].forEach(label => {
+        if (!label.textContent.toLowerCase().includes(q)) {
+          label.style.display = "none";
+        } else {
+          label.style.display = "";
+        }
+      });
+    });
+
+    // Bekräfta valda
+    window.confirmVaruval = function() {
+      const checkboxes = mm.querySelectorAll("input[type=checkbox]");
+      checkboxes.forEach(box => {
+        if (box.checked) {
+          const name = list[box.getAttribute("data-index")];
+          addItem(name);
+        }
+      });
+      document.body.removeChild(mm);
+    };
+  };
+
+  // Skapa modalinnehåll
   m.innerHTML = `
     <div class="modal-content">
-      <h2>Lägg till vara</h2>
-      <input id="batchItemInput" placeholder="Skriv vara och tryck Enter…" autocomplete="off" />
-      <ul id="batchPreview" class="preview-list"></ul>
-      <div class="modal-actions">
+      <h2>Lägg till varor${kategori ? ` i kategori<br><span style="font-size:1.1em;color:#555;font-weight:400;">${kategori}</span>` : ""}</h2>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input id="multiadd-input" placeholder="Skriv vara och tryck Enter…" autocomplete="off" style="flex:1;">
+        <button id="search-alla" title="Sök från alla listor" style="font-size:1.25em;line-height:1;background:none;border:none;cursor:pointer;" tabindex="-1">🔍</button>
+        <button id="search-mall" title="Sök från mallar" style="font-size:1.25em;line-height:1;background:none;border:none;cursor:pointer;" tabindex="-1">📋</button>
+      </div>
+      <ul id="multiadd-preview" class="preview-list" style="margin-bottom:10px;"></ul>
+      <div class="modal-actions" style="margin-top:7px;">
         <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
-        <button onclick="confirmBatchAdd()">Klar</button>
+        <button id="multiadd-done">Klar</button>
       </div>
     </div>
   `;
   document.body.appendChild(m);
 
-  const input = document.getElementById("batchItemInput");
-  const preview = document.getElementById("batchPreview");
-  let added = [];
-
+  // Fokusera input
+  const input = m.querySelector("#multiadd-input");
   input.focus();
   window.scrollModalToTop && window.scrollModalToTop();
 
+  // Enter = lägg till i preview
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && input.value.trim()) {
-      const name = input.value.trim();
-      added.push(name);
-      const li = document.createElement("li");
-      li.textContent = name;
-      preview.appendChild(li);
+      addItem(input.value);
       input.value = "";
     }
   });
 
-  window.confirmBatchAdd = () => {
-    if (input && input.value.trim()) {
-      added.push(input.value.trim());
-    }
+  // Sökknappar
+  m.querySelector("#search-alla").onclick = function() {
+    window.openVaruvalDialog(
+      kategoriVaror.length ? kategoriVaror : allaVaror,
+      kategori ? "Välj varor i denna kategori" : "Välj varor från alla listor"
+    );
+  };
+  m.querySelector("#search-mall").onclick = function() {
+    window.openVaruvalDialog(
+      mallVaror,
+      "Välj varor från mallar"
+    );
+  };
+
+  // Avsluta (lägg till alla markerade)
+  m.querySelector("#multiadd-done").onclick = function() {
+    if (input.value.trim()) addItem(input.value);
     if (onDone) onDone(added);
     document.body.removeChild(m);
   };
 };
 
-// Info/modal för kategori (exempel)
+// --- Behåller befintliga modaler nedan (t ex kategori-modal) ---
+
+// Info/modal för kategori (oförändrad)
 window.showCategoryPicker = function (name, onSave) {
   const m = document.createElement("div");
   m.className = "modal";
