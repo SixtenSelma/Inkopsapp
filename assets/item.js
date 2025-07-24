@@ -4,13 +4,11 @@
 window.splitItemInput = function(text) {
   text = text.trim();
   let name = text, note = "";
-  // parentes
   const paren = text.match(/^(.+?)\s*\((.+)\)$/);
   if (paren) {
     name = paren[1].trim();
     note = paren[2].trim();
   } else if (text.includes(",")) {
-    // kommatecken
     const idx = text.indexOf(",");
     name = text.slice(0, idx).trim();
     note = text.slice(idx + 1).trim();
@@ -30,9 +28,23 @@ window.getAllUniqueItemNames = function(lists) {
   return Object.values(names);
 };
 
+// DebugToggle – används för att felsöka checkbox-klick!
+window.debugToggle = function(listIndex, itemIndex) {
+  alert('toggleItem ska köras med: listIndex=' + listIndex + ', itemIndex=' + itemIndex);
+  try {
+    toggleItem(listIndex, itemIndex, window.lists, window.user, window.saveAndRenderList);
+  } catch(e) {
+    alert("toggleItem FEL: " + e.message);
+  }
+};
+
 // Toggle “klar” för en vara – med signatur och datum!
 window.toggleItem = function(li, ii, lists, user, saveAndRenderList) {
   const it = lists[li].items[ii];
+  if (!it) {
+    alert("toggleItem: Saknar item på li=" + li + ", ii=" + ii);
+    return;
+  }
   it.done = !it.done;
   if (it.done) {
     it.doneBy = user;
@@ -94,14 +106,11 @@ window.complementItem = function(li, ii, lists, categoryMemory, saveAndRenderLis
   window.confirmNote = () => {
     lists[li].items[ii].note = input.value.trim();
     lists[li].items[ii].category = select.value;
-
-    // Uppdatera minnet om kategori per vara!
     const itemNameKey = lists[li].items[ii].name.trim().toLowerCase();
     if (select.value) {
       categoryMemory[itemNameKey] = select.value;
       saveCategoryMemory(categoryMemory);
     }
-
     saveAndRenderList(li);
     document.body.removeChild(m);
     closeAnyMenu();
