@@ -15,7 +15,7 @@ window.renderAllLists = function() {
     const pct = total ? Math.round((done / total) * 100) : 0;
 
     return `
-      <li class="list-item" data-index="${i}">
+      <li class="list-item" onclick="viewList(${i})">
         <div class="list-card">
           <div class="list-card-header">
             <span class="list-card-title">${list.name}</span>
@@ -35,7 +35,7 @@ window.renderAllLists = function() {
         <button class="icon-button" onclick="changeUser()" title="Byt namn">🖊</button>
       </div>
     </div>
-    <ul class="list-wrapper" id="allLists">
+    <ul class="list-wrapper">
       ${listCards || '<p class="no-lists">Inga listor än.</p>'}
     </ul>
     <div class="bottom-bar">
@@ -43,31 +43,15 @@ window.renderAllLists = function() {
     </div>
   `;
 
-  // Event delegation för listkort
-  const ul = document.getElementById("allLists");
-  if (ul) {
-    ul.onclick = function(e) {
-      let el = e.target;
-      // Gå uppåt till närmaste .list-item
-      while (el && !el.classList.contains("list-item") && el !== ul) {
-        el = el.parentNode;
-      }
-      if (el && el.classList.contains("list-item")) {
-        const idx = el.getAttribute("data-index");
-        if (idx !== null) viewList(Number(idx));
-      }
-    };
-  }
-
   applyFade && applyFade();
 };
 
 // === Renderar en enskild lista ===
 window.renderListDetail = function(i) {
   const list = lists[i];
+  // Dela upp i två listor: ej klara först, sedan klara
   const allItems = list.items.map((item, realIdx) => ({ ...item, realIdx }));
-
-  // Gruppindelning på kategori
+  // Sortera inom kategori: först ej klara, sen klara. Inom varje: namnordning
   const grouped = {};
   standardKategorier.forEach(cat => grouped[cat] = []);
   allItems.forEach(item => {
@@ -79,13 +63,12 @@ window.renderListDetail = function(i) {
   const itemsHTML = Object.entries(grouped)
     .filter(([, items]) => items.length)
     .map(([cat, items]) => {
-      // Sortera ej klara varor A-Ö, sen klara A-Ö (alltid inom kategori)
-      const sortedItems = [
+      // Sortera: Ej klara först, inom varje: namn A-Ö
+      const sorted = [
         ...items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv')),
         ...items.filter(x => x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'))
       ];
-
-      const itemList = sortedItems.map(item => `
+      const itemList = sorted.map(item => `
         <li class="todo-item ${item.done ? 'done' : ''}">
           <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx}, window.lists, window.user, window.saveAndRenderList)" />
           <span class="item-name">
@@ -122,7 +105,9 @@ window.renderListDetail = function(i) {
   `;
 
   applyFade && applyFade();
-};// --- Lägg till denna funktion i lists.js! ---
+};
+
+// --- Lägg till denna funktion i lists.js! ---
 window.addItemsWithCategory = function(listIndex) {
   showBatchAddDialog(listIndex, function(added) {
     if (!added || !added.length) return;
@@ -189,3 +174,9 @@ window.deleteList = function(i) {
 if (typeof renderAllLists === "function") {
   renderAllLists();
 }
+
+// Gör saveAndRenderList global för toggleItem
+window.saveAndRenderList = function(i) {
+  saveLists(lists);
+  renderListDetail(i);
+};
