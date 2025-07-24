@@ -71,34 +71,46 @@ window.renderListDetail = function(i) {
     grouped[cat].push({ ...item, realIdx });
   });
 
+
+
   const itemsHTML = Object.entries(grouped)
-    .map(([cat, items]) => {
-      // Sortera: Ej klara först, namnordning, sen klara, namnordning
-      const notDone = items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'));
-      const done = items.filter(x => x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'));
-      const showItems = hideDone ? notDone : [...notDone, ...done];
-      if (!showItems.length) return ""; // Dölj kategori om inga varor kvar
-      const itemList = showItems.map(item => {
-        let infoLine = "";
-        if (item.done && item.doneBy && item.doneAt) {
-          infoLine = item.note
-            ? `<span>${item.note} &ndash; ${item.doneBy} ${formatDate(item.doneAt)}</span>`
-            : `<span>${item.doneBy} ${formatDate(item.doneAt)}</span>`;
-        } else if (item.note) {
-          infoLine = `<span>${item.note}</span>`;
-        }
-        return `
-          <li class="todo-item ${item.done ? 'done' : ''}">
-            <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx}, window.lists, window.user, window.saveAndRenderList)" />
-            <span class="item-name">
-              ${item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`}
-              ${infoLine ? `<small class="item-note" style="margin-top:2px;">${infoLine}</small>` : ''}
-            </span>
-            <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
-          </li>
-        `;
-      }).join("");
+  .map(([cat, items]) => {
+    // Sortera: Ej klara först, namnordning, sen klara, namnordning
+    const notDone = items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'));
+    const done = items.filter(x => x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'));
+    const showItems = hideDone ? notDone : [...notDone, ...done];
+    if (!showItems.length) return ""; // Dölj kategori om inga varor kvar
+
+    // Rubrik med extra stil!
+    const heading = `<h3 class="category-heading" style="border-bottom:2px solid #dfe4ea; background:#f7fafc; padding:7px 12px 4px 6px; margin-top:20px; margin-bottom:6px; border-radius:8px 8px 0 0;">${cat}</h3>`;
+    
+    const itemList = showItems.map(item => {
+      let infoLine = "";
+      if (item.done && item.doneBy && item.doneAt) {
+        infoLine = item.note
+          ? `<span>${item.note} &ndash; ${item.doneBy} ${formatDate(item.doneAt)}</span>`
+          : `<span>${item.doneBy} ${formatDate(item.doneAt)}</span>`;
+      } else if (item.note) {
+        infoLine = `<span>${item.note}</span>`;
+      }
       return `
+        <li class="todo-item ${item.done ? 'done' : ''}">
+          <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx}, window.lists, window.user, window.saveAndRenderList)" />
+          <span class="item-name">
+            ${item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`}
+            ${infoLine ? `<small class="item-note" style="margin-top:2px;">${infoLine}</small>` : ''}
+          </span>
+          <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
+        </li>
+      `;
+    }).join("");
+    return `
+      ${heading}
+      <ul class="todo-list">${itemList}</ul>
+    `;
+  }).join("");
+  
+        return `
         <h3 class="category-heading">${cat}</h3>
         <ul class="todo-list">${itemList}</ul>
       `;
