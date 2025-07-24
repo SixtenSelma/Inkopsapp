@@ -1,6 +1,4 @@
 // modal.js – återanvändbara modaler med bättre mobilhantering
-<input type="text" id="newItemName" list="itemNamesList" />
-<datalist id="itemNamesList"></datalist>
 
 // Flytta modal upp om mobil och tangentbord
 window.scrollModalToTop = function() {
