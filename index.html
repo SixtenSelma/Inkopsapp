@@ -1,20 +1,24 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Inköpslistan</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <!-- CSS -->
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
   <style>
     /* Förhindrar iOS-zoom på select/input i modal */
-    .modal-content input, .modal-content select {
+    .modal-content input,
+    .modal-content select {
       font-size: 1rem !important;
     }
   </style>
 </head>
 <body>
   <div id="app"></div>
+
+  <!-- Datalist för autocomplete i inputfält -->
+  <datalist id="itemNamesList"></datalist>
 
   <!-- JS-filer (ändrad sökväg till assets/) -->
   <script src="assets/storage.js"></script>
