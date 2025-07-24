@@ -645,3 +645,33 @@ input[type="search"]::placeholder {
   color: #aaa !important;
   opacity: 1;
 }
+
+.add-batch-search-list {
+  margin-top: 8px;
+}
+.batch-list-row {
+  display: flex;
+  align-items: center;
+  padding: 7px 0 7px 0;
+}
+.batch-checkbox-label {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 12px;
+  cursor: pointer;
+}
+.batch-checkbox-title {
+  font-weight: 500;
+  margin-right: 6px;
+}
+.batch-checkbox-desc {
+  font-size: 0.95em;
+  color: #999;
+  margin-left: 10px;
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
