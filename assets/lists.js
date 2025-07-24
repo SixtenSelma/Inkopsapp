@@ -48,6 +48,7 @@ window.renderAllLists = function() {
 
 // === Renderar en enskild lista ===
 window.renderListDetail = function(i) {
+alert("Renderar lista " + i);
   const list = lists[i];
   // Dela upp i två listor: ej klara först, sedan klara
   const allItems = list.items.map((item, realIdx) => ({ ...item, realIdx }));
