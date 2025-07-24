@@ -45,72 +45,62 @@ window.renderAllLists = function() {
 
   applyFade && applyFade();
 };
-
 window.renderListDetail = function(i) {
-  alert("START renderListDetail, i=" + i);
-
-  // 1. Hämta listan
-  const list = lists[i];
-  alert("Efter list-hämtning: " + (list ? JSON.stringify(list) : "undefined"));
-
-  // Kolla om listan finns
-  if (!list) {
-    alert("Ingen lista hittad för index " + i);
+  // 1. Felsäker kontroll på index och lista
+  if (!lists || !Array.isArray(lists) || !lists[i]) {
+    alert("Kunde inte hitta listan – fel index?");
     return;
   }
+  const list = lists[i];
 
-  // 2. Förbered items
-  const allItems = list.items.map((item, realIdx) => {
-    alert("Kollar item på index " + realIdx + ": " + JSON.stringify(item));
-    return { ...item, realIdx };
-  });
-  alert("Efter allItems, antal=" + allItems.length);
+  // 2. Mappa ut items med realIdx (säkerställ att alla är objekt)
+  const allItems = Array.isArray(list.items)
+    ? list.items.map((item, realIdx) => ({ ...item, realIdx }))
+    : [];
 
-  // 3. Gruppindelning kategori
+  // 3. Gruppindelning på kategori – förbered alla kategorier
   const grouped = {};
-  standardKategorier.forEach(cat => grouped[cat] = []);
+  (window.standardKategorier || []).forEach(cat => grouped[cat] = []);
   allItems.forEach(item => {
+    // Kontrollera att item är ett objekt och har name
+    if (!item || typeof item !== "object" || typeof item.name !== "string" || !item.name.trim()) return;
     const cat = item.category || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)";
     if (!grouped[cat]) grouped[cat] = [];
     grouped[cat].push(item);
-    alert("Pushade item till kategori: " + cat);
   });
-  alert("Efter grouping");
 
-  // 4. Skapa HTML för varje kategori
-  let itemsHTML = "";
-  Object.entries(grouped)
+  // 4. Rendera varje kategori för sig
+  const itemsHTML = Object.entries(grouped)
     .filter(([, items]) => items.length)
-    .forEach(([cat, items]) => {
-      alert("Bygger kategori: " + cat + ", items: " + items.length);
-
-      // Sortering: ej klara först (namn A-Ö), sen klara (namn A-Ö)
+    .map(([cat, items]) => {
+      // Felsäker sortering: Ej klara först, sedan klara, inom varje namnordning (case-insensitive)
       const sorted = [
-        ...items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv')),
-        ...items.filter(x => x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'))
+        ...items.filter(x => !Boolean(x.done)).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'sv', { sensitivity: 'base' })),
+        ...items.filter(x => Boolean(x.done)).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'sv', { sensitivity: 'base' }))
       ];
+      // Säkert bygge av HTML för varje item
+      const itemList = sorted.map(item => {
+        if (!item || typeof item.name !== "string" || !item.name.trim()) return "";
+        return `
+          <li class="todo-item ${item.done ? 'done' : ''}">
+            <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx}, window.lists, window.user, window.saveAndRenderList)" />
+            <span class="item-name">
+              ${item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`}
+              ${item.note ? `<small class="item-note">(${item.note})</small>` : ''}
+              ${item.done && item.doneBy ? `<small>${item.doneBy} • ${formatDate(item.doneAt)}</small>` : ''}
+            </span>
+            <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
+          </li>
+        `;
+      }).join("");
 
-      const itemList = sorted.map(item => `
-        <li class="todo-item ${item.done ? 'done' : ''}">
-          <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx}, window.lists, window.user, window.saveAndRenderList)" />
-          <span class="item-name">
-            ${item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`}
-            ${item.note ? `<small class="item-note">(${item.note})</small>` : ''}
-            ${item.done && item.doneBy ? `<small>${item.doneBy} • ${formatDate(item.doneAt)}</small>` : ''}
-          </span>
-          <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
-        </li>
-      `).join("");
-
-      itemsHTML += `
+      return `
         <h3 class="category-heading">${cat}</h3>
         <ul class="todo-list">${itemList}</ul>
       `;
-    });
+    }).join("");
 
-  alert("Efter itemsHTML generation");
-
-  // 5. Bygg HTML till app.innerHTML
+  // 5. Rendera sidan
   app.innerHTML = `
     <div class="top-bar">
       <span class="back-arrow" onclick="renderAllLists()" style="margin-right:10px; cursor:pointer; display:flex; align-items:center;">
@@ -129,10 +119,8 @@ window.renderListDetail = function(i) {
     </div>
   `;
 
-  alert("KLAR! (slutet på renderListDetail för " + i + ")");
   applyFade && applyFade();
 };
-
 window.addItemsWithCategory = function(listIndex) {
   showBatchAddDialog(listIndex, function(added) {
     if (!added || !added.length) return;
