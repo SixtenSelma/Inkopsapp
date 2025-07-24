@@ -2,12 +2,12 @@
 
 // === Renderar alla listor ===
 window.renderAllLists = function() {
-  // Sortera så masterlist hamnar sist och får särskild klass
+  // Sortera listorna så att mallar hamnar sist
   const sortedLists = [...lists].sort((a, b) => {
-    const aIsMaster = a.name.toLowerCase().includes('master');
-    const bIsMaster = b.name.toLowerCase().includes('master');
-    if (aIsMaster && !bIsMaster) return 1;
-    if (!aIsMaster && bIsMaster) return -1;
+    const aIsTemplate = a.name.startsWith("Mall:");
+    const bIsTemplate = b.name.startsWith("Mall:");
+    if (aIsTemplate && !bIsTemplate) return 1;
+    if (!aIsTemplate && bIsTemplate) return -1;
     return a.name.localeCompare(b.name, 'sv');
   });
 
@@ -15,14 +15,16 @@ window.renderAllLists = function() {
     const done = list.items.filter(x => x.done).length;
     const total = list.items.length;
     const pct = total ? Math.round((done / total) * 100) : 0;
-    const isMaster = list.name.toLowerCase().includes('master');
+
+    // Lägg till extra klass om det är en mall-lista
+    const extraClass = list.name.startsWith("Mall:") ? "list-card-template" : "";
 
     return `
-      <li class="list-item${isMaster ? ' master-list-item' : ''}" onclick="viewList(${lists.indexOf(list)})">
-        <div class="list-card${isMaster ? ' master-list-card' : ''}">
+      <li class="list-item" onclick="viewListByName('${list.name.replace(/'/g, "\\'")}')">
+        <div class="list-card ${extraClass}">
           <div class="list-card-header">
             <span class="list-card-title">${list.name}</span>
-            <button class="menu-btn" onclick="event.stopPropagation(); openListMenu(${lists.indexOf(list)}, this)">⋮</button>
+            <button class="menu-btn" onclick="event.stopPropagation(); openListMenuByName('${list.name.replace(/'/g, "\\'")}', this)">⋮</button>
           </div>
           <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
           <div class="progress-text">${done} / ${total} klara</div>
@@ -49,6 +51,22 @@ window.renderAllLists = function() {
   applyFade && applyFade();
 };
 
+// Hjälpfunktion: visa lista baserat på namn (eftersom vi sorterar)
+window.viewListByName = function(name) {
+  const index = lists.findIndex(l => l.name === name);
+  if (index >= 0) {
+    renderListDetail(index);
+  }
+};
+
+// Hjälpfunktion: öppna meny baserat på namn
+window.openListMenuByName = function(name, buttonElem) {
+  const index = lists.findIndex(l => l.name === name);
+  if (index >= 0) {
+    openListMenu(index, buttonElem);
+  }
+};
+
 // === Hjälpfunktion: formatera datum
 window.formatDate = function(iso) {
   if (!iso) return "";
@@ -61,7 +79,7 @@ window.formatDate = function(iso) {
 };
 
 window.lists = loadLists(); // Från storage.js
-window.categoryMemory = loadCategoryMemory() || {}; // Från storage.js
+window.categoryMemory = loadCategoryMemory(); // Från storage.js
 window.user = getUser() || prompt("Vad heter du?");
 setUser(window.user);
 
@@ -119,9 +137,6 @@ window.renderListDetail = function(i) {
   // Slå ihop kategorier: med varor + tomma om hideDone är false
   const finalCategories = hideDone ? categoriesWithItems : [...categoriesWithItems, ...emptyCategories];
 
-  // Hämta alla unika varunamn för autocomplete
-  const allNames = getAllUniqueItemNames(lists);
-
   const itemsHTML = finalCategories.map(({ cat, items }) => {
     const sorted = [
       ...items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv')),
@@ -154,11 +169,7 @@ window.renderListDetail = function(i) {
       <div class="category-block">
         <h3 class="category-heading">
           ${cat}
-          <button 
-            class="category-add-btn" 
-            title="Lägg till vara i ${cat}" 
-            onclick="addItemViaCategory(${i}, '${cat}', ${JSON.stringify(allNames).replace(/"/g, '&quot;')})"
-          >+</button>
+          <button class="category-add-btn" title="Lägg till vara i ${cat}" onclick="addItemViaCategory(${i}, '${cat}')">+</button>
         </h3>
         <ul class="todo-list">${itemList}</ul>
       </div>
@@ -199,8 +210,9 @@ window.renderListDetail = function(i) {
 };
 
 // --- Funktion för att lägga till vara via kategori-knapp ---
-// Tredje parameter suggestions används för autocomplete i modalen
-window.addItemViaCategory = function(listIndex, category, suggestions = []) {
+window.addItemViaCategory = function(listIndex, category) {
+  const allNames = getAllUniqueItemNames(lists);
+
   function addNewItemWithCheck(itemName) {
     const key = itemName.trim().toLowerCase();
     const prevCat = categoryMemory[key];
@@ -231,7 +243,7 @@ window.addItemViaCategory = function(listIndex, category, suggestions = []) {
       if (!newItemName) return;
       addNewItemWithCheck(newItemName);
     },
-    suggestions
+    allNames
   );
 };
 
@@ -240,30 +252,6 @@ window.addItemsWithCategory = function(listIndex) {
   showBatchAddDialog(listIndex, function(added) {
     if (!added || !added.length) return;
     let toAdd = [...added];
-
-    function addNewItemWithCheck(itemName, cat) {
-      const key = itemName.trim().toLowerCase();
-      const prevCat = categoryMemory[key];
-
-      function doAdd(catToUse) {
-        lists[listIndex].items.push({ name: itemName, note: "", done: false, category: catToUse });
-        categoryMemory[key] = catToUse;
-        saveCategoryMemory && saveCategoryMemory(categoryMemory);
-        saveLists(lists);
-        renderListDetail(listIndex);
-      }
-
-      if (prevCat && prevCat !== cat) {
-        if (confirm(`Varan "${itemName}" är redan kopplad till kategori "${prevCat}". Vill du byta till "${cat}"?`)) {
-          doAdd(cat);
-        } else {
-          doAdd(prevCat);
-        }
-      } else {
-        doAdd(cat);
-      }
-    }
-
     function handleNext() {
       if (!toAdd.length) {
         saveLists(lists);
@@ -275,11 +263,11 @@ window.addItemsWithCategory = function(listIndex) {
       const itemNameKey = itemName.trim().toLowerCase();
       const suggestedCategory = categoryMemory[itemNameKey];
       if (suggestedCategory) {
-        addNewItemWithCheck(itemName, suggestedCategory);
+        lists[listIndex].items.push({ name: itemName, note: note, done: false, category: suggestedCategory });
         handleNext();
       } else {
         showCategoryPicker(itemName, (chosenCat) => {
-          addNewItemWithCheck(itemName, chosenCat);
+          lists[listIndex].items.push({ name: itemName, note: note, done: false, category: chosenCat });
           categoryMemory[itemNameKey] = chosenCat;
           saveCategoryMemory && saveCategoryMemory(categoryMemory);
           handleNext();
@@ -319,17 +307,6 @@ window.deleteList = function(i) {
     closeAnyMenu && closeAnyMenu();
   }
 };
-
-// === Initiera masterlist vid start om minst 1 annan lista finns ===
-function initMasterList() {
-  if (lists.length < 2) return; // Behöver minst en vanlig lista + masterlist
-  const hasMaster = lists.some(l => l.name.toLowerCase().includes('master'));
-  if (!hasMaster) {
-    lists.push({ name: '(Master) Samlad lista', items: [] });
-    saveLists(lists);
-  }
-}
-initMasterList();
 
 // === Initiera första renderingen ===
 if (typeof renderAllLists === "function") {
