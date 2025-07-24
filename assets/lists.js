@@ -79,7 +79,13 @@ window.renderListDetail = function(i) {
   const itemsHTML = Object.entries(grouped)
     .filter(([, items]) => items.length)
     .map(([cat, items]) => {
-      const itemList = items.map(item => `
+      // Sortera ej klara varor A-Ö, sen klara A-Ö (alltid inom kategori)
+      const sortedItems = [
+        ...items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv')),
+        ...items.filter(x => x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'))
+      ];
+
+      const itemList = sortedItems.map(item => `
         <li class="todo-item ${item.done ? 'done' : ''}">
           <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx}, lists, user, saveAndRenderList)" />
           <span class="item-name">
@@ -117,7 +123,6 @@ window.renderListDetail = function(i) {
 
   applyFade && applyFade();
 };
-
 // --- Lägg till denna funktion i lists.js! ---
 window.addItemsWithCategory = function(listIndex) {
   showBatchAddDialog(listIndex, function(added) {
