@@ -31,7 +31,7 @@ body {
 }
 
 .top-bar h1 {
-  font-size: 2rem;
+  font-size: 2rem; /* Större huvudrubrik */
   font-weight: 800;
   margin: 0;
   display: flex;
@@ -108,7 +108,7 @@ h1 {
 }
 
 .list-card-title {
-  font-size: 1.22rem;
+  font-size: 1.22rem; /* Större listnamn */
   font-weight: 700;
 }
 
@@ -143,6 +143,53 @@ h1 {
 }
 
 /* ===== To-Do View ===== */
+.category-list {
+  padding: 0 16px 80px; /* Extra utrymme för flytande knapp */
+}
+
+.category-block {
+  margin-bottom: 28px;
+}
+
+.category-heading {
+  font-size: 1.22rem;
+  font-weight: 800;
+  color: #232323;
+  margin: 36px 0 8px 0;
+  padding: 6px 16px 6px 10px;
+  background: #f4faf4;
+  border-left: 6px solid #4cd137;
+  border-radius: 9px 30px 30px 9px;
+  box-shadow: 0 1px 0 #e0e0e0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.category-add-btn {
+  width: 28px;
+  height: 28px;
+  background-color: #eee;
+  border-radius: 50%;
+  border: none;
+  font-size: 20px;
+  line-height: 28px;
+  text-align: center;
+  color: #555;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0;
+}
+
+.category-add-btn:hover {
+  background-color: #ddd;
+}
+
 .todo-list {
   padding: 0;
   margin: 0;
@@ -151,7 +198,7 @@ h1 {
 .todo-item {
   display: flex;
   align-items: center;
-  padding: 14px 16px;
+  padding: 14px 12px;
   border-bottom: 1px solid #eaeaea;
   background: #fff;
 }
@@ -176,29 +223,25 @@ h1 {
   color: #999;
 }
 
-/* Rad 2 i item, vänster och höger */
-.item-row2 {
+/* ===== Komplement + signatur/datum ===== */
+.item-note-row {
   display: flex;
   justify-content: space-between;
   font-size: 0.85rem;
-  color: #666;
+  color: #888;
   margin-top: 4px;
   font-style: italic;
-  line-height: 1.2;
 }
 
-.item-row2 .left {
-  text-align: left;
-  flex: 1;
-  color: #888;
+.item-note-left {
+  overflow-wrap: anywhere;
 }
 
-.item-row2 .right {
-  text-align: right;
+.item-note-right {
   white-space: nowrap;
-  flex-shrink: 0;
   color: #555;
-  font-weight: 600;
+  font-weight: 500;
+  user-select: none;
 }
 
 /* ===== Checkboxes ===== */
@@ -279,6 +322,7 @@ button:hover {
   max-width: 400px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
+
 .modal-content input {
   width: 100%;
   padding: 10px 14px;
@@ -288,18 +332,11 @@ button:hover {
   box-sizing: border-box;
   margin-top: 12px;
 }
+
 .modal-actions {
   display: flex;
   justify-content: space-between;
   margin-top: 16px;
-}
-
-.preview-list {
-  list-style: disc;
-  margin: 12px 0 0 20px;
-  padding: 0;
-  font-size: 0.95rem;
-  color: #2f3640;
 }
 
 /* ===== Meny (popup) ===== */
@@ -315,15 +352,12 @@ button:hover {
 }
 
 .item-menu button {
-  padding: 8px 14px;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 6px;
   background: none;
   border: none;
   width: 100%;
+  padding: 10px 16px;
   text-align: left;
+  font-size: 1rem;
   cursor: pointer;
   color: #333;
 }
@@ -343,7 +377,7 @@ button:hover {
   transition: opacity 200ms, transform 200ms;
 }
 
-/* ===== Extra Modalanimation & Responsivitet ===== */
+/* ===== Extra Modalanimation ===== */
 @keyframes popIn {
   0% {
     opacity: 0;
@@ -359,12 +393,7 @@ button:hover {
   animation: popIn 0.25s ease-out;
 }
 
-/* Lätt bakgrundsblur på modalen (valfritt, snygg effekt) */
-.modal {
-  backdrop-filter: blur(4px);
-}
-
-/* Smidig "toast"-liknande feedback – kan användas om du vill visa sparad/notifiering */
+/* ===== Toast ===== */
 .toast {
   position: fixed;
   bottom: 80px;
@@ -388,55 +417,6 @@ button:hover {
   100% { opacity: 0; transform: translate(-50%, -10px); }
 }
 
-/* ===== Komplettering / Note ===== */
-.item-note {
-  font-size: 0.85rem;
-  color: #888;
-  margin-left: 6px;
-  font-style: italic;
-}
-
-/* ===== Kategori-rubrik (extra tydlig!) ===== */
-.category-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 1.22rem;
-  font-weight: 800;
-  color: #232323;
-  margin: 36px 0 8px 0;
-  padding: 6px 16px 6px 10px;
-  background: #f4faf4;
-  border-left: 6px solid #4cd137;
-  border-radius: 9px 30px 30px 9px;
-  box-shadow: 0 1px 0 #e0e0e0;
-  text-shadow: 0 1px 0 #fff;
-  min-height: 36px;
-}
-
-/* Plusknapp i kategori-rad - mindre och höjdjusterad */
-.category-add-btn {
-  width: 28px;
-  height: 28px;
-  font-size: 20px;
-  line-height: 28px;
-  margin-left: 6px;
-  margin-top: -4px;
-  background-color: #eee;
-  border-radius: 50%;
-  border: none;
-  color: #555;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  padding: 0;
-  user-select: none;
-}
-
-.category-add-btn:hover {
-  background-color: #ddd;
-}
-
 /* ===== Förhindra iOS-autozoom på input/select ===== */
 input,
 select,
@@ -448,6 +428,7 @@ select {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
+
   background-color: #fff;
   border: 1.5px solid #dcdde1;
   border-radius: 10px;
@@ -455,11 +436,13 @@ select {
   font-size: 16px;
   width: 100%;
   box-sizing: border-box;
+
   background-image: url("data:image/svg+xml;utf8,<svg fill='gray' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
   background-repeat: no-repeat;
   background-position: right 14px center;
   background-size: 16px 16px;
   padding-right: 40px;
+
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -469,7 +452,6 @@ select:focus {
   outline: none;
 }
 
-/* ===== Responsivitet ===== */
 @media (max-width: 700px) {
   .modal {
     align-items: flex-start !important;
@@ -480,7 +462,7 @@ select:focus {
   }
 }
 
-/* ===== Tillbaka knapp/rubrik ===== */
+/* ===== Back title och pil ===== */
 .back-title {
   display: flex;
   align-items: center;
@@ -498,55 +480,12 @@ select:focus {
   user-select: none;
   transition: color 0.15s;
 }
+
 .back-title:hover .back-arrow {
   color: #44bd32;
 }
 
-/* Om du kör SVG: */
 .back-arrow-svg {
   margin-right: 6px;
   vertical-align: middle;
-}
-
-.progress-bar,
-.progress-fill {
-  pointer-events: none !important;
-}
-
-.filter-row {
-  background: #f6f7fa;
-  border-bottom: 1px solid #eaeaea;
-  margin-bottom: 0px;
-}
-
-.filter-row label {
-  font-size: 1rem;
-  font-weight: 500;
-  color: #2d3436;
-  cursor: pointer;
-  user-select: none;
-}
-
-.filter-row input[type="checkbox"] {
-  margin-right: 8px;
-  accent-color: #4cd137;
-}
-
-.hide-done-label {
-  font-size: 0.93em;
-  color: #555;
-  font-weight: 400;
-  cursor: pointer;
-  margin-right: 0;
-  user-select: none;
-}
-
-.hide-done-label input[type="checkbox"] {
-  accent-color: #4cd137;
-  width: 17px;
-  height: 17px;
-}
-
-.hide-done-text {
-  font-size: 0.97em;
 }
