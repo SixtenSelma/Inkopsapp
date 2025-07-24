@@ -175,9 +175,3 @@ window.deleteList = function(i) {
 if (typeof renderAllLists === "function") {
   renderAllLists();
 }
-
-// Gör saveAndRenderList global för toggleItem
-window.saveAndRenderList = function(i) {
-  saveLists(lists);
-  renderListDetail(i);
-};
