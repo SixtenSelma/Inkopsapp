@@ -60,13 +60,12 @@ window.renderAllLists = function() {
 // === Renderar en enskild lista ===
 window.renderListDetail = function(i) {
   const list = lists[i];
-  // Hämta användarinställning för "dölj klara"
   let hideDone = true;
   try {
     hideDone = localStorage.getItem("hideDone") !== "false";
   } catch {}
+
   const allItems = list.items.map((item, realIdx) => ({ ...item, realIdx }));
-  // Gruppindelning på kategori
   const grouped = {};
   standardKategorier.forEach(cat => grouped[cat] = []);
   allItems.forEach(item => {
@@ -77,16 +76,14 @@ window.renderListDetail = function(i) {
 
   const itemsHTML = Object.entries(grouped)
     .map(([cat, items]) => {
-      // Sortera: Ej klara först, inom varje: namn A-Ö
       let sorted = [
         ...items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv')),
         ...items.filter(x => x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'))
       ];
-      // Dölj klara om valt
       if (hideDone) sorted = sorted.filter(x => !x.done);
-      if (sorted.length === 0) return ''; // Dölj kategori om inga kvar
+      if (sorted.length === 0) return ''; // Dölj kategori om tom
+
       const itemList = sorted.map(item => {
-        // Rad 1: Namn, ev. note. Rad 2: signatur & datum och ev. note.
         let row1 = item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`;
         let row2 = '';
         if (item.done && item.doneBy) {
@@ -108,10 +105,20 @@ window.renderListDetail = function(i) {
         `;
       }).join("");
 
-      // Tydlig kategori-rubrik!
+      // Plus-knapp visas bara om "Dölj klara" INTE är ibockad
+      const plusBtnHTML = !hideDone ? `
+        <button 
+          class="category-add-btn" 
+          onclick="addItemsWithCategory(${i}, '${cat}')" 
+          title="Lägg till vara i ${cat}">＋</button>
+      ` : '';
+
       return `
         <div class="category-block">
-          <h3 class="category-heading">${cat}</h3>
+          <h3 class="category-heading">
+            ${cat}
+            ${plusBtnHTML}
+          </h3>
           <ul class="todo-list">${itemList}</ul>
         </div>
       `;
@@ -139,7 +146,7 @@ window.renderListDetail = function(i) {
     </div>
   `;
 
-  // Lyssna på checkbox
+  // Checkbox event
   const chk = document.getElementById("hideDoneCheckbox");
   if (chk) {
     chk.onchange = function() {
@@ -151,8 +158,8 @@ window.renderListDetail = function(i) {
   applyFade && applyFade();
 };
 
-// --- Lägg till denna funktion i lists.js! ---
-window.addItemsWithCategory = function(listIndex) {
+// --- Uppdaterad addItemsWithCategory med kategori (valfritt) ---
+window.addItemsWithCategory = function(listIndex, category) {
   showBatchAddDialog(listIndex, function(added) {
     if (!added || !added.length) return;
     let toAdd = [...added];
@@ -166,12 +173,12 @@ window.addItemsWithCategory = function(listIndex) {
       const { name: itemName, note } = splitItemInput(raw);
       const itemNameKey = itemName.trim().toLowerCase();
       const suggestedCategory = categoryMemory[itemNameKey];
-      // Om kategori redan finns i minnet, använd den direkt
-      if (suggestedCategory) {
-        lists[listIndex].items.push({ name: itemName, note: note, done: false, category: suggestedCategory });
+      // Om kategori finns i minnet, använd den, annars den från argument, annars popup
+      const targetCategory = suggestedCategory || category || null;
+      if (targetCategory) {
+        lists[listIndex].items.push({ name: itemName, note: note, done: false, category: targetCategory });
         handleNext();
       } else {
-        // Visa kategori-popup
         showCategoryPicker(itemName, (chosenCat) => {
           lists[listIndex].items.push({ name: itemName, note: note, done: false, category: chosenCat });
           categoryMemory[itemNameKey] = chosenCat;
