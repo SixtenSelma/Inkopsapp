@@ -55,20 +55,17 @@ window.renderAllLists = function() {
 
   applyFade && applyFade();
 };
+
+
 window.renderListDetail = function(i) {
   const list = lists[i];
+  // Hämtar/behåller state för dölja klara
+  if (window._hideDone === undefined) window._hideDone = true;
 
-  // Spara/döp toggle i localStorage
-  const HIDE_DONE_KEY = "hideDoneItems";
-  let hideDone = true;
-  if (localStorage.getItem(HIDE_DONE_KEY) !== null) {
-    hideDone = localStorage.getItem(HIDE_DONE_KEY) === "true";
-  } else {
-    localStorage.setItem(HIDE_DONE_KEY, "true");
-  }
+  // Dela upp items, lägg till realIdx
+  const allItems = list.items.map((item, realIdx) => ({ ...item, realIdx }));
 
   // Gruppindelning på kategori
-  const allItems = list.items.map((item, realIdx) => ({ ...item, realIdx }));
   const grouped = {};
   standardKategorier.forEach(cat => grouped[cat] = []);
   allItems.forEach(item => {
@@ -77,69 +74,50 @@ window.renderListDetail = function(i) {
     grouped[cat].push(item);
   });
 
-  // Visa checkrutan högst upp
-  let checkHideHtml = `
-    <label style="display:flex;align-items:center;gap:8px;padding: 10px 16px 2px 2px;">
-      <input id="hideDoneItemsToggle" type="checkbox" ${hideDone ? "checked" : ""} style="width:20px;height:20px;margin-right:6px;" />
-      <span style="font-size:1.08em;">Dölj klara varor och kategorier (dölj klara)</span>
-    </label>
-  `;
-
-  // Bygg HTML för varorna
+  // Skapa HTML för varje kategori
   const itemsHTML = Object.entries(grouped)
     .map(([cat, items]) => {
-      try {
-        let sorted = [
-          ...items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv')),
-          ...items.filter(x => x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'))
-        ];
+      // Filtrera bort klara om rutan är i-bockad
+      const filtered = window._hideDone
+        ? items.filter(x => !x.done)
+        : items;
+      if (!filtered.length) return ''; // Visa aldrig tom kategori
 
-        // Dölj klara varor/kategorier om boxen är ikryssad
-        if (hideDone) {
-          // Visa kategori endast om det finns minst en som INTE är klar
-          sorted = sorted.filter(x => !x.done);
-          if (sorted.length === 0) return "";
-        }
+      // Sortering: Ej klara först (A-Ö), sedan klara (A-Ö)
+      const sorted = [
+        ...filtered.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv')),
+        ...filtered.filter(x => x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'))
+      ];
 
-        const itemList = sorted.map(item => {
-          // Rad 2 = note + stämpel eller bara stämpel eller bara note
-          let infoLine = '';
-          if (item.done && item.doneBy) {
-            const dateTxt = `${item.doneBy} ${formatDate(item.doneAt)}`;
-            if (item.note) {
-              infoLine = `<span style="display:block;font-size:0.93em;color:#888;margin-top:2px;font-style:italic;">
-                            ${item.note} — ${dateTxt}
-                          </span>`;
-            } else {
-              infoLine = `<span style="display:block;font-size:0.93em;color:#888;margin-top:2px;">
-                            ${dateTxt}
-                          </span>`;
-            }
-          } else if (item.note) {
-            infoLine = `<span style="display:block;font-size:0.95em;color:#888;margin-top:2px;font-style:italic;">
-                          ${item.note}
-                        </span>`;
-          }
-          return `
-            <li class="todo-item ${item.done ? 'done' : ''}">
-              <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx}, window.lists, window.user, window.saveAndRenderList)" />
-              <span class="item-name">
-                <span style="font-weight:600;">${item.name}</span>
-                ${infoLine}
-              </span>
-              <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
-            </li>
-          `;
-        }).join("");
+      const itemList = sorted.map(item => `
+        <li class="todo-item ${item.done ? 'done' : ''}">
+          <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx}, window.lists, window.user, window.saveAndRenderList)" />
+          <span class="item-name">
+            ${item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`}
+            ${(() => {
+              // Rad 2: note och/eller signatur+datum
+              const hasNote = item.note && item.note.trim().length;
+              const hasStamp = item.done && item.doneBy;
+              if (!hasNote && !hasStamp) return "";
+              let row2 = "";
+              if (hasNote && hasStamp) {
+                row2 = `<small class="item-note">${item.note} &nbsp;–&nbsp; ${item.doneBy} ${formatDate(item.doneAt)}</small>`;
+              } else if (hasNote) {
+                row2 = `<small class="item-note">${item.note}</small>`;
+              } else if (hasStamp) {
+                row2 = `<small class="item-note">${item.doneBy} ${formatDate(item.doneAt)}</small>`;
+              }
+              return row2;
+            })()}
+          </span>
+          <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
+        </li>
+      `).join("");
 
-        return `
-          <h3 class="category-heading">${cat}</h3>
-          <ul class="todo-list">${itemList}</ul>
-        `;
-      } catch (err) {
-        alert(`Krasch i kategori ${cat}: ${err}\nDATA: ${JSON.stringify(items)}`);
-        return `<h3 class="category-heading">${cat}</h3><p style="color:red;">Kunde inte visa varor pga fel.</p>`;
-      }
+      return `
+        <h3 class="category-heading">${cat}</h3>
+        <ul class="todo-list">${itemList}</ul>
+      `;
     }).join("");
 
   app.innerHTML = `
@@ -149,11 +127,14 @@ window.renderListDetail = function(i) {
           <polyline points="15 18 9 12 15 6"/>
         </svg>
       </span>
-      <h1 class="back-title" style="font-size:1.45em; font-weight:700; margin:0;">${list.name}</h1>
-      <div style="width: 56px"></div>
+      <h1 class="back-title" style="font-size:1.45em; font-weight:700; margin:0;flex:1;">${list.name}</h1>
+      <label class="hide-done-label" style="margin-left:auto; display:flex; align-items:center; gap:6px;">
+        <input type="checkbox" id="hideDone" ${window._hideDone ? "checked" : ""} onchange="toggleHideDone(${i})">
+        <span class="hide-done-text">Dölj klara</span>
+      </label>
+      <div style="width: 10px"></div>
     </div>
     <div class="category-list">
-      ${checkHideHtml}
       ${itemsHTML || '<p>Inga varor än.</p>'}
     </div>
     <div class="bottom-bar">
@@ -161,16 +142,14 @@ window.renderListDetail = function(i) {
     </div>
   `;
 
-  // Lyssna på togglen (MÅSTE göras efter DOM är renderad)
-  const toggle = document.getElementById("hideDoneItemsToggle");
-  if (toggle) {
-    toggle.onchange = function() {
-      localStorage.setItem(HIDE_DONE_KEY, toggle.checked ? "true" : "false");
-      renderListDetail(i);
-    };
-  }
-
   applyFade && applyFade();
+};
+
+
+
+
+// 11!!
+
 };// --- Lägg till denna funktion i lists.js! ---
 window.addItemsWithCategory = function(listIndex) {
   showBatchAddDialog(listIndex, function(added) {
