@@ -60,6 +60,7 @@ window.renderAllLists = function() {
 // === Renderar en enskild lista ===
 window.renderListDetail = function(i) {
   const list = lists[i];
+  // Hämta användarinställning för "dölj klara"
   let hideDone = true;
   try {
     hideDone = localStorage.getItem("hideDone") !== "false";
@@ -67,6 +68,7 @@ window.renderListDetail = function(i) {
 
   const allItems = list.items.map((item, realIdx) => ({ ...item, realIdx }));
 
+  // Gruppindelning på kategori
   const grouped = {};
   standardKategorier.forEach(cat => grouped[cat] = []);
   allItems.forEach(item => {
@@ -75,6 +77,7 @@ window.renderListDetail = function(i) {
     grouped[cat].push(item);
   });
 
+  // Sortera kategorier i två grupper: med varor och tomma
   const categoriesWithItems = [];
   const emptyCategories = [];
 
@@ -82,6 +85,7 @@ window.renderListDetail = function(i) {
     let filteredItems = items;
 
     if (hideDone) {
+      // Dölj klara varor
       filteredItems = items.filter(x => !x.done);
     }
 
@@ -92,28 +96,35 @@ window.renderListDetail = function(i) {
     }
   });
 
+  // Sortera kategorier med varor i standardordning
   categoriesWithItems.sort((a, b) => standardKategorier.indexOf(a.cat) - standardKategorier.indexOf(b.cat));
   emptyCategories.sort((a, b) => standardKategorier.indexOf(a.cat) - standardKategorier.indexOf(b.cat));
 
+  // Slå ihop listorna: först med varor, sen tomma (endast när hideDone är false)
   const finalCategories = hideDone ? categoriesWithItems : [...categoriesWithItems, ...emptyCategories];
 
   const itemsHTML = finalCategories.map(({ cat, items }) => {
+    // Sortera: Ej klara först, sen klara, inom varje namn A-Ö
     const sorted = [
       ...items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv')),
       ...items.filter(x => x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'))
     ];
 
+    // Om kategori är tom (items.length == 0) och hideDone==false visas ändå kategorin (men utan varor)
     const itemList = sorted.length > 0 ? sorted.map(item => {
-      let row1 = item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`;
-      let row2Left = item.note ? `<span class="left">${item.note}</span>` : '';
-      let row2Right = (item.done && item.doneBy) ? `<span class="right">${item.doneBy} ${formatDate(item.doneAt)}</span>` : '';
+      const row1 = item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`;
+      const row2Left = item.note ? `<span class="item-note">${item.note}</span>` : '';
+      const row2Right = (item.done && item.doneBy) ? `${item.doneBy} ${formatDate(item.doneAt)}` : '';
 
       return `
         <li class="todo-item ${item.done ? 'done' : ''}">
           <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx}, window.lists, window.user, window.saveAndRenderList)" />
           <span class="item-name">
             <span>${row1}</span>
-            <small class="item-row2">${row2Left}${row2Right}</small>
+            <small class="item-note-row">
+              <span class="item-note-left">${row2Left}</span>
+              <span class="item-note-right">${row2Right}</span>
+            </small>
           </span>
           <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
         </li>
@@ -163,6 +174,7 @@ window.renderListDetail = function(i) {
 
   applyFade && applyFade();
 };
+
 
 // --- Funktion för att lägga till vara via kategori-knapp ---
 window.addItemViaCategory = function(listIndex, category) {
