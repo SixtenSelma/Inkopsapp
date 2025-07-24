@@ -338,3 +338,27 @@ input, select, textarea {
   .modal { align-items: flex-start !important; }
   .modal-content { margin-top: 30px !important; margin-bottom: 20px !important; }
 }
+.item-content {
+  display: flex;
+  flex-direction: column;
+}
+.item-line2 {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  font-size: 0.9rem;
+  color: #666;
+}
+.item-note {
+  flex-shrink: 1;
+  font-style: italic;
+}
+.item-meta {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.empty-category {
+  padding: 8px 16px;
+  color: #999;
+  font-style: italic;
+}
