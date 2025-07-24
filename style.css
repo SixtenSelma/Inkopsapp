@@ -254,15 +254,17 @@ button:hover {
   max-width: 400px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
+
 .modal-content input {
   width: 100%;
   padding: 10px 14px;
   font-size: 1rem;
   border-radius: 8px;
   border: 1px solid #ccc;
-  box-sizing: border-box; /* 👈 detta är nyckeln */
+  box-sizing: border-box;
   margin-top: 12px;
 }
+
 .modal-actions {
   display: flex;
   justify-content: space-between;
@@ -309,14 +311,14 @@ button:hover {
   opacity: 0;
   transform: scale(0.98);
 }
+
 .fade-enter-active {
   opacity: 1;
   transform: scale(1);
   transition: opacity 200ms, transform 200ms;
 }
-/* ===== Extra Modalanimation & Responsivitet ===== */
 
-/* Pop-in animation för modal-innehåll */
+/* ===== Extra Modalanimation & Responsivitet ===== */
 @keyframes popIn {
   0% {
     opacity: 0;
@@ -332,12 +334,11 @@ button:hover {
   animation: popIn 0.25s ease-out;
 }
 
-/* Lätt bakgrundsblur på modalen (valfritt, snygg effekt) */
 .modal {
   backdrop-filter: blur(4px);
 }
 
-/* Smidig "toast"-liknande feedback – kan användas om du vill visa sparad/notifiering */
+/* ===== Toast ===== */
 .toast {
   position: fixed;
   bottom: 80px;
@@ -369,15 +370,16 @@ button:hover {
   font-style: italic;
 }
 
-/* ===== Kategori-rubrik (extra tydlig!) ===== */
+/* ===== Kategori-rubrik (extra tydlig med plusknapp) ===== */
 .category-heading {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
-  font-size: 1.22rem;  /* Större rubrik */
-  font-weight: 800;    /* Fetare */
+  font-size: 1.22rem;      /* Större rubrik */
+  font-weight: 800;        /* Fetare */
   color: #232323;
-  margin: 36px 0 8px 0;   /* Extra luft ovanför, mindre nedåt */
+  margin: 36px 0 8px 0;    /* Luft ovanför, lite under */
   padding: 6px 16px 6px 10px;
   background: #f4faf4;     /* Diskret ljusgrön bakgrund */
   border-left: 6px solid #4cd137;  /* Tydlig grön rand */
@@ -385,10 +387,30 @@ button:hover {
   box-shadow: 0 1px 0 #e0e0e0;
   text-shadow: 0 1px 0 #fff;
   min-height: 36px;
-  /* Emojis blir automatiskt större/fetare! */
 }
 
-/* ===== Förhindra iOS-autozoom på input/select ===== */
+/* ===== Plusknapp i kategori-rad ===== */
+.category-add-btn {
+  width: 36px;
+  height: 36px;
+  background-color: #eee;
+  border-radius: 50%;
+  border: none;
+  font-size: 22px;
+  line-height: 36px;
+  text-align: center;
+  color: #555;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  user-select: none;
+  padding: 0;
+}
+
+.category-add-btn:hover {
+  background-color: #ddd;
+}
+
+/* ===== iOS-zoom fix ===== */
 input,
 select,
 textarea {
@@ -399,7 +421,6 @@ select {
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-
   background-color: #fff;
   border: 1.5px solid #dcdde1;
   border-radius: 10px;
@@ -407,13 +428,11 @@ select {
   font-size: 16px;
   width: 100%;
   box-sizing: border-box;
-
   background-image: url("data:image/svg+xml;utf8,<svg fill='gray' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
   background-repeat: no-repeat;
   background-position: right 14px center;
   background-size: 16px 16px;
   padding-right: 40px;
-
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -433,11 +452,12 @@ select:focus {
   }
 }
 
+/* ===== Back Title ===== */
 .back-title {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 1.5rem;    /* ← Gör tillbaka-rubrik större även i detaljvy! */
+  font-size: 1.5rem;    /* Gör tillbaka-rubrik större */
   font-weight: 800;
   cursor: pointer;
 }
@@ -454,19 +474,17 @@ select:focus {
   color: #44bd32;
 }
 
-/* Om du kör SVG: */
-.back-arrow-svg {
-  margin-right: 6px;
-  vertical-align: middle;
-}
+/* ===== Förhindra interaktion med progress-bar ===== */
 .progress-bar,
 .progress-fill {
   pointer-events: none !important;
 }
+
+/* ===== Filter-rad ===== */
 .filter-row {
   background: #f6f7fa;
   border-bottom: 1px solid #eaeaea;
-  margin-bottom: 0px;
+  margin-bottom: 0;
 }
 
 .filter-row label {
@@ -476,54 +494,24 @@ select:focus {
   cursor: pointer;
   user-select: none;
 }
-.filter-row input[type="checkbox"] {
-  margin-right: 8px;
-  accent-color: #4cd137;
-}
 
 .hide-done-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.93em;
   color: #555;
   font-weight: 400;
   cursor: pointer;
-  margin-right: 0;
   user-select: none;
 }
+
 .hide-done-label input[type="checkbox"] {
   accent-color: #4cd137;
   width: 17px;
   height: 17px;
 }
+
 .hide-done-text {
   font-size: 0.97em;
-}
-/* Plusknapp i kategori-rad */
-.category-heading {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin: 24px 16px 4px;
-  color: #333;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.category-add-btn {
-  width: 36px;
-  height: 36px;
-  background-color: #eee;
-  border-radius: 50%;
-  border: none;
-  font-size: 22px;
-  line-height: 36px;
-  text-align: center;
-  color: #555;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  user-select: none;
-  padding: 0;
-}
-
-.category-add-btn:hover {
-  background-color: #ddd;
 }
