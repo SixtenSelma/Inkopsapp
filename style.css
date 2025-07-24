@@ -173,7 +173,7 @@ h1 {
 .todo-item.done .item-note-sign-wrapper > .item-note,
 .todo-item.done .item-note-sign-wrapper > .item-sign-date {
   color: #888 !important;
-  font-style: normal !important; /* Ta bort kursiv på komplettering */
+  font-style: italic !important; /* Ta bort kursiv på komplettering */
 }
 
 .todo-item.done .item-name s {
