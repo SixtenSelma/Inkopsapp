@@ -11,8 +11,8 @@ window.formatDate = function(iso) {
   } catch { return ""; }
 };
 
-window.lists = loadLists();                   // Från storage.js
-window.categoryMemory = loadCategoryMemory();  // Från storage.js
+window.lists = loadLists(); // Från storage.js
+window.categoryMemory = loadCategoryMemory(); // Från storage.js
 window.user = getUser() || prompt("Vad heter du?");
 setUser(window.user);
 
@@ -21,9 +21,10 @@ const app = document.getElementById("app");
 // === Renderar alla listor ===
 window.renderAllLists = function() {
   const listCards = lists.map((list, i) => {
-    const done  = list.items.filter(x => x.done).length;
+    const done = list.items.filter(x => x.done).length;
     const total = list.items.length;
-    const pct   = total ? Math.round((done/total)*100) : 0;
+    const pct = total ? Math.round((done / total) * 100) : 0;
+
     return `
       <li class="list-item" onclick="viewList(${i})">
         <div class="list-card">
@@ -31,9 +32,7 @@ window.renderAllLists = function() {
             <span class="list-card-title">${list.name}</span>
             <button class="menu-btn" onclick="event.stopPropagation(); openListMenu(${i}, this)">⋮</button>
           </div>
-          <div class="progress-bar">
-            <div class="progress-fill" style="width:${pct}%"></div>
-          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
           <div class="progress-text">${done} / ${total} klara</div>
         </div>
       </li>`;
@@ -54,6 +53,7 @@ window.renderAllLists = function() {
       <button onclick="showNewListDialog()" title="Ny lista">➕</button>
     </div>
   `;
+
   applyFade && applyFade();
 };
 
@@ -75,15 +75,21 @@ window.renderListDetail = function(i) {
     grouped[cat].push(item);
   });
 
-  // Sortera kategorier i två grupper: med varor och tomma
   const categoriesWithItems = [];
   const emptyCategories = [];
 
   Object.entries(grouped).forEach(([cat, items]) => {
     let filteredItems = items;
-    if (hideDone) filteredItems = items.filter(x => !x.done);
-    if (filteredItems.length > 0) categoriesWithItems.push({ cat, items: filteredItems });
-    else emptyCategories.push({ cat, items: [] });
+
+    if (hideDone) {
+      filteredItems = items.filter(x => !x.done);
+    }
+
+    if (filteredItems.length > 0) {
+      categoriesWithItems.push({ cat, items: filteredItems });
+    } else {
+      emptyCategories.push({ cat, items: [] });
+    }
   });
 
   categoriesWithItems.sort((a, b) => standardKategorier.indexOf(a.cat) - standardKategorier.indexOf(b.cat));
@@ -99,12 +105,8 @@ window.renderListDetail = function(i) {
 
     const itemList = sorted.length > 0 ? sorted.map(item => {
       let row1 = item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`;
-      
-      let row2Left = '';
-      let row2Right = '';
-
-      if (item.note) row2Left = `<span class="left">${item.note}</span>`;
-      if (item.done && item.doneBy) row2Right = `<span class="right">${item.doneBy} ${formatDate(item.doneAt)}</span>`;
+      let row2Left = item.note ? `<span class="left">${item.note}</span>` : '';
+      let row2Right = (item.done && item.doneBy) ? `<span class="right">${item.doneBy} ${formatDate(item.doneAt)}</span>` : '';
 
       return `
         <li class="todo-item ${item.done ? 'done' : ''}">
@@ -161,79 +163,89 @@ window.renderListDetail = function(i) {
 
   applyFade && applyFade();
 };
-// === Lägg till via kategori-knapp ===
-window.addItemViaCategory = function(listIndex, category){
+
+// --- Funktion för att lägga till vara via kategori-knapp ---
+window.addItemViaCategory = function(listIndex, category) {
   const allNames = getAllUniqueItemNames(lists);
 
-  function doAdd(name, cat){
-    lists[listIndex].items.push({name, note:"", done:false, category:cat});
-    categoryMemory[name.trim().toLowerCase()] = cat;
-    saveCategoryMemory(categoryMemory);
-    saveLists(lists);
-    renderListDetail(listIndex);
+  function addNewItemWithCheck(itemName) {
+    const key = itemName.trim().toLowerCase();
+    const prevCat = categoryMemory[key];
+
+    function doAdd(catToUse) {
+      lists[listIndex].items.push({ name: itemName, note: "", done: false, category: catToUse });
+      categoryMemory[key] = catToUse;
+      saveCategoryMemory && saveCategoryMemory(categoryMemory);
+      saveLists(lists);
+      renderListDetail(listIndex);
+    }
+
+    if (prevCat && prevCat !== category) {
+      if (confirm(`Varan "${itemName}" är redan kopplad till kategori "${prevCat}". Vill du byta till "${category}"?`)) {
+        doAdd(category);
+      } else {
+        doAdd(prevCat);
+      }
+    } else {
+      doAdd(category);
+    }
   }
 
   showRenameDialog(
-    `Lägg till vara i "${category}"`, "", name=>{
-      if(!name) return;
-      const key = name.trim().toLowerCase();
-      const prev = categoryMemory[key];
-      if(prev && prev!==category){
-        if(confirm(`Byta kategori från "${prev}" till "${category}"?`)){
-          doAdd(name, category);
-        } else {
-          doAdd(name, prev);
-        }
-      } else {
-        doAdd(name, category);
-      }
+    `Lägg till vara i kategori "${category}"`,
+    "",
+    function(newItemName) {
+      if (!newItemName) return;
+      addNewItemWithCheck(newItemName);
     },
     allNames
   );
 };
 
-// === Lägg till varor med kategori (batch) ===
-window.addItemsWithCategory = function(listIndex){
-  showBatchAddDialog(listIndex, added=>{
-    if(!added||!added.length) return;
-    let queue = [...added];
-    (function next(){
-      if(!queue.length){
+// --- Lägg till varor med kategori (batch) ---
+window.addItemsWithCategory = function(listIndex) {
+  showBatchAddDialog(listIndex, function(added) {
+    if (!added || !added.length) return;
+    let toAdd = [...added];
+    function handleNext() {
+      if (!toAdd.length) {
         saveLists(lists);
         renderListDetail(listIndex);
         return;
       }
-      const raw = queue.shift();
-      const {name, note} = splitItemInput(raw);
-      const key = name.trim().toLowerCase();
-      const suggested = categoryMemory[key];
-      if(suggested){
-        lists[listIndex].items.push({name, note, done:false, category:suggested});
-        next();
+      const raw = toAdd.shift();
+      const { name: itemName, note } = splitItemInput(raw);
+      const itemNameKey = itemName.trim().toLowerCase();
+      const suggestedCategory = categoryMemory[itemNameKey];
+      if (suggestedCategory) {
+        lists[listIndex].items.push({ name: itemName, note: note, done: false, category: suggestedCategory });
+        handleNext();
       } else {
-        showCategoryPicker(name, chosen=>{
-          lists[listIndex].items.push({name, note, done:false, category:chosen});
-          categoryMemory[key] = chosen;
-          saveCategoryMemory(categoryMemory);
-          next();
+        showCategoryPicker(itemName, (chosenCat) => {
+          lists[listIndex].items.push({ name: itemName, note: note, done: false, category: chosenCat });
+          categoryMemory[itemNameKey] = chosenCat;
+          saveCategoryMemory && saveCategoryMemory(categoryMemory);
+          handleNext();
         });
       }
-    })();
+    }
+    handleNext();
   });
 };
 
 // === Skapa ny lista (popup) ===
-window.showNewListDialog = function(){
-  showNewListModal(name=>{
-    lists.push({name, items:[]});
+window.showNewListDialog = function() {
+  showNewListModal(function(listName) {
+    lists.push({ name: listName, items: [] });
     saveLists(lists);
     renderAllLists();
   });
 };
 
-// === Byt namn på lista ===
-window.renameList = function(i){
-  showRenameDialog("Byt namn på lista", lists[i].name, newName=>{
+// === Byt namn på lista (använder modal.js) ===
+window.renameList = function(i) {
+  const currentName = lists[i].name;
+  showRenameDialog("Byt namn på lista", currentName, (newName) => {
     lists[i].name = newName;
     saveLists(lists);
     renderAllLists();
@@ -242,20 +254,21 @@ window.renameList = function(i){
 };
 
 // === Ta bort lista ===
-window.deleteList = function(i){
-  if(confirm("Vill du ta bort listan permanent?")){
-    lists.splice(i,1);
+window.deleteList = function(i) {
+  if (confirm("Vill du ta bort listan permanent?")) {
+    lists.splice(i, 1);
     saveLists(lists);
     renderAllLists();
     closeAnyMenu && closeAnyMenu();
   }
 };
 
-// Gör saveAndRenderList globalt för toggleItem
-window.saveAndRenderList = function(i){
+// === Initiera första renderingen ===
+if (typeof renderAllLists === "function") {
+  renderAllLists();
+}
+
+window.saveAndRenderList = function(i) {
   saveLists(lists);
   renderListDetail(i);
 };
-
-// Initiera första renderingen
-if(typeof renderAllLists==="function") renderAllLists();
