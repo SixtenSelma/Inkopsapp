@@ -40,136 +40,74 @@ body {
   cursor: pointer;
 }
 
-.user-badge {
-  background: #4cd137;
-  color: white;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 500;
+.back-title {
   display: flex;
   align-items: center;
-  gap: 6px;
-}
-
-.icon-button {
-  background: none;
-  border: none;
-  font-size: 1.3rem;
-  cursor: pointer;
-  color: #666;
-  padding: 2px;
-  transition: color 0.2s ease;
-}
-.icon-button:hover { color: #000; }
-
-/* ===== List Wrapper & Cards ===== */
-.list-wrapper {
-  padding: 16px;
-}
-
-.list-item {
-  margin-bottom: 16px;
-  list-style: none;
-}
-
-.list-card {
-  background: #f9fafe;
-  border-radius: 14px;
-  padding: 16px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-  transition: background 0.2s ease;
-}
-.list-card:hover { background: #eef1f5; }
-
-.list-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 600;
-  font-size: 1rem;
-  margin-bottom: 10px;
-}
-
-.list-card-title {
-  font-size: 1.22rem;
+  gap: 10px;
+  font-size: 1.45rem;
   font-weight: 700;
-}
-
-.menu-btn {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  color: #666;
   cursor: pointer;
-  padding: 4px;
 }
 
-/* ===== Progress ===== */
-.progress-bar {
-  background-color: #dfe4ea;
-  height: 8px;
-  border-radius: 8px;
-  overflow: hidden;
-  margin: 8px 0;
+.back-arrow {
+  font-size: 1.8em;
+  color: #2863c7;
+  font-weight: bold;
+  margin-right: 2px;
+  user-select: none;
+  transition: color 0.15s;
 }
-.progress-fill {
-  background-color: #4cd137;
-  height: 100%;
-  width: 0%;
-  transition: width 0.3s ease;
-}
-.progress-text {
-  font-size: 0.85rem;
-  color: #636e72;
+.back-title:hover .back-arrow {
+  color: #44bd32;
 }
 
-/* ===== To-Do View ===== */
-.category-list {
-  flex: 1 0 auto;
-  overflow-y: auto;
-}
-
-.category-block {
-  margin-bottom: 24px;
-}
-
+/* ===== Kategori-rubrik ===== */
 .category-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   font-size: 1.22rem;
   font-weight: 800;
   color: #232323;
-  margin: 32px 0 8px 0;
+  margin: 36px 0 8px 0;
   padding: 6px 16px 6px 10px;
   background: #f4faf4;
   border-left: 6px solid #4cd137;
   border-radius: 9px 30px 30px 9px;
   box-shadow: 0 1px 0 #e0e0e0;
+  text-shadow: 0 1px 0 #fff;
+  min-height: 36px;
 }
 
+/* Plusknapp i kategori-rad */
 .category-add-btn {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   background-color: #eee;
   border-radius: 50%;
   border: none;
   font-size: 20px;
-  line-height: 32px;
+  line-height: 28px;
   text-align: center;
   color: #555;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  margin-left: 12px;
-  flex-shrink: 0;
+  user-select: none;
+  padding: 0;
+  margin-left: 8px;
+  margin-top: -6px;
 }
-.category-add-btn:hover { background-color: #ddd; }
 
-/* ===== Items ===== */
+.category-add-btn:hover {
+  background-color: #ddd;
+}
+
+/* ===== To-Do View ===== */
 .todo-list {
   padding: 0;
   margin: 0;
+  list-style: none;
 }
 
 .todo-item {
@@ -179,41 +117,106 @@ body {
   border-bottom: 1px solid #eaeaea;
   background: #fff;
 }
-.todo-item:last-child { border-bottom: none; }
 
+.todo-item:last-child {
+  border-bottom: none;
+}
+
+.todo-item .item-name {
+  flex-grow: 1;
+  margin-left: 12px;
+  font-size: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Styling för genomstrukna klara varor */
 .todo-item.done {
   opacity: 0.6;
 }
 
+.todo-item.done .item-name s {
+  color: #999;
+}
+
+/* Rad med komplettering och signatur/datum */
+.item-note-sign-wrapper {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #888;
+  font-style: italic;
+  margin-top: 4px;
+  gap: 8px;
+}
+
+.item-note-sign-wrapper .item-note {
+  flex-grow: 1;
+  text-align: left;
+}
+
+.item-note-sign-wrapper .item-sign-date {
+  flex-shrink: 0;
+  text-align: right;
+  font-weight: 600;
+  font-style: normal;
+  color: #555;
+}
+
+/* ===== Checkboxes ===== */
 input[type="checkbox"] {
   width: 18px;
   height: 18px;
-  flex-shrink: 0;
 }
 
-/* Bryt ut textdelen till en flex-kolumn, och metadelen till höger */
-.item-name {
-  display: flex;
-  flex-direction: column;
-  margin-left: 12px;
+/* ===== Meny (popup) ===== */
+.item-menu {
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 6px 0;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  width: 160px;
+}
+
+.item-menu button {
+  background: none;
+  border: none;
+  width: 100%;
+  padding: 10px 16px;
+  text-align: left;
   font-size: 1rem;
-  flex-grow: 1;
+  cursor: pointer;
+  color: #333;
 }
 
-.item-note {
-  font-size: 0.85rem;
-  font-style: italic;
-  color: #888;
-  margin-top: 2px;
+.item-menu button:hover {
+  background-color: #f1f2f6;
 }
 
-/* Metaraden (user + datum/tid) */
-.item-meta {
-  font-size: 0.85rem;
-  color: #636e72;
-  margin-left: 12px;
-  white-space: nowrap;
-  flex-shrink: 0;
+/* ===== Dölj klara etikett ===== */
+.hide-done-label {
+  font-size: 0.93em;
+  color: #555;
+  font-weight: 400;
+  cursor: pointer;
+  margin-right: 0;
+  user-select: none;
+  display: flex;
+  align-items: center;
+}
+
+.hide-done-label input[type="checkbox"] {
+  accent-color: #4cd137;
+  width: 17px;
+  height: 17px;
+  margin-right: 8px;
+}
+
+.hide-done-text {
+  font-size: 0.97em;
 }
 
 /* ===== Input & Buttons ===== */
@@ -236,7 +239,20 @@ button {
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
-button:hover { background-color: #44bd32; }
+
+button:hover {
+  background-color: #44bd32;
+}
+
+/* ===== Sekundärknapp ===== */
+.btn-secondary {
+  background-color: #eaeef1;
+  color: #2f3542;
+}
+
+.btn-secondary:hover {
+  background-color: #dcdde1;
+}
 
 /* ===== Flytande plus-knapp ===== */
 .bottom-bar {
@@ -245,6 +261,7 @@ button:hover { background-color: #44bd32; }
   right: 24px;
   z-index: 50;
 }
+
 .bottom-bar button {
   width: 56px;
   height: 56px;
@@ -265,6 +282,7 @@ button:hover { background-color: #44bd32; }
   align-items: center;
   z-index: 1000;
 }
+
 .modal-content {
   background: #fff;
   padding: 24px;
@@ -272,93 +290,73 @@ button:hover { background-color: #44bd32; }
   width: 90%;
   max-width: 400px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  animation: popIn 0.25s ease-out;
 }
-@keyframes popIn {
-  0% { opacity: 0; transform: scale(0.95); }
-  100% { opacity: 1; transform: scale(1); }
-}
-.modal-content input,
-.modal-content select {
+
+.modal-content input {
   width: 100%;
   padding: 10px 14px;
-  font-size: 1rem !important;
+  font-size: 1rem;
   border-radius: 8px;
   border: 1px solid #ccc;
   box-sizing: border-box;
   margin-top: 12px;
 }
+
 .modal-actions {
   display: flex;
   justify-content: space-between;
   margin-top: 16px;
 }
 
-/* ===== Meny (popup) ===== */
-.item-menu {
-  position: absolute;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 6px 0;
-  z-index: 1000;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-  width: 160px;
-}
-.item-menu button {
-  background: none;
-  border: none;
-  width: 100%;
-  padding: 10px 16px;
-  text-align: left;
-  font-size: 1rem;
-  cursor: pointer;
-  color: #333;
-}
-.item-menu button:hover { background-color: #f1f2f6; }
-
-/* ===== Animation – fade ===== */
-.fade-enter {
-  opacity: 0;
-  transform: scale(0.98);
-}
-.fade-enter-active {
-  opacity: 1;
-  transform: scale(1);
-  transition: opacity 200ms, transform 200ms;
+/* ===== Komplettering / Note ===== */
+.item-note {
+  font-size: 0.85rem;
+  color: #888;
+  margin-left: 6px;
+  font-style: italic;
 }
 
-/* ===== iOS-fix input/select ===== */
-input, select, textarea {
+/* ===== Förhindra iOS-autozoom på input/select ===== */
+input,
+select,
+textarea {
   font-size: 16px !important;
 }
 
-/* Responsiv för modal på små skärmar */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  background-color: #fff;
+  border: 1.5px solid #dcdde1;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 16px;
+  width: 100%;
+  box-sizing: border-box;
+
+  background-image: url("data:image/svg+xml;utf8,<svg fill='gray' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px 16px;
+  padding-right: 40px;
+
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+select:focus {
+  border-color: #4cd137;
+  box-shadow: 0 0 0 2px rgba(76, 209, 55, 0.25);
+  outline: none;
+}
+
 @media (max-width: 700px) {
-  .modal { align-items: flex-start !important; }
-  .modal-content { margin-top: 30px !important; margin-bottom: 20px !important; }
-}
-.item-content {
-  display: flex;
-  flex-direction: column;
-}
-.item-line2 {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 4px;
-  font-size: 0.9rem;
-  color: #666;
-}
-.item-note {
-  flex-shrink: 1;
-  font-style: italic;
-}
-.item-meta {
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-.empty-category {
-  padding: 8px 16px;
-  color: #999;
-  font-style: italic;
+  .modal {
+    align-items: flex-start !important;
+  }
+  .modal-content {
+    margin-top: 30px !important;
+    margin-bottom: 20px !important;
+  }
 }
