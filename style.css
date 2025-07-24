@@ -195,16 +195,16 @@ h1 {
   justify-content: space-between;
   font-size: 0.85rem;
   margin-top: 4px;
-  line-height: 1.2;
+  line-height: 1.1;
   font-family: inherit;
   color: #888;
-  font-style: normal;
+  font-style: italic; /* Kursiv på hela rad 2 */
 }
 
 .item-note-sign-wrapper > .item-note {
-  font-style: italic;
-  color: #888;
   flex: 1;
+  color: #888;
+  font-style: inherit; /* Ärvs, alltså också kursiv */
 }
 
 .item-note-sign-wrapper > .item-sign-date {
@@ -212,9 +212,8 @@ h1 {
   font-weight: 600;
   color: #555;
   margin-left: 10px;
-  font-style: normal;
+  font-style: inherit; /* Ärvs, alltså också kursiv */
 }
-
 /* ===== Checkboxes ===== */
 input[type="checkbox"] {
   width: 18px;
