@@ -447,3 +447,7 @@ select:focus {
   margin-right: 6px;
   vertical-align: middle;
 }
+.progress-bar,
+.progress-fill {
+  pointer-events: none !important;
+}
