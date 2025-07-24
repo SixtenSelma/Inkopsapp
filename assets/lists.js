@@ -174,7 +174,6 @@ window.renderListDetail = function(i) {
   applyFade && applyFade();
 };// --- Funktion för att lägga till vara via kategori-knapp ---
 window.addItemViaCategory = function(listIndex, category) {
-  fillItemNameDatalist();
   const allNames = getAllUniqueItemNames(lists);
 
   function addNewItemWithCheck(itemName) {
@@ -241,27 +240,6 @@ window.addItemsWithCategory = function(listIndex) {
     handleNext();
   });
 };
-
-function fillItemNameDatalist() {
-  const allNamesSet = new Set();
-  lists.forEach(list => {
-    list.items.forEach(item => {
-      allNamesSet.add(item.name.trim());
-    });
-  });
-  const allNames = Array.from(allNamesSet).sort();
-
-  const dataListElem = document.getElementById('itemNamesList');
-  if (!dataListElem) return;
-
-  dataListElem.innerHTML = '';
-
-  allNames.forEach(name => {
-    const option = document.createElement('option');
-    option.value = name;
-    dataListElem.appendChild(option);
-  });
-}
 
 // === Skapa ny lista (popup) ===
 window.showNewListDialog = function() {
