@@ -1,15 +1,43 @@
 // lists.js – hanterar inköpslistor och rendering
 
+// === Hjälpfunktion: skapa masterlista om den saknas och minst 1 annan lista finns ===
+function ensureMasterListExists() {
+  const hasMaster = lists.some(list => list.name.toLowerCase().includes('master'));
+  const otherListsCount = lists.filter(list => !list.name.toLowerCase().includes('master')).length;
+
+  if (!hasMaster && otherListsCount > 0) {
+    lists.push({
+      name: "Masterlista",
+      items: []
+    });
+    saveLists(lists);
+  }
+}
+
 // === Renderar alla listor ===
 window.renderAllLists = function() {
-  const listCards = lists.map((list, i) => {
+  ensureMasterListExists();
+
+  // Sortera så masterlistan alltid hamnar sist
+  const sortedLists = [...lists].sort((a, b) => {
+    const aIsMaster = a.name.toLowerCase().includes('master');
+    const bIsMaster = b.name.toLowerCase().includes('master');
+    if (aIsMaster && !bIsMaster) return 1;  // master sist
+    if (!aIsMaster && bIsMaster) return -1;
+    return a.name.localeCompare(b.name, 'sv');
+  });
+
+  const listCards = sortedLists.map((list, i) => {
     const done = list.items.filter(x => x.done).length;
     const total = list.items.length;
     const pct = total ? Math.round((done / total) * 100) : 0;
 
+    // Ge masterlistan en särskild CSS-klass för styling
+    const masterClass = list.name.toLowerCase().includes('master') ? 'list-card-master' : '';
+
     return `
       <li class="list-item" onclick="viewList(${i})">
-        <div class="list-card">
+        <div class="list-card ${masterClass}">
           <div class="list-card-header">
             <span class="list-card-title">${list.name}</span>
             <button class="menu-btn" onclick="event.stopPropagation(); openListMenu(${i}, this)">⋮</button>
