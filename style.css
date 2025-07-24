@@ -218,8 +218,8 @@ h1 {
 input[type="checkbox"] {
   width: 18px;
   height: 18px;
+  accent-color: #999999; /* Eller den grå nyans du vill ha */
 }
-
 /* ===== Input & Buttons ===== */
 input[type="text"] {
   border: 1.5px solid #dcdde1;
