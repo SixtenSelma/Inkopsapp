@@ -109,19 +109,20 @@ window.renderListDetail = function(i) {
       // Rad 1: Namn, ev. genomstruket om done
       let row1 = item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`;
 
-      // Rad 2: komplettering vänster + signatur + datum höger
-      let compText = item.note ? `<em>${item.note}</em>` : "";
-      let signDate = (item.done && item.doneBy) ? `<span class="item-sign-date">${item.doneBy} ${formatDate(item.doneAt)}</span>` : "";
+      // Rad 2: vänster = kompletterande text, höger = signatur + datum (alltid med två span)
+      let compText = item.note ? `<span class="left">${item.note}</span>` : `<span class="left"></span>`;
+      let signDate = (item.done && item.doneBy) ? 
+        `<span class="right">${item.doneBy} ${formatDate(item.doneAt)}</span>` : `<span class="right"></span>`;
 
       return `
         <li class="todo-item ${item.done ? 'done' : ''}">
           <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx}, window.lists, window.user, window.saveAndRenderList)" />
           <span class="item-name">
             <span>${row1}</span>
-            <span class="item-note-sign-wrapper">
+            <div class="item-row2">
               ${compText}
               ${signDate}
-            </span>
+            </div>
           </span>
           <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
         </li>
@@ -161,6 +162,7 @@ window.renderListDetail = function(i) {
     </div>
   `;
 
+  // Checkbox-lyssnare
   const chk = document.getElementById("hideDoneCheckbox");
   if (chk) {
     chk.onchange = function() {
@@ -170,8 +172,7 @@ window.renderListDetail = function(i) {
   }
 
   applyFade && applyFade();
-};
-// --- Funktion för att lägga till vara via kategori-knapp ---
+};// --- Funktion för att lägga till vara via kategori-knapp ---
 window.addItemViaCategory = function(listIndex, category) {
   const allNames = getAllUniqueItemNames(lists);
 
