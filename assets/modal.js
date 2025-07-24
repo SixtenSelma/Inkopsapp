@@ -1,18 +1,15 @@
 // modal.js – återanvändbara modaler med bättre mobilhantering
 
-// Flytta modal upp om mobil och tangentbord
 window.scrollModalToTop = function () {
   setTimeout(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, 100);
 };
 
-// Byt namn-modal
+// Byt namn-modal (oförändrad)
 window.showRenameDialog = function (title, currentName, onConfirm, suggestions = []) {
   const m = document.createElement("div");
   m.className = "modal";
-
-  // Skapa datalist options för autocomplete om finns
   const dataListId = "itemNamesListModal";
   let dataListHTML = "";
   if (suggestions.length) {
@@ -51,7 +48,7 @@ window.showRenameDialog = function (title, currentName, onConfirm, suggestions =
   };
 };
 
-// Ny lista-modal
+// Ny lista-modal (oförändrad)
 window.showNewListModal = function (onConfirm) {
   const m = document.createElement("div");
   m.className = "modal";
@@ -84,47 +81,39 @@ window.showNewListModal = function (onConfirm) {
   };
 };
 
-// === NY BATCH ADD-DIALOG MED SÖK ===
+// === NY DESIGN: Lägg till varor med två stora knappar under sökfältet ===
 window.showAddItemsDialog = function({ kategori = null, allaVaror = [], mallVaror = [], kategoriVaror = [], onDone }) {
   const m = document.createElement("div");
   m.className = "modal";
 
   let tempList = [];
-  let searchResults = [];
-  let currentSearch = null; // INGEN källa från start
-  let searchActive = false;
+  let currentSource = null; // "alla" eller "mall"
+  let lastFilter = "";
 
-  function getSearchSource() {
-    if (currentSearch === "kategori") return kategoriVaror;
-    if (currentSearch === "mall") return mallVaror;
-    if (currentSearch === "alla") return allaVaror;
+  function getSourceArr() {
+    if (currentSource === "mall") return mallVaror;
+    if (currentSource === "alla") return kategori ? kategoriVaror : allaVaror;
     return [];
   }
 
-  function filterSource(q) {
-    if (!q) return getSearchSource();
-    const lower = q.toLowerCase();
-    return getSearchSource().filter(v => v.toLowerCase().includes(lower));
-  }
-
-  function renderSearchList(q = "") {
-    if (!searchActive) {
-      resultDiv.innerHTML = "";
-      return;
+  function renderOptions(q = "") {
+    const arr = getSourceArr();
+    let filtered = arr;
+    if (q && arr.length) {
+      const lower = q.toLowerCase();
+      filtered = arr.filter(v => v.toLowerCase().includes(lower));
     }
-    const arr = filterSource(q);
-    searchResults = arr;
-    const html = arr.length
-      ? arr.map(name => `
-        <label class="search-item-row" style="display:flex;align-items:center;gap:8px;padding:4px 0;">
-          <input type="checkbox" data-searchname="${name.replace(/"/g,"&quot;")}" ${tempList.includes(name) ? "checked" : ""} style="margin-right:6px;">
+    optionsDiv.innerHTML = filtered.length
+      ? filtered.map(name => `
+        <label class="search-item-row" style="display:flex;align-items:center;gap:10px;padding:4px 0;">
+          <input type="checkbox" data-searchname="${name.replace(/"/g,"&quot;")}" ${tempList.includes(name) ? "checked" : ""}>
           <span>${name}</span>
         </label>
       `).join("")
-      : "<div style='color:#aaa;margin:12px 0;'>Inga träffar…</div>";
-    resultDiv.innerHTML = html;
-
-    Array.from(resultDiv.querySelectorAll('input[type="checkbox"]')).forEach(chk => {
+      : (currentSource
+          ? "<div style='color:#aaa;margin:12px 0;'>Inga träffar…</div>"
+          : "");
+    Array.from(optionsDiv.querySelectorAll('input[type="checkbox"]')).forEach(chk => {
       chk.addEventListener("change", function() {
         const name = this.getAttribute("data-searchname");
         if (this.checked) {
@@ -150,7 +139,7 @@ window.showAddItemsDialog = function({ kategori = null, allaVaror = [], mallVaro
       window["_removeTempListItem_" + idx] = function() {
         tempList = tempList.filter((v, i) => i !== idx);
         renderPreviewList();
-        renderSearchList(searchInput.value);
+        renderOptions(lastFilter);
       };
     });
   }
@@ -158,11 +147,10 @@ window.showAddItemsDialog = function({ kategori = null, allaVaror = [], mallVaro
   m.innerHTML = `
     <div class="modal-content" style="min-width:290px;">
       <h2>${kategori ? `Lägg till vara i kategori "${kategori}"` : "Lägg till varor"}</h2>
-      <div style="display:flex;gap:6px;margin-bottom:12px;">
-        <input id="batchItemInput" autocomplete="off" placeholder="Skriv vara och tryck Enter…" style="flex:1;" />
-        <button id="searchAllBtn" title="Visa alla varor i alla listor" style="padding:0 12px;">🔍</button>
-        <button id="searchMallBtn" title="Visa varor i mallar" style="padding:0 12px;">📋</button>
-        ${kategori ? `<button id="searchCatBtn" title="Visa varor i denna kategori" style="padding:0 12px;">🏷️</button>` : ""}
+      <input id="batchItemInput" autocomplete="off" placeholder="Skriv vara och tryck Enter…" style="width:100%;margin-bottom:10px;" />
+      <div style="display:flex;gap:10px;justify-content:space-between;margin-bottom:12px;">
+        <button id="searchAllBtn" class="bigsearch" style="flex:1;">Välj från historik</button>
+        <button id="searchMallBtn" class="bigsearch" style="flex:1;">Välj från mallar</button>
       </div>
       <div id="searchResult" style="max-height:180px;overflow:auto;margin-bottom:10px;"></div>
       <ul id="batchPreview" class="preview-list"></ul>
@@ -175,12 +163,11 @@ window.showAddItemsDialog = function({ kategori = null, allaVaror = [], mallVaro
   document.body.appendChild(m);
 
   const searchInput = m.querySelector("#batchItemInput");
-  const resultDiv = m.querySelector("#searchResult");
+  const optionsDiv = m.querySelector("#searchResult");
   const previewList = m.querySelector("#batchPreview");
   const doneBtn = m.querySelector("#doneBtn");
   const searchAllBtn = m.querySelector("#searchAllBtn");
   const searchMallBtn = m.querySelector("#searchMallBtn");
-  const searchCatBtn = m.querySelector("#searchCatBtn");
 
   searchInput.addEventListener("keydown", e => {
     if (e.key === "Enter" && searchInput.value.trim()) {
@@ -188,8 +175,13 @@ window.showAddItemsDialog = function({ kategori = null, allaVaror = [], mallVaro
       if (!tempList.includes(name)) tempList.push(name);
       searchInput.value = "";
       renderPreviewList();
-      renderSearchList(searchInput.value);
+      if (currentSource) renderOptions(lastFilter);
     }
+  });
+
+  searchInput.addEventListener("input", function() {
+    lastFilter = searchInput.value.trim();
+    if (currentSource) renderOptions(lastFilter);
   });
 
   doneBtn.onclick = function() {
@@ -201,33 +193,29 @@ window.showAddItemsDialog = function({ kategori = null, allaVaror = [], mallVaro
     document.body.removeChild(m);
   };
 
-  function switchSearch(type) {
-    currentSearch = type;
-    searchActive = true;
-    renderSearchList(searchInput.value);
-    searchInput.focus();
-  }
+  searchAllBtn.onclick = function() {
+    currentSource = "alla";
+    renderOptions(searchInput.value.trim());
+    searchAllBtn.classList.add("active");
+    searchMallBtn.classList.remove("active");
+  };
 
-  searchAllBtn.onclick = () => switchSearch("alla");
-  searchMallBtn.onclick = () => switchSearch("mall");
-  if (searchCatBtn) searchCatBtn.onclick = () => switchSearch("kategori");
+  searchMallBtn.onclick = function() {
+    currentSource = "mall";
+    renderOptions(searchInput.value.trim());
+    searchMallBtn.classList.add("active");
+    searchAllBtn.classList.remove("active");
+  };
 
-  // START: INGEN söklista syns!
-  searchActive = false;
-  renderSearchList();
-
-  resultDiv.addEventListener("click", function(e) {
-    if (e.target.tagName === "SPAN" && e.target.previousElementSibling && e.target.previousElementSibling.type === "checkbox") {
-      e.target.previousElementSibling.click();
-    }
-  });
+  // INGEN lista visas förrän någon trycker på en knapp
+  optionsDiv.innerHTML = "";
+  renderPreviewList();
 
   searchInput.focus();
   window.scrollModalToTop && window.scrollModalToTop();
 };
 
-
-// Info/modal för kategori (exempel)
+// Info/modal för kategori (oförändrad)
 window.showCategoryPicker = function (name, onSave) {
   const m = document.createElement("div");
   m.className = "modal";
