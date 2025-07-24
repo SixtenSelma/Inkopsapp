@@ -1,43 +1,15 @@
 // lists.js – hanterar inköpslistor och rendering
 
-// === Hjälpfunktion: skapa masterlista om den saknas och minst 1 annan lista finns ===
-function ensureMasterListExists() {
-  const hasMaster = lists.some(list => list.name.toLowerCase().includes('master'));
-  const otherListsCount = lists.filter(list => !list.name.toLowerCase().includes('master')).length;
-
-  if (!hasMaster && otherListsCount > 0) {
-    lists.push({
-      name: "Masterlista",
-      items: []
-    });
-    saveLists(lists);
-  }
-}
-
 // === Renderar alla listor ===
 window.renderAllLists = function() {
-  ensureMasterListExists();
-
-  // Sortera så masterlistan alltid hamnar sist
-  const sortedLists = [...lists].sort((a, b) => {
-    const aIsMaster = a.name.toLowerCase().includes('master');
-    const bIsMaster = b.name.toLowerCase().includes('master');
-    if (aIsMaster && !bIsMaster) return 1;  // master sist
-    if (!aIsMaster && bIsMaster) return -1;
-    return a.name.localeCompare(b.name, 'sv');
-  });
-
-  const listCards = sortedLists.map((list, i) => {
+  const listCards = lists.map((list, i) => {
     const done = list.items.filter(x => x.done).length;
     const total = list.items.length;
     const pct = total ? Math.round((done / total) * 100) : 0;
 
-    // Ge masterlistan en särskild CSS-klass för styling
-    const masterClass = list.name.toLowerCase().includes('master') ? 'list-card-master' : '';
-
     return `
       <li class="list-item" onclick="viewList(${i})">
-        <div class="list-card ${masterClass}">
+        <div class="list-card">
           <div class="list-card-header">
             <span class="list-card-title">${list.name}</span>
             <button class="menu-btn" onclick="event.stopPropagation(); openListMenu(${i}, this)">⋮</button>
@@ -60,7 +32,7 @@ window.renderAllLists = function() {
       ${listCards || '<p class="no-lists">Inga listor än.</p>'}
     </ul>
     <div class="bottom-bar">
-      <button onclick="showNewListDialog()" title="Ny lista">➕</button>
+      <button onclick="addItemsWithCategory(0)" title="Lägg till vara">➕</button>
     </div>
   `;
 
@@ -137,9 +109,6 @@ window.renderListDetail = function(i) {
   // Slå ihop kategorier: med varor + tomma om hideDone är false
   const finalCategories = hideDone ? categoriesWithItems : [...categoriesWithItems, ...emptyCategories];
 
-  // Hämta alla unika varunamn för autocomplete
-  const allNames = getAllUniqueItemNames(lists);
-
   const itemsHTML = finalCategories.map(({ cat, items }) => {
     const sorted = [
       ...items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv')),
@@ -175,7 +144,7 @@ window.renderListDetail = function(i) {
           <button 
             class="category-add-btn" 
             title="Lägg till vara i ${cat}" 
-            onclick="addItemViaCategory(${i}, '${cat}', ${JSON.stringify(allNames).replace(/"/g, '&quot;')})"
+            onclick="addItemViaCategory(${i}, '${cat}')"
           >+</button>
         </h3>
         <ul class="todo-list">${itemList}</ul>
@@ -217,47 +186,42 @@ window.renderListDetail = function(i) {
 };
 
 // --- Funktion för att lägga till vara via kategori-knapp ---
-// Nu med tredje parameter suggestions (array med namn) för autocomplete
-window.addItemViaCategory = function(listIndex, category, suggestions = []) {
-  function addNewItemWithCheck(itemName) {
-    const key = itemName.trim().toLowerCase();
-    const prevCat = categoryMemory[key];
+// Öppnar batch-add-dialog med vald kategori och lägger till varor direkt
+window.addItemViaCategory = function(listIndex, category) {
+  showBatchAddDialog(listIndex, function(added) {
+    if (!added || !added.length) return;
 
-    function doAdd(catToUse) {
-      lists[listIndex].items.push({ name: itemName, note: "", done: false, category: catToUse });
-      categoryMemory[key] = catToUse;
-      saveCategoryMemory && saveCategoryMemory(categoryMemory);
-      saveLists(lists);
-      renderListDetail(listIndex);
-    }
-
-    if (prevCat && prevCat !== category) {
-      if (confirm(`Varan "${itemName}" är redan kopplad till kategori "${prevCat}". Vill du byta till "${category}"?`)) {
-        doAdd(category);
-      } else {
-        doAdd(prevCat);
+    let toAdd = [...added];
+    function handleNext() {
+      if (!toAdd.length) {
+        saveLists(lists);
+        renderListDetail(listIndex);
+        return;
       }
-    } else {
-      doAdd(category);
-    }
-  }
+      const raw = toAdd.shift();
+      const { name: itemName, note } = splitItemInput(raw);
+      const itemNameKey = itemName.trim().toLowerCase();
+      const suggestedCategory = categoryMemory[itemNameKey] || category;
 
-  // Skicka med förslagslista till showRenameDialog för autocomplete
-  showRenameDialog(
-    `Lägg till vara i kategori "${category}"`,
-    "",
-    function(newItemName) {
-      if (!newItemName) return;
-      addNewItemWithCheck(newItemName);
-    },
-    suggestions
-  );
+      lists[listIndex].items.push({
+        name: itemName,
+        note: note,
+        done: false,
+        category: suggestedCategory
+      });
+      categoryMemory[itemNameKey] = suggestedCategory;
+      saveCategoryMemory && saveCategoryMemory(categoryMemory);
+      handleNext();
+    }
+    handleNext();
+  });
 };
 
-// --- Lägg till varor med kategori (batch) ---
+// --- Lägg till varor med kategori (batch) via plustecknet längst ner ---
 window.addItemsWithCategory = function(listIndex) {
   showBatchAddDialog(listIndex, function(added) {
     if (!added || !added.length) return;
+
     let toAdd = [...added];
     function handleNext() {
       if (!toAdd.length) {
@@ -269,12 +233,23 @@ window.addItemsWithCategory = function(listIndex) {
       const { name: itemName, note } = splitItemInput(raw);
       const itemNameKey = itemName.trim().toLowerCase();
       const suggestedCategory = categoryMemory[itemNameKey];
+
       if (suggestedCategory) {
-        lists[listIndex].items.push({ name: itemName, note: note, done: false, category: suggestedCategory });
+        lists[listIndex].items.push({
+          name: itemName,
+          note: note,
+          done: false,
+          category: suggestedCategory
+        });
         handleNext();
       } else {
         showCategoryPicker(itemName, (chosenCat) => {
-          lists[listIndex].items.push({ name: itemName, note: note, done: false, category: chosenCat });
+          lists[listIndex].items.push({
+            name: itemName,
+            note: note,
+            done: false,
+            category: chosenCat
+          });
           categoryMemory[itemNameKey] = chosenCat;
           saveCategoryMemory && saveCategoryMemory(categoryMemory);
           handleNext();
