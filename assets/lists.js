@@ -6,16 +6,18 @@ window.user = getUser() || prompt("Vad heter du?");
 setUser(window.user);
 
 const app = document.getElementById("app");
-// lists.js – hanterar inköpslistor och rendering
+window._hideDone = true; // Dölj klara är default
 
-window.formatDate = function(dateString) {
-  if (!dateString) return '';
-  const d = new Date(dateString);
-  return `${d.toLocaleDateString('sv-SE')} ${d.toLocaleTimeString('sv-SE', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })}`;
-};
+function formatDate(dt) {
+  if (!dt) return "";
+  try {
+    const d = new Date(dt);
+    return d.toLocaleDateString('sv-SE', { day: '2-digit', month: '2-digit' }) +
+      " " + d.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
+  } catch (e) {
+    return "";
+  }
+}
 
 // === Renderar alla listor ===
 window.renderAllLists = function() {
@@ -56,64 +58,46 @@ window.renderAllLists = function() {
   applyFade && applyFade();
 };
 
-
+// === Renderar en enskild lista ===
 window.renderListDetail = function(i) {
   const list = lists[i];
-  // Hämtar/behåller state för dölja klara
-  if (window._hideDone === undefined) window._hideDone = true;
-
-  // Dela upp items, lägg till realIdx
-  const allItems = list.items.map((item, realIdx) => ({ ...item, realIdx }));
-
+  const hideDone = (typeof window._hideDone === "undefined") ? true : window._hideDone;
   // Gruppindelning på kategori
   const grouped = {};
   standardKategorier.forEach(cat => grouped[cat] = []);
-  allItems.forEach(item => {
+  list.items.forEach((item, realIdx) => {
     const cat = item.category || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)";
     if (!grouped[cat]) grouped[cat] = [];
-    grouped[cat].push(item);
+    grouped[cat].push({ ...item, realIdx });
   });
 
-  // Skapa HTML för varje kategori
   const itemsHTML = Object.entries(grouped)
     .map(([cat, items]) => {
-      // Filtrera bort klara om rutan är i-bockad
-      const filtered = window._hideDone
-        ? items.filter(x => !x.done)
-        : items;
-      if (!filtered.length) return ''; // Visa aldrig tom kategori
-
-      // Sortering: Ej klara först (A-Ö), sedan klara (A-Ö)
-      const sorted = [
-        ...filtered.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv')),
-        ...filtered.filter(x => x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'))
-      ];
-
-      const itemList = sorted.map(item => `
-        <li class="todo-item ${item.done ? 'done' : ''}">
-          <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx}, window.lists, window.user, window.saveAndRenderList)" />
-          <span class="item-name">
-            ${item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`}
-            ${(() => {
-              // Rad 2: note och/eller signatur+datum
-              const hasNote = item.note && item.note.trim().length;
-              const hasStamp = item.done && item.doneBy;
-              if (!hasNote && !hasStamp) return "";
-              let row2 = "";
-              if (hasNote && hasStamp) {
-                row2 = `<small class="item-note">${item.note} &nbsp;–&nbsp; ${item.doneBy} ${formatDate(item.doneAt)}</small>`;
-              } else if (hasNote) {
-                row2 = `<small class="item-note">${item.note}</small>`;
-              } else if (hasStamp) {
-                row2 = `<small class="item-note">${item.doneBy} ${formatDate(item.doneAt)}</small>`;
-              }
-              return row2;
-            })()}
-          </span>
-          <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
-        </li>
-      `).join("");
-
+      // Sortera: Ej klara först, namnordning, sen klara, namnordning
+      const notDone = items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'));
+      const done = items.filter(x => x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'));
+      const showItems = hideDone ? notDone : [...notDone, ...done];
+      if (!showItems.length) return ""; // Dölj kategori om inga varor kvar
+      const itemList = showItems.map(item => {
+        let infoLine = "";
+        if (item.done && item.doneBy && item.doneAt) {
+          infoLine = item.note
+            ? `<span>${item.note} &ndash; ${item.doneBy} ${formatDate(item.doneAt)}</span>`
+            : `<span>${item.doneBy} ${formatDate(item.doneAt)}</span>`;
+        } else if (item.note) {
+          infoLine = `<span>${item.note}</span>`;
+        }
+        return `
+          <li class="todo-item ${item.done ? 'done' : ''}">
+            <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx}, window.lists, window.user, window.saveAndRenderList)" />
+            <span class="item-name">
+              ${item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`}
+              ${infoLine ? `<small class="item-note" style="margin-top:2px;">${infoLine}</small>` : ''}
+            </span>
+            <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
+          </li>
+        `;
+      }).join("");
       return `
         <h3 class="category-heading">${cat}</h3>
         <ul class="todo-list">${itemList}</ul>
@@ -127,9 +111,9 @@ window.renderListDetail = function(i) {
           <polyline points="15 18 9 12 15 6"/>
         </svg>
       </span>
-      <h1 class="back-title" style="font-size:1.45em; font-weight:700; margin:0;flex:1;">${list.name}</h1>
+      <h1 class="back-title" style="font-size:1.45em; font-weight:700; margin:0; flex:1;">${list.name}</h1>
       <label class="hide-done-label" style="margin-left:auto; display:flex; align-items:center; gap:6px;">
-        <input type="checkbox" id="hideDone" ${window._hideDone ? "checked" : ""} onchange="toggleHideDone(${i})">
+        <input type="checkbox" id="hideDone" ${hideDone ? "checked" : ""} onchange="toggleHideDone(${i})">
         <span class="hide-done-text">Dölj klara</span>
       </label>
       <div style="width: 10px"></div>
@@ -145,12 +129,12 @@ window.renderListDetail = function(i) {
   applyFade && applyFade();
 };
 
+window.toggleHideDone = function(i) {
+  window._hideDone = document.getElementById("hideDone").checked;
+  renderListDetail(i);
+};
 
-
-
-// 11!!
-
-};// --- Lägg till denna funktion i lists.js! ---
+// --- Lägg till denna funktion i lists.js! ---
 window.addItemsWithCategory = function(listIndex) {
   showBatchAddDialog(listIndex, function(added) {
     if (!added || !added.length) return;
@@ -165,10 +149,12 @@ window.addItemsWithCategory = function(listIndex) {
       const { name: itemName, note } = splitItemInput(raw);
       const itemNameKey = itemName.trim().toLowerCase();
       const suggestedCategory = categoryMemory[itemNameKey];
+      // Om kategori redan finns i minnet, använd den direkt
       if (suggestedCategory) {
         lists[listIndex].items.push({ name: itemName, note: note, done: false, category: suggestedCategory });
         handleNext();
       } else {
+        // Visa kategori-popup
         showCategoryPicker(itemName, (chosenCat) => {
           lists[listIndex].items.push({ name: itemName, note: note, done: false, category: chosenCat });
           categoryMemory[itemNameKey] = chosenCat;
@@ -211,11 +197,13 @@ window.deleteList = function(i) {
   }
 };
 
-if (typeof renderAllLists === "function") {
-  renderAllLists();
-}
-
+// Gör saveAndRenderList global för toggleItem
 window.saveAndRenderList = function(i) {
   saveLists(lists);
   renderListDetail(i);
+};
+
+// === Initiera första renderingen ===
+if (typeof renderAllLists === "function") {
+  renderAllLists();
 };
