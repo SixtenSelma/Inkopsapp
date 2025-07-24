@@ -177,28 +177,31 @@ h1 {
 }
 
 /* Rad 2 i item, vänster och höger */
-.item-row2 {
+/* Wrapper för komplettering och signatur/datum */
+.item-note-sign-wrapper {
   display: flex;
   justify-content: space-between;
   font-size: 0.85rem;
-  color: #666;
   margin-top: 4px;
-  font-style: italic;
   line-height: 1.2;
-}
-
-.item-row2 .left {
-  text-align: left;
-  flex: 1;
+  font-family: inherit;
   color: #888;
+  font-style: normal; /* normal text style */
 }
 
-.item-row2 .right {
-  text-align: right;
+.item-note-sign-wrapper > .item-note {
+  font-style: italic;
+  color: #888;
+  flex: 1;
+}
+
+.item-note-sign-wrapper > .item-sign-date {
   white-space: nowrap;
-  flex-shrink: 0;
-  color: #555;
   font-weight: 600;
+  color: #888; /* Samma färg som komplettering */
+  margin-left: 10px;
+  font-style: normal;
+  text-align: right;
 }
 
 /* ===== Checkboxes ===== */
@@ -279,6 +282,7 @@ button:hover {
   max-width: 400px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
+
 .modal-content input {
   width: 100%;
   padding: 10px 14px;
@@ -288,6 +292,7 @@ button:hover {
   box-sizing: border-box;
   margin-top: 12px;
 }
+
 .modal-actions {
   display: flex;
   justify-content: space-between;
@@ -337,6 +342,7 @@ button:hover {
   opacity: 0;
   transform: scale(0.98);
 }
+
 .fade-enter-active {
   opacity: 1;
   transform: scale(1);
@@ -498,6 +504,7 @@ select:focus {
   user-select: none;
   transition: color 0.15s;
 }
+
 .back-title:hover .back-arrow {
   color: #44bd32;
 }
