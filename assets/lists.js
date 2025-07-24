@@ -65,7 +65,9 @@ window.renderListDetail = function(i) {
   try {
     hideDone = localStorage.getItem("hideDone") !== "false";
   } catch {}
+
   const allItems = list.items.map((item, realIdx) => ({ ...item, realIdx }));
+
   // Gruppindelning på kategori
   const grouped = {};
   standardKategorier.forEach(cat => grouped[cat] = []);
@@ -75,50 +77,73 @@ window.renderListDetail = function(i) {
     grouped[cat].push(item);
   });
 
-  const itemsHTML = Object.entries(grouped)
-    .map(([cat, items]) => {
-      // Sortera: Ej klara först, inom varje: namn A-Ö
-      let sorted = [
-        ...items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv')),
-        ...items.filter(x => x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'))
-      ];
-      // Dölj klara om valt
-      if (hideDone) sorted = sorted.filter(x => !x.done);
-      if (sorted.length === 0) return ''; // Dölj kategori om inga kvar
-      const itemList = sorted.map(item => {
-        // Rad 1: Namn, ev. note. Rad 2: signatur & datum och ev. note.
-        let row1 = item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`;
-        let row2 = '';
-        if (item.done && item.doneBy) {
-          row2 += `${item.doneBy} ${formatDate(item.doneAt)}`;
-        }
-        if (item.note) {
-          if (row2) row2 += " – ";
-          row2 += `<span class="item-note">${item.note}</span>`;
-        }
-        return `
-          <li class="todo-item ${item.done ? 'done' : ''}">
-            <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx}, window.lists, window.user, window.saveAndRenderList)" />
-            <span class="item-name">
-              <span>${row1}</span>
-              ${row2 ? `<small>${row2}</small>` : ""}
-            </span>
-            <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
-          </li>
-        `;
-      }).join("");
+  // Sortera kategorier i två grupper: med varor och tomma
+  const categoriesWithItems = [];
+  const emptyCategories = [];
 
-      // Tydlig kategori-rubrik med plusknapp
+  Object.entries(grouped).forEach(([cat, items]) => {
+    let filteredItems = items;
+
+    if (hideDone) {
+      // Dölj klara varor
+      filteredItems = items.filter(x => !x.done);
+    }
+
+    if (filteredItems.length > 0) {
+      categoriesWithItems.push({ cat, items: filteredItems });
+    } else {
+      emptyCategories.push({ cat, items: [] });
+    }
+  });
+
+  // Sortera kategorier med varor i standardordning (förutsätter standardKategorier är i rätt ordning)
+  categoriesWithItems.sort((a, b) => standardKategorier.indexOf(a.cat) - standardKategorier.indexOf(b.cat));
+  // Sortera tomma kategorier i standardordning också
+  emptyCategories.sort((a, b) => standardKategorier.indexOf(a.cat) - standardKategorier.indexOf(b.cat));
+
+  // Slå ihop listorna: först med varor, sen tomma (endast när hideDone är false)
+  const finalCategories = hideDone ? categoriesWithItems : [...categoriesWithItems, ...emptyCategories];
+
+  const itemsHTML = finalCategories.map(({ cat, items }) => {
+    // Sortera: Ej klara först, sen klara, inom varje namn A-Ö
+    const sorted = [
+      ...items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv')),
+      ...items.filter(x => x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'))
+    ];
+
+    // Om kategori är tom (items.length == 0) och hideDone==false visas ändå kategorin (men utan varor)
+    const itemList = sorted.length > 0 ? sorted.map(item => {
+      let row1 = item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`;
+      let row2 = '';
+      if (item.done && item.doneBy) {
+        row2 += `${item.doneBy} ${formatDate(item.doneAt)}`;
+      }
+      if (item.note) {
+        if (row2) row2 += " – ";
+        row2 += `<span class="item-note">${item.note}</span>`;
+      }
       return `
-        <div class="category-block">
-          <h3 class="category-heading">
-            ${cat}
-            <button class="category-add-btn" title="Lägg till vara i kategori" onclick="addItemViaCategory(${i}, '${cat.replace(/'/g, "\\'")}')">+</button>
-          </h3>
-          <ul class="todo-list">${itemList}</ul>
-        </div>
+        <li class="todo-item ${item.done ? 'done' : ''}">
+          <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx}, window.lists, window.user, window.saveAndRenderList)" />
+          <span class="item-name">
+            <span>${row1}</span>
+            ${row2 ? `<small>${row2}</small>` : ""}
+          </span>
+          <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
+        </li>
       `;
-    }).join("");
+    }).join("") : '<p class="empty-category">Inga varor i denna kategori</p>';
+
+    return `
+      <div class="category-block">
+        <h3 class="category-heading">
+          ${cat}
+          <button class="category-add-btn" title="Lägg till vara i ${cat}" onclick="addItemToCategory(${i}, '${cat}')">+</button>
+        </h3>
+        <ul class="todo-list">${itemList}</ul>
+      </div>
+    `;
+  }).join("");
 
   app.innerHTML = `
     <div class="top-bar">
