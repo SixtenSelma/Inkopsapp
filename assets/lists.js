@@ -2,17 +2,27 @@
 
 // === Renderar alla listor ===
 window.renderAllLists = function() {
-  const listCards = lists.map((list, i) => {
+  // Sortera så masterlist hamnar sist och får särskild klass
+  const sortedLists = [...lists].sort((a, b) => {
+    const aIsMaster = a.name.toLowerCase().includes('master');
+    const bIsMaster = b.name.toLowerCase().includes('master');
+    if (aIsMaster && !bIsMaster) return 1;
+    if (!aIsMaster && bIsMaster) return -1;
+    return a.name.localeCompare(b.name, 'sv');
+  });
+
+  const listCards = sortedLists.map((list, i) => {
     const done = list.items.filter(x => x.done).length;
     const total = list.items.length;
     const pct = total ? Math.round((done / total) * 100) : 0;
+    const isMaster = list.name.toLowerCase().includes('master');
 
     return `
-      <li class="list-item" onclick="viewList(${i})">
-        <div class="list-card">
+      <li class="list-item${isMaster ? ' master-list-item' : ''}" onclick="viewList(${lists.indexOf(list)})">
+        <div class="list-card${isMaster ? ' master-list-card' : ''}">
           <div class="list-card-header">
             <span class="list-card-title">${list.name}</span>
-            <button class="menu-btn" onclick="event.stopPropagation(); openListMenu(${i}, this)">⋮</button>
+            <button class="menu-btn" onclick="event.stopPropagation(); openListMenu(${lists.indexOf(list)}, this)">⋮</button>
           </div>
           <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
           <div class="progress-text">${done} / ${total} klara</div>
@@ -32,7 +42,7 @@ window.renderAllLists = function() {
       ${listCards || '<p class="no-lists">Inga listor än.</p>'}
     </ul>
     <div class="bottom-bar">
-      <button onclick="addItemsWithCategory(0)" title="Lägg till vara">➕</button>
+      <button onclick="showNewListDialog()" title="Ny lista">➕</button>
     </div>
   `;
 
@@ -51,7 +61,7 @@ window.formatDate = function(iso) {
 };
 
 window.lists = loadLists(); // Från storage.js
-window.categoryMemory = loadCategoryMemory(); // Från storage.js
+window.categoryMemory = loadCategoryMemory() || {}; // Från storage.js
 window.user = getUser() || prompt("Vad heter du?");
 setUser(window.user);
 
@@ -109,6 +119,9 @@ window.renderListDetail = function(i) {
   // Slå ihop kategorier: med varor + tomma om hideDone är false
   const finalCategories = hideDone ? categoriesWithItems : [...categoriesWithItems, ...emptyCategories];
 
+  // Hämta alla unika varunamn för autocomplete
+  const allNames = getAllUniqueItemNames(lists);
+
   const itemsHTML = finalCategories.map(({ cat, items }) => {
     const sorted = [
       ...items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv')),
@@ -144,7 +157,7 @@ window.renderListDetail = function(i) {
           <button 
             class="category-add-btn" 
             title="Lägg till vara i ${cat}" 
-            onclick="addItemViaCategory(${i}, '${cat}')"
+            onclick="addItemViaCategory(${i}, '${cat}', ${JSON.stringify(allNames).replace(/"/g, '&quot;')})"
           >+</button>
         </h3>
         <ul class="todo-list">${itemList}</ul>
@@ -186,43 +199,71 @@ window.renderListDetail = function(i) {
 };
 
 // --- Funktion för att lägga till vara via kategori-knapp ---
-// Öppnar batch-add-dialog med vald kategori och lägger till varor direkt
-window.addItemViaCategory = function(listIndex, category) {
-  showBatchAddDialog(listIndex, function(added) {
-    if (!added || !added.length) return;
+// Tredje parameter suggestions används för autocomplete i modalen
+window.addItemViaCategory = function(listIndex, category, suggestions = []) {
+  function addNewItemWithCheck(itemName) {
+    const key = itemName.trim().toLowerCase();
+    const prevCat = categoryMemory[key];
 
-    let toAdd = [...added];
-    function handleNext() {
-      if (!toAdd.length) {
-        saveLists(lists);
-        renderListDetail(listIndex);
-        return;
-      }
-      const raw = toAdd.shift();
-      const { name: itemName, note } = splitItemInput(raw);
-      const itemNameKey = itemName.trim().toLowerCase();
-      const suggestedCategory = categoryMemory[itemNameKey] || category;
-
-      lists[listIndex].items.push({
-        name: itemName,
-        note: note,
-        done: false,
-        category: suggestedCategory
-      });
-      categoryMemory[itemNameKey] = suggestedCategory;
+    function doAdd(catToUse) {
+      lists[listIndex].items.push({ name: itemName, note: "", done: false, category: catToUse });
+      categoryMemory[key] = catToUse;
       saveCategoryMemory && saveCategoryMemory(categoryMemory);
-      handleNext();
+      saveLists(lists);
+      renderListDetail(listIndex);
     }
-    handleNext();
-  });
+
+    if (prevCat && prevCat !== category) {
+      if (confirm(`Varan "${itemName}" är redan kopplad till kategori "${prevCat}". Vill du byta till "${category}"?`)) {
+        doAdd(category);
+      } else {
+        doAdd(prevCat);
+      }
+    } else {
+      doAdd(category);
+    }
+  }
+
+  showRenameDialog(
+    `Lägg till vara i kategori "${category}"`,
+    "",
+    function(newItemName) {
+      if (!newItemName) return;
+      addNewItemWithCheck(newItemName);
+    },
+    suggestions
+  );
 };
 
-// --- Lägg till varor med kategori (batch) via plustecknet längst ner ---
+// --- Lägg till varor med kategori (batch) ---
 window.addItemsWithCategory = function(listIndex) {
   showBatchAddDialog(listIndex, function(added) {
     if (!added || !added.length) return;
-
     let toAdd = [...added];
+
+    function addNewItemWithCheck(itemName, cat) {
+      const key = itemName.trim().toLowerCase();
+      const prevCat = categoryMemory[key];
+
+      function doAdd(catToUse) {
+        lists[listIndex].items.push({ name: itemName, note: "", done: false, category: catToUse });
+        categoryMemory[key] = catToUse;
+        saveCategoryMemory && saveCategoryMemory(categoryMemory);
+        saveLists(lists);
+        renderListDetail(listIndex);
+      }
+
+      if (prevCat && prevCat !== cat) {
+        if (confirm(`Varan "${itemName}" är redan kopplad till kategori "${prevCat}". Vill du byta till "${cat}"?`)) {
+          doAdd(cat);
+        } else {
+          doAdd(prevCat);
+        }
+      } else {
+        doAdd(cat);
+      }
+    }
+
     function handleNext() {
       if (!toAdd.length) {
         saveLists(lists);
@@ -233,23 +274,12 @@ window.addItemsWithCategory = function(listIndex) {
       const { name: itemName, note } = splitItemInput(raw);
       const itemNameKey = itemName.trim().toLowerCase();
       const suggestedCategory = categoryMemory[itemNameKey];
-
       if (suggestedCategory) {
-        lists[listIndex].items.push({
-          name: itemName,
-          note: note,
-          done: false,
-          category: suggestedCategory
-        });
+        addNewItemWithCheck(itemName, suggestedCategory);
         handleNext();
       } else {
         showCategoryPicker(itemName, (chosenCat) => {
-          lists[listIndex].items.push({
-            name: itemName,
-            note: note,
-            done: false,
-            category: chosenCat
-          });
+          addNewItemWithCheck(itemName, chosenCat);
           categoryMemory[itemNameKey] = chosenCat;
           saveCategoryMemory && saveCategoryMemory(categoryMemory);
           handleNext();
@@ -289,6 +319,17 @@ window.deleteList = function(i) {
     closeAnyMenu && closeAnyMenu();
   }
 };
+
+// === Initiera masterlist vid start om minst 1 annan lista finns ===
+function initMasterList() {
+  if (lists.length < 2) return; // Behöver minst en vanlig lista + masterlist
+  const hasMaster = lists.some(l => l.name.toLowerCase().includes('master'));
+  if (!hasMaster) {
+    lists.push({ name: '(Master) Samlad lista', items: [] });
+    saveLists(lists);
+  }
+}
+initMasterList();
 
 // === Initiera första renderingen ===
 if (typeof renderAllLists === "function") {
