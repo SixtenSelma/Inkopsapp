@@ -50,7 +50,6 @@ window.renderAllLists = function() {
 window.renderListDetail = function(i) {
   alert("Renderar lista " + i);
   const list = lists[i];
-  console.log("Klickad lista:", i, list);
   const allItems = list.items.map((item, realIdx) => ({ ...item, realIdx }));
   const grouped = {};
   standardKategorier.forEach(cat => grouped[cat] = []);
@@ -60,13 +59,23 @@ window.renderListDetail = function(i) {
     grouped[cat].push(item);
   });
 
+  // ---- FELSÄKRA: ----
+  let varningsText = "";
+  Object.entries(grouped).forEach(([cat, items]) => {
+    items.forEach(item => {
+      if (!item.name) {
+        varningsText += `Fel i kategori "${cat}": item saknar namn!`;
+      }
+    });
+  });
+  if (varningsText) {
+    alert(varningsText);
+  }
+  // -------------------
+
   const itemsHTML = Object.entries(grouped)
     .filter(([, items]) => items.length)
     .map(([cat, items]) => {
-      // LOGGA för felsök!
-      items.forEach(item => {
-        if (!item.name) console.error('Varning: item utan name:', item);
-      });
       const sorted = [
         ...items.filter(x => !x.done).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'sv')),
         ...items.filter(x => x.done).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'sv'))
@@ -108,7 +117,7 @@ window.renderListDetail = function(i) {
 
   applyFade && applyFade();
 };
-// --- Lägg till denna funktion i lists.js! ---
+
 window.addItemsWithCategory = function(listIndex) {
   showBatchAddDialog(listIndex, function(added) {
     if (!added || !added.length) return;
