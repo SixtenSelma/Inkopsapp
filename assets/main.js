@@ -9,6 +9,7 @@
 
 // --- Hjälpfunktion: Rendera aktuell sida (anropas på sidbyte)
 window.viewList = function(i) {
+  alert("Jag klickade på listan!");
   renderListDetail(i);
 };
 
