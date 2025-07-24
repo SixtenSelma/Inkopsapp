@@ -48,9 +48,27 @@ window.renderAllLists = function() {
 
 
 window.renderListDetail = function(i) {
-  alert("Renderar lista " + i);
+  alert("Steg 1: Försöker rendera lista " + i);
+
+  if (typeof i === "undefined" || i === null) {
+    alert("Fel: index i är undefined eller null");
+    return;
+  }
+  if (!lists || !Array.isArray(lists)) {
+    alert("Fel: lists är inte en array");
+    return;
+  }
+  if (!lists[i]) {
+    alert("Fel: Kunde inte hitta listan med index " + i);
+    return;
+  }
+
+  alert("Steg 2: Hittade listan, namn: " + lists[i].name + ", antal items: " + (lists[i].items ? lists[i].items.length : "saknas"));
+
   const list = lists[i];
   const allItems = list.items.map((item, realIdx) => ({ ...item, realIdx }));
+
+  // Gruppindelning på kategori
   const grouped = {};
   standardKategorier.forEach(cat => grouped[cat] = []);
   allItems.forEach(item => {
@@ -59,34 +77,23 @@ window.renderListDetail = function(i) {
     grouped[cat].push(item);
   });
 
-  // ---- FELSÄKRA: ----
-  let varningsText = "";
-  Object.entries(grouped).forEach(([cat, items]) => {
-    items.forEach(item => {
-      if (!item.name) {
-        varningsText += `Fel i kategori "${cat}": item saknar namn!`;
-      }
-    });
-  });
-  if (varningsText) {
-    alert(varningsText);
-  }
-  // -------------------
+  alert("Steg 3: Kategorier grupperade: " + Object.keys(grouped).length);
 
   const itemsHTML = Object.entries(grouped)
     .filter(([, items]) => items.length)
     .map(([cat, items]) => {
       const sorted = [
-        ...items.filter(x => !x.done).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'sv')),
-        ...items.filter(x => x.done).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'sv'))
+        ...items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv')),
+        ...items.filter(x => x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'))
       ];
       const itemList = sorted.map(item => `
         <li class="todo-item ${item.done ? 'done' : ''}">
           <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx}, window.lists, window.user, window.saveAndRenderList)" />
           <span class="item-name">
-            ${item.done ? `<s>${item.name || ''}</s>` : `<strong>${item.name || ''}</strong>`}
-            ${item.note ? `<small class="item-note">(${item.note})</small>` : ''}
-            ${item.done && item.doneBy ? `<small>${item.doneBy || ''} • ${formatDate(item.doneAt || '')}</small>` : ''}
+            ${item.done
+              ? `<s>${item.name}</s>${item.note ? ` <small class="item-note">(${item.note})</small>` : ''}<small>${item.doneBy ? item.doneBy : ''} ${item.doneAt ? '• ' + formatDate(item.doneAt) : ''}</small>`
+              : `<strong>${item.name}</strong>${item.note ? ` <small class="item-note">(${item.note})</small>` : ''}`
+            }
           </span>
           <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
         </li>
@@ -96,6 +103,8 @@ window.renderListDetail = function(i) {
         <ul class="todo-list">${itemList}</ul>
       `;
     }).join("");
+
+  alert("Steg 4: itemsHTML skapad, längd: " + itemsHTML.length);
 
   app.innerHTML = `
     <div class="top-bar">
@@ -114,10 +123,10 @@ window.renderListDetail = function(i) {
       <button onclick="addItemsWithCategory(${i})" title="Lägg till vara">➕</button>
     </div>
   `;
-alert("Har renderat detaljvyn för lista " + i);
+
+  alert("Steg 5: Klar med renderListDetail för lista " + i);
   applyFade && applyFade();
 };
-
 window.addItemsWithCategory = function(listIndex) {
   showBatchAddDialog(listIndex, function(added) {
     if (!added || !added.length) return;
