@@ -157,56 +157,66 @@ window.openListMenuByName = function(name, btn) {
 // ============================ Rendera en lista ============================
 window.renderListDetail = function(i) {
   const list = lists[i];
-  // Hämta inställning för att dölja klara varor
-  let hideDone = localStorage.getItem('hideDone') !== 'false';
+  let hideDone = true;
+  try {
+    hideDone = localStorage.getItem("hideDone") !== "false";
+  } catch {}
 
-  // Förbered alla items med index
-  const allItems = list.items.map((item, idx) => ({ ...item, idx }));
+  // Förbered items med index
+  const allItems = list.items.map((item, realIdx) => ({ ...item, realIdx }));
 
   // Gruppindelning på kategori
   const grouped = {};
-  standardKategorier.forEach(cat => (grouped[cat] = []));
+  standardKategorier.forEach(cat => grouped[cat] = []);
   allItems.forEach(item => {
-    const catKey = item.category || '🏠 Övrigt (Hem, Teknik, Kläder, Säsong)';
-    if (!grouped[catKey]) grouped[catKey] = [];
-    grouped[catKey].push(item);
+    const cat = item.category || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)";
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(item);
   });
 
-  // Separera fyllda och tomma kategorier
-  const filled = [], empty = [];
+  // Dela på fyllda vs tomma kategorier
+  const categoriesWithItems = [];
+  const emptyCategories = [];
   Object.entries(grouped).forEach(([cat, items]) => {
-    const visItems = hideDone ? items.filter(x => !x.done) : items;
-    if (visItems.length) filled.push({ cat, items: visItems });
-    else empty.push({ cat, items: [] });
+    const filtered = hideDone ? items.filter(x => !x.done) : items;
+    if (filtered.length > 0) {
+      categoriesWithItems.push({ cat, items: filtered });
+    } else {
+      emptyCategories.push({ cat, items: [] });
+    }
   });
-  const finalCats = hideDone ? filled : [...filled, ...empty];
-  finalCats.sort((a, b) => standardKategorier.indexOf(a.cat) - standardKategorier.indexOf(b.cat));
+
+  // Sortera enligt standardKategorier
+  categoriesWithItems.sort((a, b) => standardKategorier.indexOf(a.cat) - standardKategorier.indexOf(b.cat));
+  emptyCategories.sort((a, b) => standardKategorier.indexOf(a.cat) - standardKategorier.indexOf(b.cat));
+
+  // Slå ihop beroende på hideDone
+  const finalCategories = hideDone ? categoriesWithItems : [...categoriesWithItems, ...emptyCategories];
 
   // Generera HTML för varje kategori
-  const categoriesHTML = finalCats.map(({ cat, items }) => {
-    // Dela utoklart/färdigt
-    const sortedItems = [
+  const itemsHTML = finalCategories.map(({ cat, items }) => {
+    const sorted = [
       ...items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv')),
       ...items.filter(x => x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'))
     ];
-    // Skapa rader
-    const rows = sortedItems.length
-      ? sortedItems.map(item => {
-          const label = item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`;
-          const note  = item.note ? `<span class="left">${item.note}</span>` : `<span class="left"></span>`;
-          const sig   = (item.done && item.doneBy)
+
+    const listItems = sorted.length > 0
+      ? sorted.map(item => {
+          const line1 = item.done
+            ? `<s>${item.name}</s>`
+            : `<strong>${item.name}</strong>`;
+          const note    = item.note ? `<span class="left">${item.note}</span>` : `<span class="left"></span>`;
+          const sign    = (item.done && item.doneBy)
             ? `<span class="right">${item.doneBy} ${formatDate(item.doneAt)}</span>`
             : `<span class="right"></span>`;
           return `
             <li class="todo-item ${item.done ? 'done' : ''}">
-              <input type="checkbox"
-                     ${item.done ? 'checked' : ''}
-                     onchange="toggleItem(${i},${item.idx},lists,user,saveAndRenderList)" />
+              <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx}, lists, user, saveAndRenderList)" />
               <span class="item-name">
-                ${label}
-                <div class="item-row2">${note}${sig}</div>
+                ${line1}
+                <div class="item-row2">${note}${sign}</div>
               </span>
-              <button class="menu-btn" onclick="openItemMenu(${i}, ${item.idx}, this)">⋮</button>
+              <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
             </li>`;
         }).join('')
       : `<p class="empty-category">Inga varor i denna kategori</p>`;
@@ -215,51 +225,44 @@ window.renderListDetail = function(i) {
       <div class="category-block">
         <h3 class="category-heading">
           ${cat}
-          <button class="category-add-btn"
-                  title="Lägg till vara i ${cat}"
-                  onclick="addItemViaCategory(${i}, '${cat}')">+</button>
+          <button class="category-add-btn" title="Lägg till vara i ${cat}" onclick="addItemViaCategory(${i}, '${cat}')">+</button>
         </h3>
-        <ul class="todo-list">${rows}</ul>
+        <ul class="todo-list">${listItems}</ul>
       </div>`;
   }).join('');
 
-  // Sätt all HTML
+  // Sätt hela vyn
   app.innerHTML = `
-    <div class="top-bar" style="display:flex; align-items:center; gap:8px; padding:18px 20px;">
-      <button class="back-arrow" onclick="renderAllLists()" title="Tillbaka">
-        &#x2190;
-      </button>
-      <h1 class="back-title" style="margin:0; font-size:1.5rem; font-weight:700;">
-        ${list.name}
-      </h1>
+    <div class="top-bar">
+      <span class="back-arrow" onclick="renderAllLists()" style="margin-right:10px; cursor:pointer; display:flex; align-items:center;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </span>
+      <h1 class="back-title" style="font-size:1.45em; font-weight:700; margin:0;">${list.name}</h1>
       <div style="flex:1"></div>
       <label class="hide-done-label" style="display:flex; align-items:center; gap:6px;">
-        <input type="checkbox"
-               id="hideDoneCheckbox"
-               ${hideDone ? 'checked' : ''} />
+        <input type="checkbox" id="hideDoneCheckbox" ${hideDone ? "checked" : ""} style="margin-right:7px;" />
         <span class="hide-done-text">Dölj klara</span>
       </label>
     </div>
     <div class="category-list">
-      ${categoriesHTML || '<p>Inga varor än.</p>'}
+      ${itemsHTML || '<p>Inga varor än.</p>'}
     </div>
     <div class="bottom-bar">
       <button onclick="addItemsWithCategory(${i})" title="Lägg till vara">➕</button>
     </div>
   `;
 
-  // Koppla ihop checkbox‑händelsen
-  const chk = document.getElementById('hideDoneCheckbox');
+  // Koppla checkbox‑händelsen
+  const chk = document.getElementById("hideDoneCheckbox");
   if (chk) {
-    chk.onchange = () => {
-      localStorage.setItem('hideDone', chk.checked ? 'true' : 'false');
+    chk.onchange = function() {
+      localStorage.setItem("hideDone", chk.checked ? "true" : "false");
       renderListDetail(i);
     };
   }
 
-  // Applicera fade‑in om tillgängligt
-  applyFade && applyFade();
-};
 
 
 // --- Lägg till varor via plusknapp nere till höger (batch) ---
