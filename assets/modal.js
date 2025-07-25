@@ -1,16 +1,18 @@
-// modal.js – återanvändbara modaler med bra mobilstöd och batch-add med historik/mallar/kategori
+// modal.js – återanvändbara modaler med mobilfokus och batch add
 
-// Hjälp: Flytta modal upp om mobil och tangentbord
+// Flytta modal upp om mobil och tangentbord
 window.scrollModalToTop = function () {
   setTimeout(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, 100);
 };
 
-// --- Byt namn-modal (används för lista/vara etc) ---
+// Byt namn-modal
 window.showRenameDialog = function (title, currentName, onConfirm, suggestions = []) {
   const m = document.createElement("div");
   m.className = "modal";
+
+  // Skapa datalist options för autocomplete om finns
   const dataListId = "itemNamesListModal";
   let dataListHTML = "";
   if (suggestions.length) {
@@ -18,6 +20,7 @@ window.showRenameDialog = function (title, currentName, onConfirm, suggestions =
       .map((s) => `<option value="${s}">`)
       .join("")}</datalist>`;
   }
+
   m.innerHTML = `
     <div class="modal-content">
       <h2>${title}</h2>
@@ -32,9 +35,12 @@ window.showRenameDialog = function (title, currentName, onConfirm, suggestions =
   document.body.appendChild(m);
 
   const input = document.getElementById("renameInput");
-  input.focus();
-  window.scrollModalToTop && window.scrollModalToTop();
-  input.select();
+  setTimeout(() => {
+    input.focus();
+    input.select();
+    window.scrollModalToTop && window.scrollModalToTop();
+  }, 100);
+
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter") confirmRename();
   });
@@ -48,7 +54,7 @@ window.showRenameDialog = function (title, currentName, onConfirm, suggestions =
   };
 };
 
-// --- Ny lista-modal ---
+// Ny lista-modal
 window.showNewListModal = function (onConfirm) {
   const m = document.createElement("div");
   m.className = "modal";
@@ -65,8 +71,11 @@ window.showNewListModal = function (onConfirm) {
   document.body.appendChild(m);
 
   const input = document.getElementById("modalNewListInput");
-  input.focus();
-  window.scrollModalToTop && window.scrollModalToTop();
+  setTimeout(() => {
+    input.focus();
+    input.select();
+    window.scrollModalToTop && window.scrollModalToTop();
+  }, 100);
 
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter") confirmNewList();
@@ -81,7 +90,7 @@ window.showNewListModal = function (onConfirm) {
   };
 };
 
-// --- Batch add med historik/mallar/kategori, default = manuell ---
+// NY: Batch add med stöd för historik/mallar/kategori och rätt autofokus på iOS
 window.showAddItemsDialog = function ({
   kategori = null,
   allaVaror = [],
@@ -97,7 +106,6 @@ window.showAddItemsDialog = function ({
   let searchText = "";
 
   function render() {
-    // Bygg modal-innehållet
     let infoText = kategori
       ? `Lägg till varor i kategori <b>${kategori}</b>`
       : `Lägg till varor`;
@@ -109,22 +117,16 @@ window.showAddItemsDialog = function ({
           .join("")}</ul>`
       : "";
 
-    // Sökresultat-lista (tom till en början)
     let resultList = "";
-
-    // Om vi är i historik/mall/kategori-läge – visa valbara varor
     let resultSource = [];
     if (currentMode === "historik") resultSource = allaVaror;
     if (currentMode === "mallar") resultSource = mallVaror;
     if (currentMode === "kategori") resultSource = kategoriVaror;
-
-    // Filtret om man har skrivit något
     if (searchText && resultSource.length) {
       resultSource = resultSource.filter((n) =>
         n.toLowerCase().includes(searchText.toLowerCase())
       );
     }
-
     if (["historik", "mallar", "kategori"].includes(currentMode)) {
       resultList = `
         <div class="additem-search-results">
@@ -169,21 +171,19 @@ window.showAddItemsDialog = function ({
 
   function rerenderAndFocusInput() {
     render();
-    // Sätt event listeners igen efter render
     setupListeners();
-    if (currentMode === "manual") {
+    const input = m.querySelector("#addItemInput");
+    // Bara ge focus om vi är i manuellt läge!
+    if (input && currentMode === "manual") {
       setTimeout(() => {
-        const input = m.querySelector("#addItemInput");
-        if (input) {
-          input.focus();
-          input.select();
-        }
-      }, 0);
+        input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
+        window.scrollModalToTop && window.scrollModalToTop();
+      }, 100);
     }
   }
 
   function setupListeners() {
-    // Inputfältet för manuell inmatning
     const input = m.querySelector("#addItemInput");
     if (input) {
       input.addEventListener("keydown", (e) => {
@@ -211,7 +211,6 @@ window.showAddItemsDialog = function ({
       });
     }
 
-    // Byt till historik/kategori
     const historikBtn = m.querySelector("#additem-historik-btn");
     if (historikBtn) {
       historikBtn.onclick = () => {
@@ -220,8 +219,6 @@ window.showAddItemsDialog = function ({
         rerenderAndFocusInput();
       };
     }
-
-    // Byt till mallar
     const mallarBtn = m.querySelector("#additem-mallar-btn");
     if (mallarBtn) {
       mallarBtn.onclick = () => {
@@ -230,8 +227,6 @@ window.showAddItemsDialog = function ({
         rerenderAndFocusInput();
       };
     }
-
-    // Checkboxes i listan
     const checks = m.querySelectorAll(
       ".additem-search-results input[type=checkbox]"
     );
@@ -257,7 +252,6 @@ window.showAddItemsDialog = function ({
       };
     });
 
-    // Ta bort från preview-listan
     const dels = m.querySelectorAll(".btn-remove-batch-item");
     dels.forEach((btn) => {
       btn.onclick = () => {
@@ -267,7 +261,6 @@ window.showAddItemsDialog = function ({
       };
     });
 
-    // Klar-knapp
     const confirmBtn = m.querySelector("#confirmAddItemsBtn");
     if (confirmBtn) {
       confirmBtn.onclick = () => {
@@ -277,22 +270,13 @@ window.showAddItemsDialog = function ({
     }
   }
 
-  render();
+  rerenderAndFocusInput();
   document.body.appendChild(m);
-  setupListeners();
-  // Sätt fokus direkt när modalen visas
-  setTimeout(() => {
-    const input = m.querySelector("#addItemInput");
-    if (input) {
-      input.focus();
-      input.select();
-    }
-  }, 0);
 
   window.scrollModalToTop && window.scrollModalToTop();
 };
 
-// --- Kategori-popup (återanvändbar) ---
+// Info/modal för kategori (exempel)
 window.showCategoryPicker = function (name, onSave) {
   const m = document.createElement("div");
   m.className = "modal";
@@ -313,8 +297,10 @@ window.showCategoryPicker = function (name, onSave) {
   `;
   document.body.appendChild(m);
   const select = document.getElementById("categorySelectPopup");
-  select.focus();
-  window.scrollModalToTop && window.scrollModalToTop();
+  setTimeout(() => {
+    select.focus();
+    window.scrollModalToTop && window.scrollModalToTop();
+  }, 100);
   window.pickCategoryOK = () => {
     const value = select.value;
     if (!value) {
