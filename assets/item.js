@@ -18,15 +18,16 @@ window.splitItemInput = function(text) {
   return { name, note };
 };
 
-// Hämta alla unika varunamn (utan note)
+// Hämta alla unika varunamn (utan note) – används vid batch add
 window.getAllUniqueItemNames = function(lists) {
   const names = {};
   lists.forEach(list => {
     list.items.forEach(item => {
       const key = item.name.trim().toLowerCase();
-      if (!names[key]) names[key] = item.name;
+      if (!names[key]) names[key] = { name: item.name, category: item.category };
     });
   });
+  // Returnerar [{ name, category }, ...]
   return Object.values(names);
 };
 
