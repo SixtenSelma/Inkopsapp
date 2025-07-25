@@ -1,5 +1,4 @@
 // main.js – binder ihop all logik, hanterar navigation & event
-import { applyFade, closeAnyMenu, createMenu } from './utils.js';
 
 // --- Rendera aktuell lista eller alla listor ---
 window.viewList = function(i) {
@@ -32,11 +31,13 @@ window.openListMenu = function(i, btn) {
   const html = `
     <button onclick="renameList(${i})">🖊 Byt namn</button>
     <button onclick="deleteList(${i})" style="color:#d44;">✖ Ta bort lista</button>
-    ${!list.archived
-      ? `<button onclick=\"archiveList(${i})\">↘ Arkivera</button>`
-      : `<button onclick=\"unarchiveList(${i})\">↺ Återställ</button>`
+    ${
+      !list.archived
+        ? `<button onclick="archiveList(${i})">↘ Arkivera</button>`
+        : `<button onclick="unarchiveList(${i})">↺ Återställ</button>`
     }
   `;
+  // window.createMenu finns i utils.js
   createMenu(html, btn);
 };
 
