@@ -852,6 +852,33 @@ input[type="search"]::placeholder {
   cursor: pointer;
 }
 
+/* ===== Import‑modal: definitiv vänsterjustering ===== */
+.import-modal .modal-content {
+  /* Se till att flex‑children börjar till vänster */
+  align-items: flex-start;
+}
+
+.import-modal .import-list {
+  /* Visa alla kategorirader i en kolumn, vänsterställda */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.import-modal .import-row {
+  /* Varje rad ska fylla ut bredden och flexa sina children i början */
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+}
+
+.import-modal .import-row span {
+  /* Se till att texten inte krymper utan ligger kvar vänster */
+  flex: 1;
+  text-align: left;
+}
+
 
 
 /* ===== End of style.css ===== */
