@@ -797,4 +797,20 @@ input[type="search"]::placeholder {
   transition: opacity 200ms, transform 200ms;
 }
 
+/* ===== Täta ihop kategori‑blocken i detalj‑vyn ===== */
+.category-list .category-block {
+  margin-bottom: 4px !important;      /* litet avstånd mellan varje kategori‑container */
+}
+
+.category-list .category-heading {
+  margin: 4px 0 !important;           /* topp- och botten‑marginal på rubriken */
+  padding: 4px 10px !important;       /* ev. mindre padding om du vill */
+}
+
+.category-list .empty-category {
+  margin: 0 !important;               /* ta bort styckemarginalen */
+  padding: 4px 0 2px 8px !important;  /* justera inre mellanrum på texten */
+}
+
+
 /* ===== End of style.css ===== */
