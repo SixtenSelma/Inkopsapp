@@ -708,47 +708,61 @@ window.importItemsFromList = function(targetIndex) {
   }
 };
 /**
- * Öppnar en modal där man väljer en källa‑lista att importera varor från.
- * Endast listor som antingen är aktiva eller arkiverade inom de senaste 30 dagarna
- * visas.
- * @returns {Promise<number|null>} Promise som löser till valt index eller null.
+ * Öppnar en modal där du väljer källa‑lista att importera från.
+ * Du kan inte välja den lista du redan står i (targetIndex).
+ * Visar Mall:-listor först, sedan övriga sorterade med senast ändrat överst
+ * (arkiverade med archivedAt, aktiva behandlas som just nu).
+ *
+ * @param {number} targetIndex – index på den lista vi är i
+ * @returns {Promise<number|null>} – valt list‑index eller null
  */
-function chooseSourceList() {
+function chooseSourceList(targetIndex) {
   return new Promise(resolve => {
-    // Beräkna gräns för 30 dagar sedan
-    const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const cutoff = Date.now() - 30*24*60*60*1000;
 
-    // Bygg upp lista med { idx, name, archivedAt? }
+    // Samla kandidater och filtrera bort mål-listan + för gamla arkiverade
     const candidates = lists
       .map((l, idx) => ({ idx, name: l.name, archivedAt: l.archivedAt }))
-      .filter(l =>
-        !l.archivedAt || new Date(l.archivedAt).getTime() >= cutoff
-      );
+      .filter(c =>
+        c.idx !== targetIndex &&
+        (!c.archivedAt || new Date(c.archivedAt).getTime() >= cutoff)
+      )
+      .sort((a, b) => {
+        // 1) Mall:-listor först
+        const aMall = a.name.startsWith("Mall:");
+        const bMall = b.name.startsWith("Mall:");
+        if (aMall !== bMall) return aMall ? -1 : 1;
+        // 2) Senast ändrat överst: aktiva = Date.now(), arkiverade = archivedAt
+        const aTime = a.archivedAt
+          ? new Date(a.archivedAt).getTime()
+          : Date.now();
+        const bTime = b.archivedAt
+          ? new Date(b.archivedAt).getTime()
+          : Date.now();
+        return bTime - aTime;
+      });
 
-    // Om inga listor är tillgängliga
     if (candidates.length === 0) {
-      alert("Inga listor att importera från (inga färska arkiverade).");
+      alert("Inga listor tillgängliga att importera från.");
       return resolve(null);
     }
 
-    // --- Bygg modal ---
-    const overlay = document.createElement('div');
-    overlay.className = 'modal';
-    overlay.style.backdropFilter = 'blur(4px)';
+    // Bygg modal
+    const overlay = document.createElement("div");
+    overlay.className = "modal";
+    overlay.style.backdropFilter = "blur(4px)";
 
-    const box = document.createElement('div');
-    box.className = 'modal-content';
+    const box = document.createElement("div");
+    box.className = "modal-content";
     box.innerHTML = `<h2>Välj lista att importera från</h2>`;
     overlay.appendChild(box);
 
-    // Select
-    const sel = document.createElement('select');
-    sel.style.width = '100%';
-    sel.style.margin = '12px 0';
+    const sel = document.createElement("select");
+    sel.style.width = "100%";
+    sel.style.margin = "12px 0";
     candidates.forEach(c => {
-      const opt = document.createElement('option');
+      const opt = document.createElement("option");
       opt.value = c.idx;
-      // Visa datum för arkiverade
       const label = c.archivedAt
         ? `${c.name} (arkiverad ${formatDate(c.archivedAt)})`
         : c.name;
@@ -757,25 +771,23 @@ function chooseSourceList() {
     });
     box.appendChild(sel);
 
-    // Knappar
-    const actions = document.createElement('div');
-    actions.className = 'modal-actions';
+    const actions = document.createElement("div");
+    actions.className = "modal-actions";
 
-    const btnCancel = document.createElement('button');
-    btnCancel.textContent = 'Avbryt';
-    btnCancel.className = 'btn-secondary';
+    const btnCancel = document.createElement("button");
+    btnCancel.textContent = "Avbryt";
+    btnCancel.className = "btn-secondary";
     btnCancel.onclick = () => cleanup(null);
     actions.appendChild(btnCancel);
 
-    const btnOk = document.createElement('button');
-    btnOk.textContent = 'OK';
+    const btnOk = document.createElement("button");
+    btnOk.textContent = "OK";
     btnOk.onclick = () => cleanup(parseInt(sel.value, 10));
     actions.appendChild(btnOk);
 
     box.appendChild(actions);
     document.body.appendChild(overlay);
 
-    // Städa upp och returnera
     function cleanup(result) {
       document.body.removeChild(overlay);
       resolve(result);
@@ -783,40 +795,43 @@ function chooseSourceList() {
   });
 }
 
-// ===== Importera varor med fin lista‑väljare =====
+
+/**
+ * Importerar valda varor efter att ha kört chooseSourceList(targetIndex).
+ */
 window.importItemsFromList = async function(targetIndex) {
-  const srcIdx = await chooseSourceList();
-  if (srcIdx === null || srcIdx === undefined) return;
+  const srcIdx = await chooseSourceList(targetIndex);
+  if (srcIdx == null) return;
 
   const srcList = lists[srcIdx];
 
-  // --- Modal för att välja varor i källistan ---
-  const overlay = document.createElement('div');
-  overlay.className = 'modal';
-  overlay.style.backdropFilter = 'blur(4px)';
+  // Steg 2: checkbox-modal precis som tidigare
+  const overlay = document.createElement("div");
+  overlay.className = "modal";
+  overlay.style.backdropFilter = "blur(4px)";
 
-  const box = document.createElement('div');
-  box.className = 'modal-content';
+  const box = document.createElement("div");
+  box.className = "modal-content";
   box.innerHTML = `<h2>Importera varor från<br><em>${srcList.name}</em></h2>`;
   overlay.appendChild(box);
 
-  const container = document.createElement('div');
-  container.style.maxHeight = '300px';
-  container.style.overflowY = 'auto';
+  const container = document.createElement("div");
+  container.style.maxHeight = "300px";
+  container.style.overflowY = "auto";
   box.appendChild(container);
 
   srcList.items.forEach((item, i) => {
-    const row = document.createElement('label');
-    row.style.display = 'flex';
-    row.style.alignItems = 'center';
-    row.style.marginBottom = '6px';
+    const row = document.createElement("label");
+    row.style.display = "flex";
+    row.style.alignItems = "center";
+    row.style.marginBottom = "6px";
 
-    const chk = document.createElement('input');
-    chk.type = 'checkbox';
+    const chk = document.createElement("input");
+    chk.type = "checkbox";
     chk.dataset.idx = i;
-    chk.style.marginRight = '8px';
+    chk.style.marginRight = "8px";
 
-    const txt = document.createElement('span');
+    const txt = document.createElement("span");
     txt.textContent = item.note
       ? `${item.name} (${item.note})`
       : item.name;
@@ -826,33 +841,35 @@ window.importItemsFromList = async function(targetIndex) {
     container.appendChild(row);
   });
 
-  const actions = document.createElement('div');
-  actions.className = 'modal-actions';
+  const actions = document.createElement("div");
+  actions.className = "modal-actions";
 
-  const btnCancel = document.createElement('button');
-  btnCancel.textContent = 'Avbryt';
-  btnCancel.className = 'btn-secondary';
-  btnCancel.onclick = () => cleanup();
+  const btnCancel = document.createElement("button");
+  btnCancel.textContent = "Avbryt";
+  btnCancel.className = "btn-secondary";
+  btnCancel.onclick = cleanup;
   actions.appendChild(btnCancel);
 
-  const btnImport = document.createElement('button');
-  btnImport.textContent = 'Importera';
+  const btnImport = document.createElement("button");
+  btnImport.textContent = "Importera";
   btnImport.onclick = () => {
-    container.querySelectorAll('input[type=checkbox]:checked').forEach(chk => {
-      const srcItem = srcList.items[chk.dataset.idx];
-      const exists = lists[targetIndex].items.some(it =>
-        it.name === srcItem.name &&
-        (it.note || '') === (srcItem.note || '')
-      );
-      if (!exists) {
-        lists[targetIndex].items.push({
-          name:     srcItem.name,
-          note:     srcItem.note || "",
-          done:     false,
-          category: srcItem.category || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)"
-        });
-      }
-    });
+    container
+      .querySelectorAll("input[type=checkbox]:checked")
+      .forEach(chk => {
+        const srcItem = srcList.items[chk.dataset.idx];
+        const exists = lists[targetIndex].items.some(it =>
+          it.name === srcItem.name &&
+          (it.note||"") === (srcItem.note||"")
+        );
+        if (!exists) {
+          lists[targetIndex].items.push({
+            name:     srcItem.name,
+            note:     srcItem.note || "",
+            done:     false,
+            category: srcItem.category || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)"
+          });
+        }
+      });
     saveLists(lists);
     renderListDetail(targetIndex);
     cleanup();
