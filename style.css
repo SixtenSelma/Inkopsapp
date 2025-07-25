@@ -812,13 +812,12 @@ input[type="search"]::placeholder {
   padding: 4px 0 2px 8px !important;  /* justera inre mellanrum på texten */
 }
 
-/* ===== Import‑modal: vänsterjustera varurader korrekt ===== */
+/* ===== Import‑modal: vänsterställda, brytbara rader ===== */
 .import-modal .import-list {
-  /* Återställ vanlig block‑layout */
-  display: block;
-  margin: 12px 0;
   max-height: 300px;
   overflow-y: auto;
+  overflow-x: hidden;        /* döljer horisontell scroll */
+  margin: 12px 0;
   text-align: left;
 }
 
@@ -829,22 +828,21 @@ input[type="search"]::placeholder {
 
 .import-modal .import-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;   /* tillåter multi‑line */
   margin-bottom: 4px;
   cursor: pointer;
 }
 
 .import-modal .import-row input[type="checkbox"] {
   margin-right: 8px;
-  /* låt checkboxen behålla sin naturliga storlek */
   flex: none;
 }
 
 .import-modal .import-row span {
-  /* ta bort flex:1 så texten inte töjer sig eller wrappar under checkboxen */
-  flex: none;
+  flex: 1 1 auto;            /* tar återstående bredd */
+  white-space: normal;        /* tillåter radbrytning */
+  word-break: break-word;     /* bryt långa ord om nödvändigt */
   text-align: left;
-  white-space: nowrap; /* valfritt: förhindra radbrytning i mitten av texten */
 }
 
 
