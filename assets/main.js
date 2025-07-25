@@ -39,7 +39,7 @@ window.openListMenu = function(i, btn) {
     ${
       !list.archived
         ? `<button onclick="archiveList(${i})">↘ Arkivera</button>`
-        : `<button onclick="unarchiveList(${i})"> ↺ Återställ</button>`
+        : `<button onclick="unarchiveList(${i})">↺ Återställ</button>`
     }
   `;
   positionMenu(menu, btn);
