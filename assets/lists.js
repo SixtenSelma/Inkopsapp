@@ -90,7 +90,7 @@ window.renderAllLists = function() {
             <span class="list-card-title">${list.name}</span>
             <button class="menu-btn" onclick="event.stopPropagation(); openListMenuByName('${list.name.replace(/'/g, "\\'")}', this)">⋮</button>
           </div>
-          <div class="progress-text">Arkiverad</div>
+          <div class="progress-text">Arkiverad: ${dateTxt}</div>
         </div>
       </li>`).join('');
 
