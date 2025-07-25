@@ -80,14 +80,17 @@ window.positionMenu = function(menu, btn) {
 };
 
 // --- Fade (animation) ---
-window.applyFade = function() {
-  const app = document.getElementById("app");
-  if (!app) return;
-  app.classList.add('fade-enter');
+window.applyFade = function(el) {
+  // om inget element skickas med, använd hela app‑wrappern
+  const target = el instanceof Element ? el : document.getElementById("app");
+  if (!target) return;
+
+  target.classList.add('fade-enter');
+  // använd requestAnimationFrame för att trigga ommålning innan active‑klassen
   requestAnimationFrame(() => {
-    app.classList.add('fade-enter-active');
-    app.addEventListener('transitionend', () => {
-      app.classList.remove('fade-enter', 'fade-enter-active');
+    target.classList.add('fade-enter-active');
+    target.addEventListener('transitionend', () => {
+      target.classList.remove('fade-enter', 'fade-enter-active');
     }, { once: true });
   });
 };
