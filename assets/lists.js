@@ -707,3 +707,162 @@ window.importItemsFromList = function(targetIndex) {
     document.body.removeChild(overlay);
   }
 };
+/**
+ * Öppnar en modal där man väljer en källa‑lista att importera varor från.
+ * Endast listor som antingen är aktiva eller arkiverade inom de senaste 30 dagarna
+ * visas.
+ * @returns {Promise<number|null>} Promise som löser till valt index eller null.
+ */
+function chooseSourceList() {
+  return new Promise(resolve => {
+    // Beräkna gräns för 30 dagar sedan
+    const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+
+    // Bygg upp lista med { idx, name, archivedAt? }
+    const candidates = lists
+      .map((l, idx) => ({ idx, name: l.name, archivedAt: l.archivedAt }))
+      .filter(l =>
+        !l.archivedAt || new Date(l.archivedAt).getTime() >= cutoff
+      );
+
+    // Om inga listor är tillgängliga
+    if (candidates.length === 0) {
+      alert("Inga listor att importera från (inga färska arkiverade).");
+      return resolve(null);
+    }
+
+    // --- Bygg modal ---
+    const overlay = document.createElement('div');
+    overlay.className = 'modal';
+    overlay.style.backdropFilter = 'blur(4px)';
+
+    const box = document.createElement('div');
+    box.className = 'modal-content';
+    box.innerHTML = `<h2>Välj lista att importera från</h2>`;
+    overlay.appendChild(box);
+
+    // Select
+    const sel = document.createElement('select');
+    sel.style.width = '100%';
+    sel.style.margin = '12px 0';
+    candidates.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.idx;
+      // Visa datum för arkiverade
+      const label = c.archivedAt
+        ? `${c.name} (arkiverad ${formatDate(c.archivedAt)})`
+        : c.name;
+      opt.textContent = label;
+      sel.appendChild(opt);
+    });
+    box.appendChild(sel);
+
+    // Knappar
+    const actions = document.createElement('div');
+    actions.className = 'modal-actions';
+
+    const btnCancel = document.createElement('button');
+    btnCancel.textContent = 'Avbryt';
+    btnCancel.className = 'btn-secondary';
+    btnCancel.onclick = () => cleanup(null);
+    actions.appendChild(btnCancel);
+
+    const btnOk = document.createElement('button');
+    btnOk.textContent = 'OK';
+    btnOk.onclick = () => cleanup(parseInt(sel.value, 10));
+    actions.appendChild(btnOk);
+
+    box.appendChild(actions);
+    document.body.appendChild(overlay);
+
+    // Städa upp och returnera
+    function cleanup(result) {
+      document.body.removeChild(overlay);
+      resolve(result);
+    }
+  });
+}
+
+// ===== Importera varor med fin lista‑väljare =====
+window.importItemsFromList = async function(targetIndex) {
+  const srcIdx = await chooseSourceList();
+  if (srcIdx === null || srcIdx === undefined) return;
+
+  const srcList = lists[srcIdx];
+
+  // --- Modal för att välja varor i källistan ---
+  const overlay = document.createElement('div');
+  overlay.className = 'modal';
+  overlay.style.backdropFilter = 'blur(4px)';
+
+  const box = document.createElement('div');
+  box.className = 'modal-content';
+  box.innerHTML = `<h2>Importera varor från<br><em>${srcList.name}</em></h2>`;
+  overlay.appendChild(box);
+
+  const container = document.createElement('div');
+  container.style.maxHeight = '300px';
+  container.style.overflowY = 'auto';
+  box.appendChild(container);
+
+  srcList.items.forEach((item, i) => {
+    const row = document.createElement('label');
+    row.style.display = 'flex';
+    row.style.alignItems = 'center';
+    row.style.marginBottom = '6px';
+
+    const chk = document.createElement('input');
+    chk.type = 'checkbox';
+    chk.dataset.idx = i;
+    chk.style.marginRight = '8px';
+
+    const txt = document.createElement('span');
+    txt.textContent = item.note
+      ? `${item.name} (${item.note})`
+      : item.name;
+
+    row.appendChild(chk);
+    row.appendChild(txt);
+    container.appendChild(row);
+  });
+
+  const actions = document.createElement('div');
+  actions.className = 'modal-actions';
+
+  const btnCancel = document.createElement('button');
+  btnCancel.textContent = 'Avbryt';
+  btnCancel.className = 'btn-secondary';
+  btnCancel.onclick = () => cleanup();
+  actions.appendChild(btnCancel);
+
+  const btnImport = document.createElement('button');
+  btnImport.textContent = 'Importera';
+  btnImport.onclick = () => {
+    container.querySelectorAll('input[type=checkbox]:checked').forEach(chk => {
+      const srcItem = srcList.items[chk.dataset.idx];
+      const exists = lists[targetIndex].items.some(it =>
+        it.name === srcItem.name &&
+        (it.note || '') === (srcItem.note || '')
+      );
+      if (!exists) {
+        lists[targetIndex].items.push({
+          name:     srcItem.name,
+          note:     srcItem.note || "",
+          done:     false,
+          category: srcItem.category || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)"
+        });
+      }
+    });
+    saveLists(lists);
+    renderListDetail(targetIndex);
+    cleanup();
+  };
+  actions.appendChild(btnImport);
+
+  box.appendChild(actions);
+  document.body.appendChild(overlay);
+
+  function cleanup() {
+    document.body.removeChild(overlay);
+  }
+};
