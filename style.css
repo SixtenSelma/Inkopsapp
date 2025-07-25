@@ -812,5 +812,34 @@ input[type="search"]::placeholder {
   padding: 4px 0 2px 8px !important;  /* justera inre mellanrum på texten */
 }
 
+/* ===== Import‑modal ===== */
+.import-modal .modal-content {
+  max-width: 360px;
+  padding: 16px;
+}
+
+.import-modal .modal-content h2 {
+  margin-top: 0;
+  font-size: 1.25rem;
+}
+
+.import-modal .import-list {
+  max-height: 300px;
+  overflow-y: auto;
+  margin: 12px 0;
+}
+
+.import-modal .import-category {
+  font-weight: 600;
+  margin: 12px 0 6px 0;
+}
+
+.import-modal .import-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+  cursor: pointer;
+}
+
 
 /* ===== End of style.css ===== */
