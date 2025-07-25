@@ -83,16 +83,23 @@ window.renderAllLists = function() {
   // Bygg arkiverade kort (samma struktur som aktiva, med "Arkiverad")
   let archivedSection = '';
   if (sortedArchived.length) {
-    const archivedHTML = sortedArchived.map(list => `
-      <li class="list-item archived" onclick="viewListByName('${list.name.replace(/'/g, "\\'")}')">
-        <div class="list-card archived-list-card">
-          <div class="list-card-header">
-            <span class="list-card-title">${list.name}</span>
-            <button class="menu-btn" onclick="event.stopPropagation(); openListMenuByName('${list.name.replace(/'/g, "\\'")}', this)">⋮</button>
+    const archivedHTML = sortedArchived.map(list => {
+      // Se till att dateTxt alltid finns
+      const dateTxt = list.archivedAt ? formatDate(list.archivedAt) : '';
+      return `
+        <li class="list-item archived" onclick="viewListByName('${list.name.replace(/'/g, "\\'")}')">
+          <div class="list-card archived-list-card">
+            <div class="list-card-header">
+              <span class="list-card-title">${list.name}</span>
+              <button class="menu-btn"
+                      onclick="event.stopPropagation(); openListMenuByName('${list.name.replace(/'/g, "\\'")}', this)">
+                ⋮
+              </button>
+            </div>
+            <div class="progress-text">Arkiverad: ${dateTxt}</div>
           </div>
-          <div class="progress-text">Arkiverad: ${dateTxt}</div>
-        </div>
-      </li>`).join('');
+        </li>`;
+    }).join('');
 
     archivedSection = `
       <div class="archived-section">
