@@ -68,6 +68,84 @@ body {
 }
 .list-card-template .list-card-header { color: #bcbcbc; }
 
+/* ===== Arkiv-sektion ===== */
+.archive-section {
+  margin: 20px 0 0 0;
+  padding: 0 16px 20px 16px;
+  background: #f6f8fa;
+  border-top: 2px solid #eee;
+  border-radius: 0 0 16px 16px;
+}
+.archive-toggle {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  background: #e4e8ee;
+  padding: 9px 13px;
+  border-radius: 12px;
+  margin: 8px 0 10px 0;
+  font-weight: 700;
+  font-size: 1.07rem;
+  color: #375885;
+  border: 1px solid #d1d7e0;
+  user-select: none;
+  transition: background 0.17s;
+}
+.archive-toggle:hover { background: #dae3f2; }
+.archive-toggle svg {
+  margin-right: 10px;
+  transition: transform 0.2s;
+}
+.archive-toggle.collapsed svg {
+  transform: rotate(-90deg);
+}
+.archive-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  animation: fadeArchive 0.3s;
+}
+@keyframes fadeArchive {
+  from { opacity: 0; transform: translateY(-10px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+.archived-card {
+  opacity: 0.7;
+  filter: grayscale(0.10);
+  background: #f7f7f7 !important;
+  border-left: 5px solid #a5a5a5;
+  position: relative;
+}
+.archived-date {
+  position: absolute;
+  top: 13px;
+  right: 16px;
+  font-size: 0.85em;
+  color: #777;
+  background: #fff8;
+  padding: 1px 8px 1px 8px;
+  border-radius: 8px;
+  font-weight: 600;
+  z-index: 2;
+  pointer-events: none;
+}
+.restore-btn {
+  background: #fff;
+  border: 1.5px solid #4cd137;
+  color: #4cd137;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1.07rem;
+  margin-left: 12px;
+  padding: 6px 18px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.restore-btn:hover {
+  background: #eaf9ea;
+  color: #399e29;
+}
+
 /* ===== List Wrapper & Cards ===== */
 .list-wrapper { padding: 16px; }
 .list-item {
@@ -80,6 +158,7 @@ body {
   padding: 16px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   transition: background 0.2s ease;
+  position: relative;
 }
 .list-card:hover { background: #eef1f5; }
 .list-card-header {
@@ -203,7 +282,6 @@ button {
 }
 button:hover { background-color: #44bd32; }
 
-/* ===== Sekundärknapp ===== */
 .btn-secondary {
   background-color: #eaeef1;
   color: #2f3542;
@@ -358,7 +436,6 @@ button:hover { background-color: #44bd32; }
   background: #399e29;
 }
 
-/* Lista med sökalternativ */
 .additem-search-results {
   margin-top: 8px;
   margin-bottom: 5px;
@@ -451,8 +528,6 @@ button:hover { background-color: #44bd32; }
   transform: scale(1);
   transition: opacity 200ms, transform 200ms;
 }
-
-/* ===== Extra Modalanimation & Responsivitet ===== */
 @keyframes popIn {
   0% { opacity: 0; transform: scale(0.95);}
   100% { opacity: 1; transform: scale(1);}
@@ -498,7 +573,7 @@ button:hover { background-color: #44bd32; }
   gap: 10px;
   font-size: 1.22rem;
   font-weight: 800;
-  color: #232323;
+    color: #232323;
   margin: 36px 0 8px 0;
   padding: 6px 16px 6px 10px;
   background: #f4faf4;
@@ -596,6 +671,12 @@ select:focus {
 .filter-row {
   background: #f6f7fa;
   border-bottom: 1px solid #e0e0e0;
+  padding: 8px 12px;
+  font-size: 1.07rem;
+  color: #222;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 /* ===== Placeholder text gråare ===== */
@@ -604,3 +685,32 @@ input[type="search"]::placeholder {
   color: #aaa !important;
   opacity: 1;
 }
+
+/* ===== Misc extra ===== */
+.no-lists, .empty-category {
+  padding: 25px 0 10px 8px;
+  color: #bbb;
+  font-size: 1.05em;
+  font-style: italic;
+}
+.hide-done-label {
+  cursor: pointer;
+  user-select: none;
+  font-size: 1.01em;
+}
+.hide-done-text {
+  font-weight: 500;
+  color: #222;
+  margin-left: 0px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 6px;
+}
+::-webkit-scrollbar {
+  width: 7px;
+  background: #fafcff;
+}
+
+/* ===== End of style.css ===== */
