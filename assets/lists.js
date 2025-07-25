@@ -279,21 +279,26 @@ window.renderListDetail = function(i) {
   applyFade && applyFade();
 };
 
-// Meny för varje lista (inkl. Arkivera/Återställ)
-window.openListMenu = function(i, btn) {
+// Meny för varje lista (inkl. Arkivera/Återställ)window.openListMenu = function(i, btn) {
   closeAnyMenu && closeAnyMenu();
   const menu = document.createElement("div");
   menu.className = "item-menu";
   const list = lists[i];
+
   menu.innerHTML = `
-    <button onclick="renameList(${i})">Byt namn</button>
-    <button onclick="deleteList(${i})" style="color:#d44;">Ta bort</button>
+    <button onclick="renameList(${i})">
+      <span style="margin-right:7px;">🖊</span> Byt namn
+    </button>
+    <button onclick="deleteList(${i})" style="color:#d44;">
+      <span style="margin-right:7px;">✖️</span> Ta bort lista
+    </button>
     ${
       !list.archived
-        ? `<button onclick="archiveList(${i})">Arkivera</button>`
-        : `<button onclick="unarchiveList(${i})">Återställ</button>`
+        ? `<button onclick="archiveList(${i})"><span style="margin-right:7px;">📥</span> Arkivera</button>`
+        : `<button onclick="unarchiveList(${i})"><span style="margin-right:7px;">🔄</span> Återställ</button>`
     }
   `;
+
   document.body.appendChild(menu);
   const rect = btn.getBoundingClientRect();
   menu.style.position = "fixed";
@@ -308,7 +313,6 @@ window.openListMenu = function(i, btn) {
     document.addEventListener("mousedown", window.closeAnyMenu, { once: true });
   }, 20);
 };
-
 // Arkivera lista
 window.archiveList = function(i) {
   lists[i].archived = true;
