@@ -812,10 +812,14 @@ input[type="search"]::placeholder {
   padding: 4px 0 2px 8px !important;  /* justera inre mellanrum på texten */
 }
 
-/* ===== Import‑modal ===== */
+/* ===== Import‑modal (vänsterjusterad) ===== */
 .import-modal .modal-content {
+  /* Layout */
   max-width: 360px;
   padding: 16px;
+
+  /* Tvinga text och inline‑element till vänster */
+  text-align: left;
 }
 
 .import-modal .modal-content h2 {
@@ -823,23 +827,31 @@ input[type="search"]::placeholder {
   font-size: 1.25rem;
 }
 
+/* Scrollbar‑lista */
 .import-modal .import-list {
   max-height: 300px;
   overflow-y: auto;
   margin: 12px 0;
+
+  /* Säkerställ vänsterjustering */
+  text-align: left;
 }
 
+/* Kategorirubrik */
 .import-modal .import-category {
   font-weight: 600;
-  margin: 12px 0 6px 0;
+  margin: 12px 0 6px;
 }
 
+/* Varje rad: flex + vänsterjustera */
 .import-modal .import-row {
   display: flex;
+  justify-content: flex-start;
   align-items: center;
   margin-bottom: 4px;
   cursor: pointer;
 }
+
 
 
 /* ===== End of style.css ===== */
