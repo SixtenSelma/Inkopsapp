@@ -1,17 +1,16 @@
-// modal.js – återanvändbara modaler, inkl. batch-add med historik och mallar
+// modal.js – återanvändbara modaler med bra mobilstöd och batch-add med historik/mallar/kategori
 
-// Flytta modal upp om mobil och tangentbord
+// Hjälp: Flytta modal upp om mobil och tangentbord
 window.scrollModalToTop = function () {
   setTimeout(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, 100);
 };
 
-// Byt namn-modal
+// --- Byt namn-modal (används för lista/vara etc) ---
 window.showRenameDialog = function (title, currentName, onConfirm, suggestions = []) {
   const m = document.createElement("div");
   m.className = "modal";
-  // Skapa datalist options för autocomplete om finns
   const dataListId = "itemNamesListModal";
   let dataListHTML = "";
   if (suggestions.length) {
@@ -49,7 +48,7 @@ window.showRenameDialog = function (title, currentName, onConfirm, suggestions =
   };
 };
 
-// Ny lista-modal
+// --- Ny lista-modal ---
 window.showNewListModal = function (onConfirm) {
   const m = document.createElement("div");
   m.className = "modal";
@@ -82,7 +81,7 @@ window.showNewListModal = function (onConfirm) {
   };
 };
 
-// Batch add-modal med historik/mallar och kategori (skrollbar per kategori)
+// --- Batch add med historik/mallar/kategori, default = manuell ---
 window.showAddItemsDialog = function ({
   kategori = null,
   allaVaror = [],
@@ -292,93 +291,8 @@ window.showAddItemsDialog = function ({
 
   window.scrollModalToTop && window.scrollModalToTop();
 };
-  function rerenderAndFocusInput() {
-    render();
-    setupListeners();
-    const input = m.querySelector("#addItemInput");
-    if (input && currentMode === "manual") input.focus();
-  }
 
-  function setupListeners() {
-    // Manuell input
-    const input = m.querySelector("#addItemInput");
-    if (input) {
-      input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && input.value.trim()) {
-          const name = input.value.trim();
-          if (!batchItems.some(existing => existing.trim().toLowerCase() === name.trim().toLowerCase())) {
-            batchItems.push(name.trim());
-            input.value = "";
-            rerenderAndFocusInput();
-          }
-          e.preventDefault();
-        }
-      });
-      input.addEventListener("input", (e) => {
-        searchText = input.value;
-        if (["historik", "mallar", "kategori"].includes(currentMode)) rerenderAndFocusInput();
-      });
-    }
-
-    // Byt till historik/kategori
-    const historikBtn = m.querySelector("#additem-historik-btn");
-    if (historikBtn) {
-      historikBtn.onclick = () => {
-        currentMode = kategori ? "kategori" : "historik";
-        searchText = "";
-        rerenderAndFocusInput();
-      };
-    }
-
-    // Byt till mallar
-    const mallarBtn = m.querySelector("#additem-mallar-btn");
-    if (mallarBtn) {
-      mallarBtn.onclick = () => {
-        currentMode = "mallar";
-        searchText = "";
-        rerenderAndFocusInput();
-      };
-    }
-
-    // Lägg till-knappar (+) i listan
-    const plusBtns = m.querySelectorAll(".additem-add-btn");
-    plusBtns.forEach(btn => {
-      btn.onclick = () => {
-        const name = btn.getAttribute("data-name");
-        if (!batchItems.includes(name)) {
-          batchItems.push(name);
-          rerenderAndFocusInput();
-        }
-      };
-    });
-
-    // Ta bort från preview
-    const dels = m.querySelectorAll(".btn-remove-batch-item");
-    dels.forEach((btn) => {
-      btn.onclick = () => {
-        const idx = btn.getAttribute("data-idx");
-        batchItems.splice(idx, 1);
-        rerenderAndFocusInput();
-      };
-    });
-
-    // Klar
-    const confirmBtn = m.querySelector("#confirmAddItemsBtn");
-    if (confirmBtn) {
-      confirmBtn.onclick = () => {
-        if (onDone) onDone(batchItems);
-        document.body.removeChild(m);
-      };
-    }
-  }
-
-  render();
-  document.body.appendChild(m);
-  setupListeners();
-  window.scrollModalToTop && window.scrollModalToTop();
-};
-
-// Info/modal för kategori (popup, återanvändbar)
+// --- Kategori-popup (återanvändbar) ---
 window.showCategoryPicker = function (name, onSave) {
   const m = document.createElement("div");
   m.className = "modal";
