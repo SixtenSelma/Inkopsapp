@@ -38,8 +38,8 @@ window.openListMenu = function(i, btn) {
     <button onclick="deleteList(${i})" style="color:#d44;">✖ Ta bort lista</button>
     ${
       !list.archived
-        ? `<button onclick="archiveList(${i})">📦 Arkivera</button>`
-        : `<button onclick="unarchiveList(${i})">↩ Återställ</button>`
+        ? `<button onclick="archiveList(${i})">↘ Arkivera</button>`
+        : `<button onclick="unarchiveList(${i})"> ↺ Återställ</button>`
     }
   `;
   positionMenu(menu, btn);
