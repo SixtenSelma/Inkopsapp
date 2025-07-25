@@ -258,27 +258,65 @@ window.addItemViaCategory = function(listIndex, category) {
 };
 
 // === Batch-lägg till via plusknapp ===
+// --- Lägg till varor via plusknapp nere till höger (batch) ---
 window.addItemsWithCategory = function(listIndex = null) {
   let i = listIndex;
   if (i === null) {
     if (!lists.length) return;
-    let val = prompt("Vilken lista vill du lägga till i?\n" + lists.map((l, idx)=>(idx+1)+": "+l.name).join("\n"));
+    let val = prompt(
+      "Vilken lista vill du lägga till i?\n" +
+      lists.map((l, idx) => (idx + 1) + ": " + l.name).join("\n")
+    );
     if (!val) return;
     i = parseInt(val, 10) - 1;
     if (isNaN(i) || i < 0 || i >= lists.length) return;
   }
+
   const allaVaror = getAllUniqueItemNames(lists);
   const mallVaror = getTemplateItemNames(lists);
-  showAddItemsDialog({ allaVaror, mallVaror, kategoriVaror: [], onDone: added => {
-    if (!added || !added.length) return;
-    added.forEach(name => {
-      if (!lists[i].items.some(i2=>i2.name.trim().toLowerCase()===name.trim().toLowerCase())) {
-        lists[i].items.push({ name, note: '', done: false });
-      }
-    });
-    saveLists(lists);
-    renderListDetail(i);
-  }});
+
+  showAddItemsDialog({
+    allaVaror,
+    mallVaror,
+    kategoriVaror: [],  // inte relevant här
+    onDone: function(added) {
+      if (!added || !added.length) return;
+      added.forEach(name => {
+        const trimmed = name.trim();
+        // kontrollera om varan redan finns
+        const exists = lists[i].items.some(item =>
+          item.name.trim().toLowerCase() === trimmed.toLowerCase()
+        );
+        if (!exists) {
+          // hämta tidigare kategori
+          let cat = window.categoryMemory?.[trimmed];
+          if (!cat) {
+            // fråga användaren om kategori om ingen tidigare är sparad
+            cat = prompt(`Ange kategori för "${trimmed}":`, "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)");
+            if (!cat) {
+              // om avbryter eller lämnar tomt, sätt standard
+              cat = "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)";
+            }
+            // spara i minnet
+            window.categoryMemory = window.categoryMemory || {};
+            window.categoryMemory[trimmed] = cat;
+            try {
+              localStorage.setItem("categoryMemory", JSON.stringify(window.categoryMemory));
+            } catch {}
+          }
+          // lägg till varan med vald kategori
+          lists[i].items.push({
+            name: trimmed,
+            note: "",
+            done: false,
+            category: cat
+          });
+        }
+      });
+      saveLists(lists);
+      renderListDetail(i);
+    }
+  });
 };
 
 // === Ny lista ===
