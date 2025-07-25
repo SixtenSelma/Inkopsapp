@@ -258,7 +258,60 @@ window.addItemViaCategory = function(listIndex, category) {
 };
 
 // === Batch-lägg till via plusknapp ===
-// --- Lägg till varor via plusknapp nere till höger (batch) ---
+/**
+ * Visar en enkel modal med en <select> av standardKategorier,
+ * låter användaren välja och returnerar ett Promise som löser till valt värde.
+ */
+function chooseCategory(itemName) {
+  return new Promise(resolve => {
+    // Skapa bakgrund
+    const overlay = document.createElement('div');
+    overlay.className = 'modal';
+    overlay.style.backdropFilter = 'blur(3px)';
+    // Skapa innehåll
+    const box = document.createElement('div');
+    box.className = 'modal-content';
+    box.innerHTML = `<h2>Ange kategori för<br><em>${itemName}</em></h2>`;
+    // Skapa select
+    const sel = document.createElement('select');
+    standardKategorier.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat;
+      opt.textContent = cat;
+      sel.appendChild(opt);
+    });
+    // OK‑knapp
+    const ok = document.createElement('button');
+    ok.textContent = 'OK';
+    ok.onclick = () => {
+      cleanup();
+      resolve(sel.value);
+    };
+    // Avbryt‑knapp
+    const cancel = document.createElement('button');
+    cancel.textContent = 'Avbryt';
+    cancel.className = 'btn-secondary';
+    cancel.onclick = () => {
+      cleanup();
+      resolve(null);
+    };
+    // Lägg in i box
+    box.appendChild(sel);
+    const actions = document.createElement('div');
+    actions.className = 'modal-actions';
+    actions.appendChild(cancel);
+    actions.appendChild(ok);
+    box.appendChild(actions);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+
+    function cleanup() {
+      document.body.removeChild(overlay);
+    }
+  });
+}
+
+// === Uppdaterad addItemsWithCategory ===
 window.addItemsWithCategory = function(listIndex = null) {
   let i = listIndex;
   if (i === null) {
@@ -278,46 +331,42 @@ window.addItemsWithCategory = function(listIndex = null) {
   showAddItemsDialog({
     allaVaror,
     mallVaror,
-    kategoriVaror: [],  // inte relevant här
-    onDone: function(added) {
+    kategoriVaror: [],
+    onDone: async function(added) {
       if (!added || !added.length) return;
-      added.forEach(name => {
+      // Se till att categoryMemory finns
+      window.categoryMemory = window.categoryMemory || {};
+      for (const name of added) {
         const trimmed = name.trim();
-        // kontrollera om varan redan finns
+        // Hoppa över om redan i listan
         const exists = lists[i].items.some(item =>
           item.name.trim().toLowerCase() === trimmed.toLowerCase()
         );
-        if (!exists) {
-          // hämta tidigare kategori
-          let cat = window.categoryMemory?.[trimmed];
-          if (!cat) {
-            // fråga användaren om kategori om ingen tidigare är sparad
-            cat = prompt(`Ange kategori för "${trimmed}":`, "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)");
-            if (!cat) {
-              // om avbryter eller lämnar tomt, sätt standard
-              cat = "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)";
-            }
-            // spara i minnet
-            window.categoryMemory = window.categoryMemory || {};
-            window.categoryMemory[trimmed] = cat;
-            try {
-              localStorage.setItem("categoryMemory", JSON.stringify(window.categoryMemory));
-            } catch {}
-          }
-          // lägg till varan med vald kategori
-          lists[i].items.push({
-            name: trimmed,
-            note: "",
-            done: false,
-            category: cat
-          });
+        if (exists) continue;
+
+        let cat = window.categoryMemory[trimmed];
+        if (!cat) {
+          // Fråga via combobox
+          cat = await chooseCategory(trimmed);
+          // Om avbryter eller ej val, sätt standard
+          if (!cat) cat = "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)";
+          // Spara minne
+          window.categoryMemory[trimmed] = cat;
+          try {
+            localStorage.setItem("categoryMemory", JSON.stringify(window.categoryMemory));
+          } catch {}
         }
-      });
+
+        // Lägg till ny item
+        lists[i].items.push({ name: trimmed, note: "", done: false, category: cat });
+      }
+
       saveLists(lists);
       renderListDetail(i);
     }
   });
 };
+
 
 // === Ny lista ===
 window.showNewListDialog = function() {
