@@ -802,71 +802,85 @@ function chooseSourceList(targetIndex) {
 window.importItemsFromList = async function(targetIndex) {
   const srcIdx = await chooseSourceList(targetIndex);
   if (srcIdx == null) return;
-
   const srcList = lists[srcIdx];
 
-  // Steg 2: checkbox-modal precis som tidigare
-  const overlay = document.createElement("div");
-  overlay.className = "modal";
-  overlay.style.backdropFilter = "blur(4px)";
-
-  const box = document.createElement("div");
-  box.className = "modal-content";
-  box.innerHTML = `<h2>Importera varor från<br><em>${srcList.name}</em></h2>`;
-  overlay.appendChild(box);
-
-  const container = document.createElement("div");
-  container.style.maxHeight = "300px";
-  container.style.overflowY = "auto";
-  box.appendChild(container);
-
-  srcList.items.forEach((item, i) => {
-    const row = document.createElement("label");
-    row.style.display = "flex";
-    row.style.alignItems = "center";
-    row.style.marginBottom = "6px";
-
-    const chk = document.createElement("input");
-    chk.type = "checkbox";
-    chk.dataset.idx = i;
-    chk.style.marginRight = "8px";
-
-    const txt = document.createElement("span");
-    txt.textContent = item.note
-      ? `${item.name} (${item.note})`
-      : item.name;
-
-    row.appendChild(chk);
-    row.appendChild(txt);
-    container.appendChild(row);
+  // Gruppera per kategori
+  const grouped = {};
+  srcList.items.forEach(item => {
+    const cat = item.category || '🏠 Övrigt (Hem, Teknik, Kläder, Säsong)';
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(item);
   });
 
-  const actions = document.createElement("div");
-  actions.className = "modal-actions";
+  // Bygg overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'modal import-modal';
+  document.body.appendChild(overlay);
 
-  const btnCancel = document.createElement("button");
-  btnCancel.textContent = "Avbryt";
-  btnCancel.className = "btn-secondary";
+  const box = document.createElement('div');
+  box.className = 'modal-content';
+  box.innerHTML = `<h2>Importera varor från ${srcList.name}</h2>`;
+  overlay.appendChild(box);
+
+  // Lista med scroll
+  const listContainer = document.createElement('div');
+  listContainer.className = 'import-list';
+  box.appendChild(listContainer);
+
+  // Kategorirubriker + rader
+  Object.entries(grouped).forEach(([cat, items]) => {
+    const catHead = document.createElement('div');
+    catHead.className = 'import-category';
+    catHead.textContent = cat;
+    listContainer.appendChild(catHead);
+
+    items.forEach((item, idx) => {
+      const row = document.createElement('label');
+      row.className = 'import-row';
+
+      const chk = document.createElement('input');
+      chk.type = 'checkbox';
+      chk.dataset.idx = idx;
+      row.appendChild(chk);
+
+      const txt = document.createElement('span');
+      txt.textContent = item.note
+        ? `${item.name} (${item.note})`
+        : item.name;
+      row.appendChild(txt);
+
+      listContainer.appendChild(row);
+    });
+  });
+
+  // Knappar
+  const actions = document.createElement('div');
+  actions.className = 'modal-actions';
+  box.appendChild(actions);
+
+  const btnCancel = document.createElement('button');
+  btnCancel.textContent = 'Avbryt';
+  btnCancel.className = 'btn-secondary';
   btnCancel.onclick = cleanup;
   actions.appendChild(btnCancel);
 
-  const btnImport = document.createElement("button");
-  btnImport.textContent = "Importera";
+  const btnImport = document.createElement('button');
+  btnImport.textContent = 'Importera';
   btnImport.onclick = () => {
-    container
-      .querySelectorAll("input[type=checkbox]:checked")
+    listContainer
+      .querySelectorAll('input[type=checkbox]:checked')
       .forEach(chk => {
         const srcItem = srcList.items[chk.dataset.idx];
         const exists = lists[targetIndex].items.some(it =>
           it.name === srcItem.name &&
-          (it.note||"") === (srcItem.note||"")
+          (it.note||'') === (srcItem.note||'')
         );
         if (!exists) {
           lists[targetIndex].items.push({
             name:     srcItem.name,
-            note:     srcItem.note || "",
+            note:     srcItem.note || '',
             done:     false,
-            category: srcItem.category || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)"
+            category: srcItem.category || '🏠 Övrigt (Hem, Teknik, Kläder, Säsong)'
           });
         }
       });
@@ -876,10 +890,7 @@ window.importItemsFromList = async function(targetIndex) {
   };
   actions.appendChild(btnImport);
 
-  box.appendChild(actions);
-  document.body.appendChild(overlay);
-
   function cleanup() {
-    document.body.removeChild(overlay);
+    overlay.remove();
   }
 };
