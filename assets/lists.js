@@ -401,6 +401,8 @@ window.renameList = function(i) {
   const currentName = lists[i].name;
   showRenameDialog("Byt namn på lista", currentName, (newName) => {
     lists[i].name = newName;
+    // SÄKERSTÄLL ATT archived alltid finns (om inte redan)
+    if (typeof lists[i].archived === "undefined") lists[i].archived = false;
     saveLists(lists);
     renderAllLists();
     closeAnyMenu && closeAnyMenu();
