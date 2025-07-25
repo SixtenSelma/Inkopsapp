@@ -593,7 +593,7 @@ body.modal-open {
   font-size: 1.22rem;
   font-weight: 800;
   color: #232323;
-  margin: 36px 0 8px 0;
+  margin: 12px 0 4px 0;
   padding: 6px 16px 6px 10px;
   background: #f4faf4;
   border-left: 6px solid #4cd137;
@@ -602,6 +602,12 @@ body.modal-open {
   text-shadow: 0 1px 0 #fff;
   min-height: 36px;
 }
+
+.empty-category {
+  /* Ändrat från 25px 0 10px 8px */
+  padding: 8px 0 4px 8px;
+}
+
 /* Plusknapp i kategori-rad */
 .category-add-btn {
   width: 28px;
