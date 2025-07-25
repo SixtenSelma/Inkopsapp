@@ -76,21 +76,32 @@ body {
   border-top: 2px solid #eee;
   border-radius: 0 0 16px 16px;
 }
-.archive-toggle {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  background: #e4e8ee;
-  padding: 9px 13px;
-  border-radius: 12px;
-  margin: 8px 0 10px 0;
+
+
+.archived-toggle {
+  background: none;
+  color: #232323;
+  border: none;
+  font-size: 1.05rem;
   font-weight: 700;
-  font-size: 1.07rem;
-  color: #375885;
-  border: 1px solid #d1d7e0;
-  user-select: none;
-  transition: background 0.17s;
+  padding: 12px 10px;
+  margin: 0 0 5px 0;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 8px;
+  box-shadow: none;
+  transition: background 0.14s;
 }
+.archived-toggle:hover,
+.archived-toggle:focus {
+  background: #f4f4f4;
+}
+#archived-arrow {
+  margin-right: 8px;
+  font-size: 1.1em;
+}
+
 .archive-toggle:hover { background: #dae3f2; }
 .archive-toggle svg {
   margin-right: 10px;
