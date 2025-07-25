@@ -28,6 +28,7 @@ window.getAllUniqueItemNames = function(lists) {
   });
   return Array.from(namesSet).sort();
 };
+
 // Hjälpfunktion: Hämta unika varunamn i mall-listor
 window.getTemplateItemNames = function(lists) {
   const namesSet = new Set();
@@ -39,6 +40,7 @@ window.getTemplateItemNames = function(lists) {
   });
   return Array.from(namesSet).sort();
 };
+
 // Hjälpfunktion: Hämta unika varunamn i en kategori i denna lista
 window.getCategoryItemNames = function(list, kategori) {
   const namesSet = new Set();
@@ -56,7 +58,7 @@ window.renderAllLists = function() {
   const activeLists = lists.filter(l => !l.archived);
   const archivedLists = lists.filter(l => l.archived);
 
-  // Sortera som tidigare, mallar sist
+  // Sortera, mallar sist
   const sortedActive = [...activeLists].sort((a, b) => {
     const aIsTemplate = a.name.startsWith("Mall:");
     const bIsTemplate = b.name.startsWith("Mall:");
@@ -159,7 +161,7 @@ window.viewListByName = function(name) {
   }
 };
 
-// Hjälpfunktion: öppna meny baserat på namn
+// Hjälpfunktion: öppna meny baserat på namn (anropar global från main.js)
 window.openListMenuByName = function(name, buttonElem) {
   const index = lists.findIndex(l => l.name === name);
   if (index >= 0) {
@@ -279,31 +281,6 @@ window.renderListDetail = function(i) {
   applyFade && applyFade();
 };
 
-// Hjälpfunktion: öppna meny baserat på namn (kallar på global main.js)
-window.openListMenuByName = function(name, buttonElem) {
-  const index = lists.findIndex(l => l.name === name);
-  if (index >= 0) {
-    openListMenu(index, buttonElem);
-  }
-};
-
-// Arkivera lista
-window.archiveList = function(i) {
-  lists[i].archived = true;
-  lists[i].archivedAt = new Date().toISOString();
-  saveLists(lists);
-  renderAllLists();
-  closeAnyMenu && closeAnyMenu();
-};
-// Återställ lista
-window.unarchiveList = function(i) {
-  delete lists[i].archived;
-  delete lists[i].archivedAt;
-  saveLists(lists);
-  renderAllLists();
-  closeAnyMenu && closeAnyMenu();
-};
-
 // === Lägg till varor via kategori-knapp (batch) ===
 window.addItemViaCategory = function(listIndex, category) {
   const allaVaror = getAllUniqueItemNames(lists);
@@ -387,6 +364,23 @@ window.deleteList = function(i) {
     renderAllLists();
     closeAnyMenu && closeAnyMenu();
   }
+};
+
+// Arkivera lista
+window.archiveList = function(i) {
+  lists[i].archived = true;
+  lists[i].archivedAt = new Date().toISOString();
+  saveLists(lists);
+  renderAllLists();
+  closeAnyMenu && closeAnyMenu();
+};
+// Återställ lista
+window.unarchiveList = function(i) {
+  delete lists[i].archived;
+  delete lists[i].archivedAt;
+  saveLists(lists);
+  renderAllLists();
+  closeAnyMenu && closeAnyMenu();
 };
 
 // === Initiera första renderingen ===
