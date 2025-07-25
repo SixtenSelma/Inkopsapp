@@ -402,25 +402,42 @@ window.renderListDetail = function(i) {
 };
 
 // ===== Batch-lägg till via kategori-knapp =====
+// ===== Lägg till via kategori-knapp =====
 window.addItemViaCategory = function(listIndex, category) {
-  const allaVaror = getAllUniqueItemNames(lists);
-  const mallVaror = getTemplateItemNames(lists);
+  const allaVaror    = getAllUniqueItemNames(lists);
+  const mallVaror    = getTemplateItemNames(lists);
   const kategoriVaror = getCategoryItemNames(lists[listIndex], category);
+
   showAddItemsDialog({
     kategori: category,
     allaVaror,
     mallVaror,
     kategoriVaror,
     onDone: added => {
-      if(!added || !added.length) return;
+      if (!added || !added.length) return;
+
       added.forEach(raw => {
+        // Dela på komma: namn och komplement
         const [namePart, ...noteParts] = raw.split(',');
         const name = namePart.trim();
         const note = noteParts.join(',').trim();
-        if(!lists[listIndex].items.some(i => i.name.trim().toLowerCase()===name.toLowerCase())) {
-          lists[listIndex].items.push({ name, note, done:false, category });
-        }
+
+        // ENDAST om både namn+note är identiska redan finns → hoppa
+        const exists = lists[listIndex].items.some(item =>
+          item.name.trim().toLowerCase() === name.toLowerCase() &&
+          (item.note||'').trim().toLowerCase() === note.toLowerCase()
+        );
+        if (exists) return;
+
+        // Lägg till ny post
+        lists[listIndex].items.push({
+          name,
+          note,
+          done: false,
+          category
+        });
       });
+
       saveLists(lists);
       renderListDetail(listIndex);
     }
@@ -428,45 +445,70 @@ window.addItemViaCategory = function(listIndex, category) {
 };
 
 // ===== Lägg till varor via plusknapp =====
+// ===== Lägg till via flytande plus-knapp =====
 window.addItemsWithCategory = function(listIndex = null) {
   let i = listIndex;
-  if(i===null){
-    if(!lists.length) return;
-    let val = prompt("Vilken lista vill du lägga till i?\n"+
-      lists.map((l,idx)=>(idx+1)+": "+l.name).join("\n"));
-    if(!val) return;
-    i = parseInt(val,10)-1;
-    if(isNaN(i)||i<0||i>=lists.length) return;
+  if (i === null) {
+    if (!lists.length) return;
+    const promptTxt = "Vilken lista vill du lägga till i?\n" +
+      lists.map((l, idx) => (idx+1) + ": " + l.name).join("\n");
+    const val = prompt(promptTxt);
+    if (!val) return;
+    i = parseInt(val, 10) - 1;
+    if (isNaN(i) || i < 0 || i >= lists.length) return;
   }
+
   const allaVaror = getAllUniqueItemNames(lists);
   const mallVaror = getTemplateItemNames(lists);
+
   showAddItemsDialog({
     allaVaror,
     mallVaror,
     kategoriVaror: [],
     onDone: async added => {
-      if(!added || !added.length) return;
-      for(const raw of added){
+      if (!added || !added.length) return;
+
+      for (const raw of added) {
         const [namePart, ...noteParts] = raw.split(',');
         const name = namePart.trim();
         const note = noteParts.join(',').trim();
-        if(lists[i].items.some(it=>it.name.trim().toLowerCase()===name.toLowerCase())) continue;
+
+        // Kolla om samma namn+note redan finns
+        const exists = lists[i].items.some(item =>
+          item.name.trim().toLowerCase() === name.toLowerCase() &&
+          (item.note||'').trim().toLowerCase() === note.toLowerCase()
+        );
+        if (exists) continue;
+
+        // Hämta eller fråga kategori
         let cat = window.categoryMemory[name];
-        if(!cat){
-          cat = await chooseCategory(name) ||
-            '🏠 Övrigt (Hem, Teknik, Kläder, Säsong)';
+        if (!cat) {
+          cat = await chooseCategory(name)
+                 || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)";
           window.categoryMemory[name] = cat;
-          try{ localStorage.setItem('categoryMemory',
-            JSON.stringify(window.categoryMemory)); }
-          catch{}
+          try {
+            localStorage.setItem(
+              "categoryMemory",
+              JSON.stringify(window.categoryMemory)
+            );
+          } catch {}
         }
-        lists[i].items.push({ name, note, done:false, category: cat });
+
+        // Lägg till med namn, note och category
+        lists[i].items.push({
+          name,
+          note,
+          done: false,
+          category: cat
+        });
       }
+
       saveLists(lists);
       renderListDetail(i);
     }
   });
 };
+
 
 // ===== CRUD =====
 
