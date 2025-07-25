@@ -1,4 +1,5 @@
 // main.js – binder ihop all logik, hanterar navigation & event
+import { applyFade, closeAnyMenu, createMenu } from './utils.js';
 
 // --- Rendera aktuell lista eller alla listor ---
 window.viewList = function(i) {
@@ -27,73 +28,26 @@ window.changeUser = function() {
 
 // --- Menyer (popup) ---
 window.openListMenu = function(i, btn) {
-  window.closeAnyMenu && window.closeAnyMenu();
   const list = lists[i];
-  const menu = document.createElement('div');
-  menu.className = 'item-menu';
-
-  // Bygg meny utifrån listans status (arkiverad/aktiv)
-  menu.innerHTML = `
+  const html = `
     <button onclick="renameList(${i})">🖊 Byt namn</button>
     <button onclick="deleteList(${i})" style="color:#d44;">✖ Ta bort lista</button>
-    ${
-      !list.archived
-        ? `<button onclick="archiveList(${i})">↘ Arkivera</button>`
-        : `<button onclick="unarchiveList(${i})">↺ Återställ</button>`
+    ${!list.archived
+      ? `<button onclick=\"archiveList(${i})\">↘ Arkivera</button>`
+      : `<button onclick=\"unarchiveList(${i})\">↺ Återställ</button>`
     }
   `;
-  positionMenu(menu, btn);
+  createMenu(html, btn);
 };
 
 window.openItemMenu = function(li, ii, btn) {
-  window.closeAnyMenu && window.closeAnyMenu();
-  const menu = document.createElement('div');
-  menu.className = 'item-menu';
-  menu.innerHTML = `
+  const html = `
     <button onclick="renameItem(${li}, ${ii}, lists, saveAndRenderList, closeAnyMenu)">🖊 Byt namn</button>
     <button onclick="complementItem(${li}, ${ii}, lists, categoryMemory, saveAndRenderList, closeAnyMenu)">ⓘ Komplettera</button>
     <button onclick="deleteItem(${li}, ${ii}, lists, saveAndRenderList, closeAnyMenu)" style="color:#d44;">✖ Ta bort</button>
   `;
-  positionMenu(menu, btn);
+  createMenu(html, btn);
 };
 
-// --- Menystyrning ---
-window.closeAnyMenu = function() {
-  const existing = document.querySelector('.item-menu');
-  if (existing) existing.remove();
-};
-
-window.positionMenu = function(menu, btn) {
-  const rect = btn.getBoundingClientRect();
-  menu.style.position = 'absolute';
-  menu.style.top = `${rect.bottom + window.scrollY}px`;
-  menu.style.left = `${Math.min(window.innerWidth - 180, rect.left + window.scrollX - 100)}px`;
-  document.body.appendChild(menu);
-  setTimeout(() => {
-    document.addEventListener('click', function close(e) {
-      if (!menu.contains(e.target)) {
-        menu.remove();
-        document.removeEventListener('click', close);
-      }
-    });
-  }, 0);
-};
-
-// --- Fade (animation) ---
-window.applyFade = function(el) {
-  // om inget element skickas med, använd hela app‑wrappern
-  const target = el instanceof Element ? el : document.getElementById("app");
-  if (!target) return;
-
-  target.classList.add('fade-enter');
-  // använd requestAnimationFrame för att trigga ommålning innan active‑klassen
-  requestAnimationFrame(() => {
-    target.classList.add('fade-enter-active');
-    target.addEventListener('transitionend', () => {
-      target.classList.remove('fade-enter', 'fade-enter-active');
-    }, { once: true });
-  });
-};
-
-// --- Första rendering ---
+// --- Initiera första rendering ---
 window.renderAllLists();
