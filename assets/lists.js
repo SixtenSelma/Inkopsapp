@@ -157,22 +157,22 @@ window.openListMenuByName = function(name, btn) {
 // ============================ Rendera en lista ============================
 window.renderListDetail = function(i) {
   const list = lists[i];
-  // Vilka varor ska visas?
+  // Hämta inställning för att dölja klara varor
   let hideDone = localStorage.getItem('hideDone') !== 'false';
 
-  // Bygg upp items med index
+  // Förbered alla items med index
   const allItems = list.items.map((item, idx) => ({ ...item, idx }));
 
   // Gruppindelning på kategori
   const grouped = {};
-  standardKategorier.forEach(cat => grouped[cat] = []);
+  standardKategorier.forEach(cat => (grouped[cat] = []));
   allItems.forEach(item => {
-    const cat = item.category || '🏠 Övrigt (Hem, Teknik, Kläder, Säsong)';
-    if (!grouped[cat]) grouped[cat] = [];
-    grouped[cat].push(item);
+    const catKey = item.category || '🏠 Övrigt (Hem, Teknik, Kläder, Säsong)';
+    if (!grouped[catKey]) grouped[catKey] = [];
+    grouped[catKey].push(item);
   });
 
-  // Dela i fyllda/tomma kategorier
+  // Separera fyllda och tomma kategorier
   const filled = [], empty = [];
   Object.entries(grouped).forEach(([cat, items]) => {
     const visItems = hideDone ? items.filter(x => !x.done) : items;
@@ -184,18 +184,16 @@ window.renderListDetail = function(i) {
 
   // Generera HTML för varje kategori
   const categoriesHTML = finalCats.map(({ cat, items }) => {
+    // Dela utoklart/färdigt
     const sortedItems = [
       ...items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv')),
       ...items.filter(x => x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'))
     ];
+    // Skapa rader
     const rows = sortedItems.length
       ? sortedItems.map(item => {
-          const label = item.done
-            ? `<s>${item.name}</s>`
-            : `<strong>${item.name}</strong>`;
-          const note  = item.note
-            ? `<span class="left">${item.note}</span>`
-            : `<span class="left"></span>`;
+          const label = item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`;
+          const note  = item.note ? `<span class="left">${item.note}</span>` : `<span class="left"></span>`;
           const sig   = (item.done && item.doneBy)
             ? `<span class="right">${item.doneBy} ${formatDate(item.doneAt)}</span>`
             : `<span class="right"></span>`;
@@ -227,9 +225,12 @@ window.renderListDetail = function(i) {
 
   // Sätt all HTML
   app.innerHTML = `
-    <div class="top-bar">
-      <h1 class="back-title" onclick="renderAllLists()" style="cursor:pointer; margin:0;">
-        &lt; ${list.name}
+    <div class="top-bar" style="display:flex; align-items:center; gap:8px; padding:18px 20px;">
+      <button class="back-arrow" onclick="renderAllLists()" title="Tillbaka">
+        &#x2190;
+      </button>
+      <h1 class="back-title" style="margin:0; font-size:1.5rem; font-weight:700;">
+        ${list.name}
       </h1>
       <div style="flex:1"></div>
       <label class="hide-done-label" style="display:flex; align-items:center; gap:6px;">
@@ -247,7 +248,7 @@ window.renderListDetail = function(i) {
     </div>
   `;
 
-  // Koppla checkbox­händelse
+  // Koppla ihop checkbox‑händelsen
   const chk = document.getElementById('hideDoneCheckbox');
   if (chk) {
     chk.onchange = () => {
@@ -256,9 +257,10 @@ window.renderListDetail = function(i) {
     };
   }
 
-  // Fade‑in‑animation
+  // Applicera fade‑in om tillgängligt
   applyFade && applyFade();
 };
+
 
 // --- Lägg till varor via plusknapp nere till höger (batch) ---
 window.addItemsWithCategory = function(listIndex = null) {
