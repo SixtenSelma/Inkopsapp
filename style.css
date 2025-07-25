@@ -787,4 +787,14 @@ input[type="search"]::placeholder {
   font-style: italic;
 }
 
+.fade-enter {
+  opacity: 0;
+  transform: scale(0.98);
+}
+.fade-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 200ms, transform 200ms;
+}
+
 /* ===== End of style.css ===== */
