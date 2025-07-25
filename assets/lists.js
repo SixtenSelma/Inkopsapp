@@ -139,7 +139,7 @@ window.renderAllLists = function() {
     </div>
   `;
 
-  // Collapsing toggle
+  // Collapsing toggle för arkiverade
   window.toggleArchivedSection = function(e){
     e.stopPropagation();
     const btn = e.currentTarget;
@@ -150,6 +150,7 @@ window.renderAllLists = function() {
 
   applyFade && applyFade();
 };
+
 // Hjälpfunktion: visa lista baserat på namn (eftersom vi sorterar)
 window.viewListByName = function(name) {
   const index = lists.findIndex(l => l.name === name);
@@ -278,42 +279,14 @@ window.renderListDetail = function(i) {
   applyFade && applyFade();
 };
 
-// Meny för varje lista (inkl. Arkivera/Återställ)
-window.openListMenu = function(i, btn) {
-  alert('Öppnar meny för lista #' + i);
-  closeAnyMenu && closeAnyMenu();
-  const menu = document.createElement("div");
-  menu.className = "item-menu";
-  const list = lists[i];
-
-  menu.innerHTML = `
-    <button onclick="renameList(${i})">
-      <span style="margin-right:7px;">🖊</span> Byt namn!
-    </button>
-    <button onclick="deleteList(${i})" style="color:#d44;">
-      <span style="margin-right:7px;">✖️</span> Ta bort lista!
-    </button>
-    ${
-      !list.archived
-        ? `<button onclick="archiveList(${i})"><span style="margin-right:7px;">📥</span> Arkivera</button>`
-        : `<button onclick="unarchiveList(${i})"><span style="margin-right:7px;">🔄</span> Återställ</button>`
-    }
-  `;
-
-  document.body.appendChild(menu);
-  const rect = btn.getBoundingClientRect();
-  menu.style.position = "fixed";
-  menu.style.top = `${rect.bottom + 3}px`;
-  menu.style.left = `${Math.min(rect.left, window.innerWidth - 170)}px`;
-
-  window.closeAnyMenu = () => {
-    if (menu.parentNode) menu.parentNode.removeChild(menu);
-    window.closeAnyMenu = null;
-  };
-  setTimeout(() => {
-    document.addEventListener("mousedown", window.closeAnyMenu, { once: true });
-  }, 20);
+// Hjälpfunktion: öppna meny baserat på namn (kallar på global main.js)
+window.openListMenuByName = function(name, buttonElem) {
+  const index = lists.findIndex(l => l.name === name);
+  if (index >= 0) {
+    openListMenu(index, buttonElem);
+  }
 };
+
 // Arkivera lista
 window.archiveList = function(i) {
   lists[i].archived = true;
@@ -405,10 +378,11 @@ window.renameList = function(i) {
     closeAnyMenu && closeAnyMenu();
   });
 };
+
 // === Ta bort lista ===
 window.deleteList = function(i) {
   if (confirm("Vill du ta bort listan permanent?")) {
-    lists.splice(i, 1);
+      lists.splice(i, 1);
     saveLists(lists);
     renderAllLists();
     closeAnyMenu && closeAnyMenu();
@@ -416,3 +390,12 @@ window.deleteList = function(i) {
 };
 
 // === Initiera första renderingen ===
+if (typeof renderAllLists === "function") {
+  renderAllLists();
+}
+
+// Spara och rendera en lista (används t.ex. när man bockar för något)
+window.saveAndRenderList = function(i) {
+  saveLists(lists);
+  renderListDetail(i);
+};
