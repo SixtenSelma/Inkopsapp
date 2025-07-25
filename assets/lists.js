@@ -69,7 +69,7 @@ window.renderAllLists = function() {
   });
 
   // Aktiva listor
-  const listCards = sortedActive.map((list, i) => {
+  const listCards = sortedActive.map((list) => {
     const done = list.items.filter(x => x.done).length;
     const total = list.items.length;
     const pct = total ? Math.round((done / total) * 100) : 0;
@@ -90,7 +90,7 @@ window.renderAllLists = function() {
   // Arkiverade listor – collapsible
   let archivedSection = "";
   if (sortedArchived.length) {
-    const archivedListCards = sortedArchived.map((list, i) => {
+    const archivedListCards = sortedArchived.map((list) => {
       const done = list.items.filter(x => x.done).length;
       const total = list.items.length;
       const pct = total ? Math.round((done / total) * 100) : 0;
@@ -279,7 +279,7 @@ window.renderListDetail = function(i) {
   applyFade && applyFade();
 };
 
-// Meny för varje lista
+// Meny för varje lista (inkl. Arkivera/Återställ)
 window.openListMenu = function(i, btn) {
   closeAnyMenu && closeAnyMenu();
   const menu = document.createElement("div");
@@ -404,7 +404,7 @@ window.renameList = function(i) {
 // === Ta bort lista ===
 window.deleteList = function(i) {
   if (confirm("Vill du ta bort listan permanent?")) {
-    lists.splice(i, 1);
+      lists.splice(i, 1);
     saveLists(lists);
     renderAllLists();
     closeAnyMenu && closeAnyMenu();
@@ -413,7 +413,7 @@ window.deleteList = function(i) {
 
 // === Initiera första renderingen ===
 if (typeof renderAllLists === "function") {
-    renderAllLists();
+  renderAllLists();
 }
 
 // Spara och rendera en lista (används t.ex. när man bockar för något)
