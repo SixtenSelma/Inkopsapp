@@ -404,7 +404,7 @@ window.renameList = function(i) {
 // === Ta bort lista ===
 window.deleteList = function(i) {
   if (confirm("Vill du ta bort listan permanent?")) {
-      lists.splice(i, 1);
+    lists.splice(i, 1);
     saveLists(lists);
     renderAllLists();
     closeAnyMenu && closeAnyMenu();
@@ -412,12 +412,3 @@ window.deleteList = function(i) {
 };
 
 // === Initiera första renderingen ===
-if (typeof renderAllLists === "function") {
-  renderAllLists();
-}
-
-// Spara och rendera en lista (används t.ex. när man bockar för något)
-window.saveAndRenderList = function(i) {
-  saveLists(lists);
-  renderListDetail(i);
-};
