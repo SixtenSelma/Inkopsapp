@@ -732,4 +732,53 @@ input[type="search"]::placeholder {
   background: #fafcff;
 }
 
+/* ===== Arkiverade kort (anpassning) ===== */
+
+/* Se till att varje arkiverad lista får samma layout som .list-card */
+.archive-section .list-item {
+  /* samma mellanrum som vanliga list-items */
+  margin-bottom: 16px;
+}
+
+/* Applicera på just de kort du märkt som arkiverade */
+.archive-section .list-card.archived-list-card,
+.archive-section .list-card.archived-card {
+  box-sizing: border-box;            /* gör att padding inte spretar ut bredden */
+  width: 100%;                       /* fyller ut hela föräldern (archive-section) */
+  padding: 16px;                     /* samma inre marginal som .list-card */
+  margin-bottom: 16px;               /* samma avstånd som övriga kort */
+  background: #f7f7f7 !important;    /* ljusgrå bakgrund */
+  border-left: 5px solid #a5a5a5;    /* grå markering */
+  border-radius: 14px;               /* samma rundning som .list-card */
+  opacity: 0.7;                      /* nedtonad */
+  filter: grayscale(0.1);            /* lätt gråskala */
+  position: relative;                /* för att kunna positionera datum‑badge */
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  transition: background 0.2s ease;
+}
+
+/* Datum‑badgeen uppe i högra hörnet */
+.archive-section .list-card.archived-list-card .archived-date,
+.archive-section .list-card.archived-list-card .archived-at,
+.archive-section .list-card.archived-card      .archived-date,
+.archive-section .list-card.archived-card      .archived-at {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: rgba(255,255,255,0.9);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #666;
+  pointer-events: none;
+}
+
+/* Kursiv text och överstruken titel */
+.archive-section .list-card.archived-list-card .list-card-title,
+.archive-section .list-card.archived-card      .list-card-title {
+  text-decoration: line-through;
+  font-style: italic;
+}
+
 /* ===== End of style.css ===== */
