@@ -312,6 +312,7 @@ function chooseCategory(itemName) {
 }
 
 // === Uppdaterad addItemsWithCategory ===
+// === Lägg till varor via plusknapp nere till höger (batch) ===
 window.addItemsWithCategory = function(listIndex = null) {
   let i = listIndex;
   if (i === null) {
@@ -334,31 +335,36 @@ window.addItemsWithCategory = function(listIndex = null) {
     kategoriVaror: [],
     onDone: async function(added) {
       if (!added || !added.length) return;
-      // Se till att categoryMemory finns
       window.categoryMemory = window.categoryMemory || {};
-      for (const name of added) {
-        const trimmed = name.trim();
-        // Hoppa över om redan i listan
-        const exists = lists[i].items.some(item =>
-          item.name.trim().toLowerCase() === trimmed.toLowerCase()
-        );
-        if (exists) continue;
 
-        let cat = window.categoryMemory[trimmed];
+      for (const raw of added) {
+        // Dela på kommatecken: före = namn, efter = komplementtext
+        const parts = raw.split(',');
+        const name = parts.shift().trim();
+        const note = parts.join(',').trim();
+
+        // Hoppa om redan finns i listan
+        if (lists[i].items.some(item => item.name.trim().toLowerCase() === name.toLowerCase())) {
+          continue;
+        }
+
+        // Kategori från memory eller fråga via combobox
+        let cat = window.categoryMemory[name];
         if (!cat) {
-          // Fråga via combobox
-          cat = await chooseCategory(trimmed);
-          // Om avbryter eller ej val, sätt standard
-          if (!cat) cat = "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)";
-          // Spara minne
-          window.categoryMemory[trimmed] = cat;
+          cat = await chooseCategory(name) || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)";
+          window.categoryMemory[name] = cat;
           try {
             localStorage.setItem("categoryMemory", JSON.stringify(window.categoryMemory));
           } catch {}
         }
 
-        // Lägg till ny item
-        lists[i].items.push({ name: trimmed, note: "", done: false, category: cat });
+        // Lägg till med både name, note och category
+        lists[i].items.push({
+          name,
+          note,    // komplementtext
+          done: false,
+          category: cat
+        });
       }
 
       saveLists(lists);
@@ -366,6 +372,7 @@ window.addItemsWithCategory = function(listIndex = null) {
     }
   });
 };
+
 
 
 // === Ny lista ===
