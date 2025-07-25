@@ -279,7 +279,8 @@ window.renderListDetail = function(i) {
   applyFade && applyFade();
 };
 
-// Meny för varje lista (inkl. Arkivera/Återställ)window.openListMenu = function(i, btn) {
+// Meny för varje lista (inkl. Arkivera/Återställ)
+window.openListMenu = function(i, btn) {
   closeAnyMenu && closeAnyMenu();
   const menu = document.createElement("div");
   menu.className = "item-menu";
