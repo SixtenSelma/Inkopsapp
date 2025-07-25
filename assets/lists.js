@@ -281,6 +281,7 @@ window.renderListDetail = function(i) {
 
 // Meny för varje lista (inkl. Arkivera/Återställ)
 window.openListMenu = function(i, btn) {
+  alert('Öppnar meny för lista #' + i);
   closeAnyMenu && closeAnyMenu();
   const menu = document.createElement("div");
   menu.className = "item-menu";
