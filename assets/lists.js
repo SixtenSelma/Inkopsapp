@@ -1,15 +1,14 @@
 // lists.js – hanterar inköpslistor och rendering
 
-window.lists = loadLists(); // Från storage.js
+// Initiera data
+window.lists = loadLists();                  // Från storage.js
 window.categoryMemory = loadCategoryMemory(); // Från storage.js
 window.user = getUser() || prompt("Vad heter du?");
 setUser(window.user);
 
 const app = document.getElementById("app");
 
-// ============================ Hjälpfunktioner ============================
-
-// Formatera ISO-datum till dd/MM hh:mm
+// Hjälpfunktion: Formatera ISO-datum till dd/MM hh:mm
 window.formatDate = function(iso) {
   if (!iso) return "";
   const d = new Date(iso);
@@ -18,58 +17,58 @@ window.formatDate = function(iso) {
   return `${pad(d.getDate())}/${pad(d.getMonth()+1)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
-// Hämta unika varunamn i alla listor
+// Hjälpfunktion: Hämta unika varunamn i alla listor
 window.getAllUniqueItemNames = function(lists) {
   const names = new Set();
   lists.forEach(l => l.items.forEach(i => i.name && names.add(i.name.trim())));
-  return [...names].sort();
+  return Array.from(names).sort();
 };
 
-// Hämta mall-varor
+// Hjälpfunktion: Hämta unika varunamn i mall-listor
 window.getTemplateItemNames = function(lists) {
   const names = new Set();
   lists.forEach(l => {
     if (!l.name.startsWith('Mall:')) return;
     l.items.forEach(i => i.name && names.add(i.name.trim()));
   });
-  return [...names].sort();
+  return Array.from(names).sort();
 };
 
-// Hämta kategori-specifika varor
+// Hjälpfunktion: Hämta unika varunamn i en kategori för given lista
 window.getCategoryItemNames = function(list, category) {
   const names = new Set();
   list.items.forEach(item => {
     const cat = item.category || '🏠 Övrigt (Hem, Teknik, Kläder, Säsong)';
     if (cat === category && item.name) names.add(item.name.trim());
   });
-  return [...names].sort();
+  return Array.from(names).sort();
 };
 
-// ============================ Rendera alla listor ============================
-
+// === Rendera översikt av alla listor ===
 window.renderAllLists = function() {
-  const active = lists.filter(l => !l.archived);
-  const archived = lists.filter(l => l.archived);
+  // Dela i aktiva och arkiverade
+  const activeLists = lists.filter(l => !l.archived);
+  const archivedLists = lists.filter(l => l.archived);
 
-  // Sortera aktiva (mallar sist)
-  const sortedActive = [...active].sort((a,b) => {
-    const aT = a.name.startsWith('Mall:'), bT = b.name.startsWith('Mall:');
-    if (aT !== bT) return aT ? 1 : -1;
+  // Sortera aktiva: mallar sist
+  const sortedActive = [...activeLists].sort((a, b) => {
+    const tA = a.name.startsWith('Mall:'), tB = b.name.startsWith('Mall:');
+    if (tA !== tB) return tA ? 1 : -1;
     return a.name.localeCompare(b.name, 'sv');
   });
 
-  // Sortera arkiverade (sist in först)
-  const sortedArchived = [...archived].sort((a,b) => (b.archivedAt||0)-(a.archivedAt||0));
+  // Sortera arkiverade: senaste först
+  const sortedArchived = [...archivedLists].sort((a, b) => (b.archivedAt || 0) - (a.archivedAt || 0));
 
-  // Bygg aktiva kort
+  // Bygg HTML för aktiva kort
   const activeHTML = sortedActive.map(list => {
-    const done = list.items.filter(i=>i.done).length;
+    const done = list.items.filter(i => i.done).length;
     const total = list.items.length;
-    const pct = total ? Math.round(done/total*100) : 0;
-    const extra = list.name.startsWith('Mall:') ? 'list-card-template' : '';
+    const pct = total ? Math.round((done / total) * 100) : 0;
+    const extraClass = list.name.startsWith('Mall:') ? 'list-card-template' : '';
     return `
       <li class="list-item" onclick="viewListByName('${list.name.replace(/'/g, "\\'")}')">
-        <div class="list-card ${extra}">
+        <div class="list-card ${extraClass}">
           <div class="list-card-header">
             <span class="list-card-title">${list.name}</span>
             <button class="menu-btn" onclick="event.stopPropagation(); openListMenuByName('${list.name.replace(/'/g, "\\'")}', this)">⋮</button>
@@ -80,21 +79,17 @@ window.renderAllLists = function() {
       </li>`;
   }).join('') || '<p class="no-lists">Inga listor än.</p>';
 
-  // Bygg arkiverade kort (samma struktur som aktiva, med "Arkiverad")
+  // Bygg HTML för arkiverade kort
   let archivedSection = '';
   if (sortedArchived.length) {
     const archivedHTML = sortedArchived.map(list => {
-      // Se till att dateTxt alltid finns
       const dateTxt = list.archivedAt ? formatDate(list.archivedAt) : '';
       return `
         <li class="list-item archived" onclick="viewListByName('${list.name.replace(/'/g, "\\'")}')">
           <div class="list-card archived-list-card">
             <div class="list-card-header">
               <span class="list-card-title">${list.name}</span>
-              <button class="menu-btn"
-                      onclick="event.stopPropagation(); openListMenuByName('${list.name.replace(/'/g, "\\'")}', this)">
-                ⋮
-              </button>
+              <button class="menu-btn" onclick="event.stopPropagation(); openListMenuByName('${list.name.replace(/'/g, "\\'")}', this)">⋮</button>
             </div>
             <div class="progress-text">Arkiverad: ${dateTxt}</div>
           </div>
@@ -112,7 +107,7 @@ window.renderAllLists = function() {
       </div>`;
   }
 
-  // Sätt HTML
+  // Sätt hela översikten
   app.innerHTML = `
     <div class="top-bar">
       <h1>Inköpslista</h1>
@@ -130,108 +125,91 @@ window.renderAllLists = function() {
     </div>
   `;
 
-  // Arkiverade toggle
+  // Toggle arkiverade
   window.toggleArchivedSection = function(e) {
     e.stopPropagation();
     const btn = e.currentTarget;
     const ul = btn.nextElementSibling;
-    if (ul.style.display==='none') { ul.style.display='block'; btn.querySelector('#archived-arrow').textContent='▲'; }
-    else { ul.style.display='none'; btn.querySelector('#archived-arrow').textContent='▼'; }
+    if (ul.style.display === 'none') {
+      ul.style.display = 'block'; btn.querySelector('#archived-arrow').textContent = '▲';
+    } else {
+      ul.style.display = 'none';  btn.querySelector('#archived-arrow').textContent = '▼';
+    }
   };
 
+  // Animation
   applyFade && applyFade();
 };
 
-// Visa en lista baserat på namn
+// Visa lista med namn
 window.viewListByName = function(name) {
-  const idx = lists.findIndex(l=>l.name===name);
-  if (idx>=0) renderListDetail(idx);
+  const idx = lists.findIndex(l => l.name === name);
+  if (idx >= 0) renderListDetail(idx);
 };
 
-// Öppna meny för lista baserat på namn
+// Öppna meny med namn
 window.openListMenuByName = function(name, btn) {
-  const idx = lists.findIndex(l=>l.name===name);
-  if (idx>=0) openListMenu(idx, btn);
+  const idx = lists.findIndex(l => l.name === name);
+  if (idx >= 0) openListMenu(idx, btn);
 };
 
-// ============================ Rendera en lista ============================
+// === Rendera enskild lista ===
 window.renderListDetail = function(i) {
   const list = lists[i];
   let hideDone = true;
-  try {
-    hideDone = localStorage.getItem("hideDone") !== "false";
-  } catch {}
+  try { hideDone = localStorage.getItem('hideDone') !== 'false'; } catch {}
 
-  // Förbered items med index
-  const allItems = list.items.map((item, realIdx) => ({ ...item, realIdx }));
+  const allItems = list.items.map((item, idx) => ({ ...item, idx }));
 
-  // Gruppindelning på kategori
+  // Gruppindelning
   const grouped = {};
   standardKategorier.forEach(cat => grouped[cat] = []);
   allItems.forEach(item => {
-    const cat = item.category || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)";
+    const cat = item.category || '🏠 Övrigt (Hem, Teknik, Kläder, Säsong)';
     if (!grouped[cat]) grouped[cat] = [];
     grouped[cat].push(item);
   });
 
-  // Dela på fyllda vs tomma kategorier
-  const categoriesWithItems = [];
-  const emptyCategories = [];
+  // Fyllda vs tomma
+  const filled = [], empty = [];
   Object.entries(grouped).forEach(([cat, items]) => {
-    const filtered = hideDone ? items.filter(x => !x.done) : items;
-    if (filtered.length > 0) {
-      categoriesWithItems.push({ cat, items: filtered });
-    } else {
-      emptyCategories.push({ cat, items: [] });
-    }
+    const vis = hideDone ? items.filter(x => !x.done) : items;
+    (vis.length ? filled : empty).push({ cat, items: vis });
   });
+  const finalCats = hideDone ? filled : [...filled, ...empty];
+  finalCats.sort((a, b) => standardKategorier.indexOf(a.cat) - standardKategorier.indexOf(b.cat));
 
-  // Sortera enligt standardKategorier
-  categoriesWithItems.sort((a, b) => standardKategorier.indexOf(a.cat) - standardKategorier.indexOf(b.cat));
-  emptyCategories.sort((a, b) => standardKategorier.indexOf(a.cat) - standardKategorier.indexOf(b.cat));
-
-  // Slå ihop beroende på hideDone
-  const finalCategories = hideDone ? categoriesWithItems : [...categoriesWithItems, ...emptyCategories];
-
-  // Generera HTML för varje kategori
-  const itemsHTML = finalCategories.map(({ cat, items }) => {
+  // Generera kategori‑HTML
+  const categoriesHTML = finalCats.map(({ cat, items }) => {
     const sorted = [
-      ...items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv')),
-      ...items.filter(x => x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'))
+      ...items.filter(x => !x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv')),
+      ...items.filter(x => x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv'))
     ];
-
-    const listItems = sorted.length > 0
-      ? sorted.map(item => {
-          const line1 = item.done
-            ? `<s>${item.name}</s>`
-            : `<strong>${item.name}</strong>`;
-          const note    = item.note ? `<span class="left">${item.note}</span>` : `<span class="left"></span>`;
-          const sign    = (item.done && item.doneBy)
-            ? `<span class="right">${item.doneBy} ${formatDate(item.doneAt)}</span>`
-            : `<span class="right"></span>`;
-          return `
-            <li class="todo-item ${item.done ? 'done' : ''}">
-              <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.realIdx}, lists, user, saveAndRenderList)" />
-              <span class="item-name">
-                ${line1}
-                <div class="item-row2">${note}${sign}</div>
-              </span>
-              <button class="menu-btn" onclick="openItemMenu(${i}, ${item.realIdx}, this)">⋮</button>
-            </li>`;
-        }).join('')
-      : `<p class="empty-category">Inga varor i denna kategori</p>`;
-
+    const rows = sorted.length ? sorted.map(item => {
+      const text = item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`;
+      const note = item.note ? `<span class="left">${item.note}</span>` : `<span class="left"></span>`;
+      const sig  = (item.done && item.doneBy) ? `<span class="right">${item.doneBy} ${formatDate(item.doneAt)}</span>` : `<span class="right"></span>`;
+      return `
+        <li class="todo-item ${item.done ? 'done' : ''}">
+          <input type="checkbox" ${item.done ? 'checked' : ''} onchange="toggleItem(${i},${item.idx}, lists, user, saveAndRenderList)" />
+          <span class="item-name">
+            ${text}
+            <div class="item-row2">${note}${sig}</div>
+          </span>
+          <button class="menu-btn" onclick="openItemMenu(${i}, ${item.idx}, this)">⋮</button>
+        </li>`;
+    }).join('') : '<p class="empty-category">Inga varor i denna kategori</p>';
     return `
       <div class="category-block">
         <h3 class="category-heading">
           ${cat}
           <button class="category-add-btn" title="Lägg till vara i ${cat}" onclick="addItemViaCategory(${i}, '${cat}')">+</button>
         </h3>
-        <ul class="todo-list">${listItems}</ul>
+        <ul class="todo-list">${rows}</ul>
       </div>`;
-  }).join('');
+  }).join('') || '<p>Inga varor än.</p>';
 
-  // Sätt hela vyn
+  // Sätt vy
   app.innerHTML = `
     <div class="top-bar">
       <span class="back-arrow" onclick="renderAllLists()" style="margin-right:10px; cursor:pointer; display:flex; align-items:center;">
@@ -242,73 +220,79 @@ window.renderListDetail = function(i) {
       <h1 class="back-title" style="font-size:1.45em; font-weight:700; margin:0;">${list.name}</h1>
       <div style="flex:1"></div>
       <label class="hide-done-label" style="display:flex; align-items:center; gap:6px;">
-        <input type="checkbox" id="hideDoneCheckbox" ${hideDone ? "checked" : ""} style="margin-right:7px;" />
+        <input type="checkbox" id="hideDoneCheckbox" ${hideDone ? 'checked' : ''} style="margin-right:7px;" />
         <span class="hide-done-text">Dölj klara</span>
       </label>
     </div>
     <div class="category-list">
-      ${itemsHTML || '<p>Inga varor än.</p>'}
+      ${categoriesHTML}
     </div>
     <div class="bottom-bar">
       <button onclick="addItemsWithCategory(${i})" title="Lägg till vara">➕</button>
     </div>
   `;
 
-  // Koppla checkbox‑händelsen
-  const chk = document.getElementById("hideDoneCheckbox");
-  if (chk) {
-    chk.onchange = function() {
-      localStorage.setItem("hideDone", chk.checked ? "true" : "false");
-      renderListDetail(i);
-    };
-  }
+  // Koppla checkbox
+  const chk = document.getElementById('hideDoneCheckbox');
+  if (chk) chk.onchange = () => { localStorage.setItem('hideDone', chk.checked ? 'true' : 'false'); renderListDetail(i); };
 
+  // Fade
+  applyFade && applyFade();
+};
 
+// === Batch-lägg till via kategori ===
+window.addItemViaCategory = function(listIndex, category) {
+  const allaVaror = getAllUniqueItemNames(lists);
+  const mallVaror = getTemplateItemNames(lists);
+  const kategoriVaror = getCategoryItemNames(lists[listIndex], category);
+  showAddItemsDialog({ kategori: category, allaVaror, mallVaror, kategoriVaror, onDone: added => {
+    if (!added || !added.length) return;
+    added.forEach(name => {
+      if (!lists[listIndex].items.some(i=>i.name.trim().toLowerCase()===name.trim().toLowerCase() && (i.category||'🏠 Övrigt (Hem, Teknik, Kläder, Säsong)')===category)) {
+        lists[listIndex].items.push({ name, note: '', done: false, category });
+      }
+    });
+    saveLists(lists);
+    renderListDetail(listIndex);
+  }});
+};
 
-// --- Lägg till varor via plusknapp nere till höger (batch) ---
+// === Batch-lägg till via plusknapp ===
 window.addItemsWithCategory = function(listIndex = null) {
   let i = listIndex;
   if (i === null) {
     if (!lists.length) return;
-    let val = prompt("Vilken lista vill du lägga till i?\n" + lists.map((l, idx) => (idx + 1) + ": " + l.name).join("\n"));
+    let val = prompt("Vilken lista vill du lägga till i?\n" + lists.map((l, idx)=>(idx+1)+": "+l.name).join("\n"));
     if (!val) return;
-    val = parseInt(val, 10) - 1;
-    if (isNaN(val) || val < 0 || val >= lists.length) return;
-    i = val;
+    i = parseInt(val, 10) - 1;
+    if (isNaN(i) || i < 0 || i >= lists.length) return;
   }
   const allaVaror = getAllUniqueItemNames(lists);
   const mallVaror = getTemplateItemNames(lists);
-
-  showAddItemsDialog({
-    allaVaror,
-    mallVaror,
-    kategoriVaror: [],
-    onDone: function(added) {
-      if (!added || !added.length) return;
-      added.forEach(name => {
-        if (!lists[i].items.some(item => item.name.trim().toLowerCase() === name.trim().toLowerCase())) {
-          lists[i].items.push({ name, note: "", done: false });
-        }
-      });
-      saveLists(lists);
-      renderListDetail(i);
-    }
-  });
+  showAddItemsDialog({ allaVaror, mallVaror, kategoriVaror: [], onDone: added => {
+    if (!added || !added.length) return;
+    added.forEach(name => {
+      if (!lists[i].items.some(i2=>i2.name.trim().toLowerCase()===name.trim().toLowerCase())) {
+        lists[i].items.push({ name, note: '', done: false });
+      }
+    });
+    saveLists(lists);
+    renderListDetail(i);
+  }});
 };
 
-// === Skapa ny lista (popup) ===
+// === Ny lista ===
 window.showNewListDialog = function() {
-  showNewListModal(function(listName) {
+  showNewListModal(listName => {
     lists.push({ name: listName, items: [] });
     saveLists(lists);
     renderAllLists();
   });
 };
 
-// === Byt namn på lista (använder modal.js) ===
+// === Byt namn på lista ===
 window.renameList = function(i) {
-  const currentName = lists[i].name;
-  showRenameDialog("Byt namn på lista", currentName, (newName) => {
+  showRenameDialog('Byt namn på lista', lists[i].name, newName => {
     lists[i].name = newName;
     saveLists(lists);
     renderAllLists();
@@ -318,15 +302,15 @@ window.renameList = function(i) {
 
 // === Ta bort lista ===
 window.deleteList = function(i) {
-  if (confirm("Vill du ta bort listan permanent?")) {
-      lists.splice(i, 1);
+  if (confirm('Vill du ta bort listan permanent?')) {
+    lists.splice(i, 1);
     saveLists(lists);
     renderAllLists();
     closeAnyMenu && closeAnyMenu();
   }
 };
 
-// Arkivera lista
+// === Arkivera / Återställ lista ===
 window.archiveList = function(i) {
   lists[i].archived = true;
   lists[i].archivedAt = new Date().toISOString();
@@ -334,7 +318,6 @@ window.archiveList = function(i) {
   renderAllLists();
   closeAnyMenu && closeAnyMenu();
 };
-// Återställ lista
 window.unarchiveList = function(i) {
   delete lists[i].archived;
   delete lists[i].archivedAt;
@@ -343,13 +326,11 @@ window.unarchiveList = function(i) {
   closeAnyMenu && closeAnyMenu();
 };
 
-// === Initiera första renderingen ===
-if (typeof renderAllLists === "function") {
-  renderAllLists();
-}
-
-// Spara och rendera en lista (används t.ex. när man bockar för något)
+// === Spara och rendera en lista ===
 window.saveAndRenderList = function(i) {
   saveLists(lists);
   renderListDetail(i);
 };
+
+// Init
+if (typeof renderAllLists === 'function') renderAllLists();
