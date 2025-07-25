@@ -812,13 +812,20 @@ input[type="search"]::placeholder {
   padding: 4px 0 2px 8px !important;  /* justera inre mellanrum på texten */
 }
 
-/* ===== Import‑modal: vänsterställda, brytbara rader ===== */
+/* ===== Import‑modal: vänsterställda rader med grid ===== */
+.import-modal .modal-content {
+  max-width: 360px;
+  width: 360px;          /* fasta bredd för att slippa hoppa scrollbar */
+  padding: 16px;
+  text-align: left;
+}
+
 .import-modal .import-list {
   max-height: 300px;
   overflow-y: auto;
-  overflow-x: hidden;        /* döljer horisontell scroll */
   margin: 12px 0;
-  text-align: left;
+  /* ingen horisontell scroll */
+  overflow-x: hidden;
 }
 
 .import-modal .import-category {
@@ -826,25 +833,28 @@ input[type="search"]::placeholder {
   margin: 12px 0 6px;
 }
 
+/* Grid: kolumn 1 = checkbox, kolumn 2 = text */
 .import-modal .import-row {
-  display: flex;
-  align-items: flex-start;   /* tillåter multi‑line */
-  margin-bottom: 4px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 8px;
+  align-items: start;
+  margin-bottom: 6px;
   cursor: pointer;
 }
 
+/* Checkboxen får lite utrymme */
 .import-modal .import-row input[type="checkbox"] {
-  margin-right: 8px;
+  margin-top: 2px;
   flex: none;
 }
 
+/* Texten bryts automatiskt inom sin kolumn */
 .import-modal .import-row span {
-  flex: 1 1 auto;            /* tar återstående bredd */
-  white-space: normal;        /* tillåter radbrytning */
-  word-break: break-word;     /* bryt långa ord om nödvändigt */
+  white-space: normal;
+  word-break: break-word;
   text-align: left;
 }
-
 
 
 
