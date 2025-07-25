@@ -135,7 +135,7 @@ window.renderAllLists = function() {
     </ul>
     ${archivedSection}
     <div class="bottom-bar">
-      <button onclick="addItemsWithCategory()" title="Ny vara">➕</button>
+      <button onclick="showNewListDialog()" title="Ny lista">➕</button>
     </div>
   `;
 
@@ -150,7 +150,6 @@ window.renderAllLists = function() {
 
   applyFade && applyFade();
 };
-
 // Hjälpfunktion: visa lista baserat på namn (eftersom vi sorterar)
 window.viewListByName = function(name) {
   const index = lists.findIndex(l => l.name === name);
