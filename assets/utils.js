@@ -4,7 +4,7 @@
  * Applicerar en enkel fade‑in via CSS‑klasserna .fade-enter / .fade-enter-active
  * @param {Element} [el] - Element att animera. Om ej satt används #app.
  */
-export function applyFade(el) {
+window.applyFade = function(el) {
   const target = el instanceof Element ? el : document.getElementById("app");
   if (!target) return;
   target.classList.add('fade-enter');
@@ -14,25 +14,25 @@ export function applyFade(el) {
       target.classList.remove('fade-enter', 'fade-enter-active');
     }, { once: true });
   });
-}
+};
 
 /**
  * Tar bort eventuella öppna menyer (.item-menu)
  */
-export function closeAnyMenu() {
+window.closeAnyMenu = function() {
   const existing = document.querySelector('.item-menu');
   if (existing) existing.remove();
-}
+};
 
 /**
  * Positionerar ett absolut-positionerat meny-element vid en knapp
  * @param {HTMLElement} menuEl - Meny-elementet
- * @param {HTMLElement} btnEl - Knappen som meny ska positioneras efter
+ * @param {HTMLElement} btnEl  - Knappen som meny ska positioneras efter
  */
-export function positionMenu(menuEl, btnEl) {
+window.positionMenu = function(menuEl, btnEl) {
   const rect = btnEl.getBoundingClientRect();
   menuEl.style.position = 'absolute';
-  menuEl.style.top = `${rect.bottom + window.scrollY}px`;
+  menuEl.style.top  = `${rect.bottom + window.scrollY}px`;
   menuEl.style.left = `${Math.min(window.innerWidth - 180, rect.left + window.scrollX - 100)}px`;
   document.body.appendChild(menuEl);
   setTimeout(() => {
@@ -43,19 +43,19 @@ export function positionMenu(menuEl, btnEl) {
       }
     });
   }, 0);
-}
+};
 
 /**
  * Skapar och visar en meny baserat på HTML-sträng
- * @param {string} html - HTML-innehåll för .item-menu
+ * @param {string} html  - HTML-innehåll för .item-menu
  * @param {HTMLElement} btnEl - Knapp för positionering
- * @returns {HTMLElement} - Skapat meny-element
+ * @returns {HTMLElement} Skapat meny-element
  */
-export function createMenu(html, btnEl) {
-  closeAnyMenu();
+window.createMenu = function(html, btnEl) {
+  window.closeAnyMenu();
   const menu = document.createElement('div');
   menu.className = 'item-menu';
   menu.innerHTML = html;
-  positionMenu(menu, btnEl);
+  window.positionMenu(menu, btnEl);
   return menu;
-}
+};
