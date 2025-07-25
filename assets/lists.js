@@ -92,8 +92,19 @@ function chooseCategory(itemName) {
   });
 }
 
-// ===== Dialog för batch-tillägg =====
-window.showAddItemsDialog = function({ kategori, allaVaror, mallVaror, kategoriVaror, onDone }) {
+// ===== Dialog: Lägg till varor med unik autocomplete =====
+window.showAddItemsDialog = function({ allaVaror, mallVaror, kategoriVaror, onDone }) {
+  // 1) Slå ihop alla tre listorna i ett Set för att ta bort dubbletter
+  const suggestionSet = new Set([
+    ...(allaVaror || []),
+    ...(mallVaror || []),
+    ...(kategoriVaror || [])
+  ]);
+
+  // 2) Konvertera tillbaka till sorterad array
+  const suggestions = Array.from(suggestionSet).sort();
+
+  // --- Bygg dialogen ---
   const overlay = document.createElement('div');
   overlay.className = 'modal';
   overlay.style.backdropFilter = 'blur(4px)';
@@ -103,26 +114,27 @@ window.showAddItemsDialog = function({ kategori, allaVaror, mallVaror, kategoriV
   overlay.appendChild(box);
 
   const title = document.createElement('h2');
-  title.textContent = kategori
-    ? `Lägg till varor i kategori “${kategori}”`
-    : 'Lägg till varor';
+  title.textContent = 'Lägg till varor';
   box.appendChild(title);
 
-  // Input + datalist för autocomplete
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.placeholder = 'Skriv varunamn och tryck Enter…';
+  // Datalist för autocomplete
   const dl = document.createElement('datalist');
-  dl.id = 'item-datalist';
-  [...allaVaror, ...mallVaror, ...kategoriVaror].forEach(name => {
+  dl.id = 'add-items-suggestions';
+  suggestions.forEach(s => {
     const opt = document.createElement('option');
-    opt.value = name;
+    opt.value = s;
     dl.appendChild(opt);
   });
-  box.appendChild(input);
   box.appendChild(dl);
-  input.setAttribute('list', 'item-datalist');
 
+  // Input kopplad till datalist
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.placeholder = 'Varunamn, [komplement]';
+  input.setAttribute('list', dl.id);
+  box.appendChild(input);
+
+  // Preview‑lista för valda varor
   const preview = document.createElement('ul');
   preview.className = 'add-batch-preview-list';
   box.appendChild(preview);
@@ -145,10 +157,10 @@ window.showAddItemsDialog = function({ kategori, allaVaror, mallVaror, kategoriV
   }
 
   function addCurrentInput() {
-    const text = input.value.trim();
-    if (!text) return;
-    if (!selected.includes(text)) {
-      selected.push(text);
+    const raw = input.value.trim();
+    if (!raw) return;
+    if (!selected.includes(raw)) {
+      selected.push(raw);
       renderChips();
     }
     input.value = '';
@@ -161,6 +173,7 @@ window.showAddItemsDialog = function({ kategori, allaVaror, mallVaror, kategoriV
     }
   });
 
+  // Knappar
   const actions = document.createElement('div');
   actions.className = 'modal-actions';
 
@@ -173,7 +186,7 @@ window.showAddItemsDialog = function({ kategori, allaVaror, mallVaror, kategoriV
   const btnDone = document.createElement('button');
   btnDone.textContent = 'Klar';
   btnDone.onclick = () => {
-    addCurrentInput();
+    addCurrentInput();   // ta med vad som finns i input
     cleanup();
     onDone(selected);
   };
