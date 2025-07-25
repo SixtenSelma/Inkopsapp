@@ -288,10 +288,10 @@ window.openListMenu = function(i, btn) {
 
   menu.innerHTML = `
     <button onclick="renameList(${i})">
-      <span style="margin-right:7px;">🖊</span> Byt namn
+      <span style="margin-right:7px;">🖊</span> Byt namn!
     </button>
     <button onclick="deleteList(${i})" style="color:#d44;">
-      <span style="margin-right:7px;">✖️</span> Ta bort lista
+      <span style="margin-right:7px;">✖️</span> Ta bort lista!
     </button>
     ${
       !list.archived
@@ -400,9 +400,6 @@ window.renameList = function(i) {
   const currentName = lists[i].name;
   showRenameDialog("Byt namn på lista", currentName, (newName) => {
     lists[i].name = newName;
-    // SÄKERSTÄLL att archived-flaggan alltid finns:
-    if (!('archived' in lists[i])) lists[i].archived = false;
-    if (!('archivedAt' in lists[i])) lists[i].archivedAt = null;
     saveLists(lists);
     renderAllLists();
     closeAnyMenu && closeAnyMenu();
