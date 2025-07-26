@@ -29,6 +29,23 @@ function showNewListDialog() {
   renderAllLists();
 }
 
+// ===== Toggle‐funktion för checkboxar på varuposter =====
+function toggleItem(listIndex, itemIndex, lists, user, callback) {
+  const list = lists[listIndex];
+  const item = list.items[itemIndex];
+  // växla done‐status
+  item.done = !item.done;
+  item.doneBy = user;
+  item.doneAt = new Date().toISOString();
+
+  // stämpla om listan
+  stampListTimestamps(list);
+  saveLists(lists);
+
+  // rendera om
+  callback(listIndex);
+}
+
 // ===== Initiera data =====
 window.lists = loadLists();  // Från storage.js
 window.categoryMemory = (() => {
