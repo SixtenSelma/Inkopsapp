@@ -108,16 +108,15 @@ function chooseCategory(itemName) {
 }
 
 // ===== Dialog: Lägg till varor med unik autocomplete =====
-window.showAddItemsDialog = function({ allaVaror, mallVaror, kategoriVaror, onDone }) {
-  // 1) Slå ihop alla tre listorna i ett Set för att ta bort dubbletter
-  const suggestionSet = new Set([
-    ...(allaVaror || []),
-    ...(mallVaror || []),
-    ...(kategoriVaror || [])
-  ]);
+window.showAddItemsDialog = function({ allaVaror, mallVaror, kategoriVaror, onDone, onlyCategory = false }) {
+  // 1) Bestäm källan för förslag
+  const source = onlyCategory
+    ? kategoriVaror
+    : [...(allaVaror || []), ...(mallVaror || []), ...(kategoriVaror || [])];
 
-  // 2) Konvertera tillbaka till sorterad array
-  const suggestions = Array.from(suggestionSet).sort();
+  // 2) Ta bort dubbletter och sortera
+  const suggestionSet = new Set(source.filter(Boolean));
+  const suggestions   = Array.from(suggestionSet).sort();
 
   // --- Bygg dialogen ---
   const overlay = document.createElement('div');
@@ -453,31 +452,29 @@ window.renderListDetail = function(i) {
   applyFade && applyFade();
 };
 
-// ===== Batch-lägg till via kategori-knapp =====
 // ===== Lägg till via kategori-knapp =====
 window.addItemViaCategory = function(listIndex, category) {
-  const allaVaror    = getAllUniqueItemNames(lists);
-  const mallVaror    = getTemplateItemNames(lists);
+  const allaVaror     = getAllUniqueItemNames(lists);
+  const mallVaror     = getTemplateItemNames(lists);
   const kategoriVaror = getCategoryItemNames(lists[listIndex], category);
 
   showAddItemsDialog({
-    kategori: category,
     allaVaror,
     mallVaror,
     kategoriVaror,
+    onlyCategory: true,      // Endast varor i den valda kategorin
     onDone: added => {
       if (!added || !added.length) return;
 
       added.forEach(raw => {
-        // Dela på komma: namn och komplement
         const [namePart, ...noteParts] = raw.split(',');
         const name = namePart.trim();
         const note = noteParts.join(',').trim();
 
-        // ENDAST om både namn+note är identiska redan finns → hoppa
+        // Undvik dubbletter
         const exists = lists[listIndex].items.some(item =>
           item.name.trim().toLowerCase() === name.toLowerCase() &&
-          (item.note||'').trim().toLowerCase() === note.toLowerCase()
+          (item.note || '').trim().toLowerCase() === note.toLowerCase()
         );
         if (exists) return;
 
