@@ -211,6 +211,56 @@ input[type="checkbox"] {
   align-items: center;
   margin: 0 0 6px; /* återställt */
 }
+/* ===== To-Do View ===== */
+.todo-list { padding: 0; margin: 0; }
+.todo-item {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid #eaeaea;
+  background: #fff;
+}
+.todo-item:last-child { border-bottom: none; }
+.todo-item.done {
+  opacity: 1;
+  color: #888 !important;
+}
+.todo-item.done .item-name,
+.todo-item.done .item-name strong,
+.todo-item.done .item-name s,
+.todo-item.done .item-note-sign-wrapper,
+.todo-item.done .item-note-sign-wrapper > .item-note,
+.todo-item.done .item-note-sign-wrapper > .item-sign-date {
+  color: #888 !important;
+  font-style: italic !important;
+}
+.todo-item.done .item-name s { color: #888 !important; opacity: 1; }
+.todo-item .item-name {
+  flex-grow: 1;
+  margin-left: 12px;
+  font-size: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+.item-note-sign-wrapper {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  margin-top: 4px;
+  line-height: 1.1;
+  font-family: inherit;
+  color: #888;
+  font-style: italic;
+}
+.item-note-sign-wrapper > .item-note { flex: 1; color: #888; font-style: inherit; }
+.item-note-sign-wrapper > .item-sign-date {
+  white-space: nowrap;
+  font-weight: 600;
+  color: #555;
+  margin-left: 10px;
+  font-style: inherit;
+}
+
 /* ===== Templates & Archive ===== */
 .list-card-template {
   background: #f9f6ee;
