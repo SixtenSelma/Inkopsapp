@@ -641,99 +641,118 @@ window.deleteList = function(i) {
 if (typeof renderAllLists === 'function') renderAllLists();
 
 /**
- * Importera varor från en annan lista.
- * targetIndex = index på listan vi vill lägga till i.
+ * Importerar valda varor från en annan lista.
+ * Visar kategorier i samma ordning som i detaljvyn (standardKategorier först).
+ *
+ * @param {number} targetIndex – index på den lista vi är i
  */
-window.importItemsFromList = function(targetIndex) {
-  // 1) Välj källa‑lista med prompt
-  const promptText =
-    "Importera varor från vilken lista?\n" +
-    lists.map((l, idx) => (idx+1) + ": " + l.name).join("\n");
-  const choice = prompt(promptText);
-  if (!choice) return;
-  const srcIdx = parseInt(choice, 10) - 1;
-  if (isNaN(srcIdx) || srcIdx < 0 || srcIdx >= lists.length) return;
-
+window.importItemsFromList = async function(targetIndex) {
+  // 1) Välj källa-lista
+  const srcIdx = await chooseSourceList(targetIndex);
+  if (srcIdx == null) return;
   const srcList = lists[srcIdx];
 
-  // 2) Bygg modal med checkbox‑lista
-  const overlay = document.createElement('div');
-  overlay.className = 'modal';
-  overlay.style.backdropFilter = 'blur(4px)';
-  const box = document.createElement('div');
-  box.className = 'modal-content';
-  box.innerHTML = `<h2>Importera varor från<br><em>${srcList.name}</em></h2>`;
-  overlay.appendChild(box);
-
-  const container = document.createElement('div');
-  container.style.maxHeight = '300px';
-  container.style.overflowY = 'auto';
-  box.appendChild(container);
-
-  srcList.items.forEach((item, i) => {
-    const row = document.createElement('label');
-    row.style.display = 'flex';
-    row.style.alignItems = 'center';
-    row.style.marginBottom = '6px';
-
-    const chk = document.createElement('input');
-    chk.type = 'checkbox';
-    chk.dataset.idx = i;
-    chk.style.marginRight = '8px';
-
-    const txt = document.createElement('span');
-    txt.textContent = item.note
-      ? `${item.name} (${item.note})`
-      : item.name;
-
-    row.appendChild(chk);
-    row.appendChild(txt);
-    container.appendChild(row);
+  // 2) Gruppera varor per kategori, spara globalt index
+  const grouped = {};
+  srcList.items.forEach((item, globalIdx) => {
+    const cat = item.category || '🏠 Övrigt (Hem, Teknik, Kläder, Säsong)';
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push({ item, globalIdx });
   });
 
+  // 3) Bestäm ordning: först standardKategorier, sen övriga
+  const orderedCats = [
+    ...standardKategorier.filter(cat => grouped[cat]),
+    ...Object.keys(grouped).filter(cat => !standardKategorier.includes(cat))
+  ];
+
+  // 4) Bygg modal
+  const overlay = document.createElement('div');
+  overlay.className = 'modal import-modal';
+  overlay.style.backdropFilter = 'blur(4px)';
+  document.body.appendChild(overlay);
+
+  const box = document.createElement('div');
+  box.className = 'modal-content';
+  box.innerHTML = `<h2>Importera varor från <em>${srcList.name}</em></h2>`;
+  overlay.appendChild(box);
+
+  const listContainer = document.createElement('div');
+  listContainer.className = 'import-list';
+  box.appendChild(listContainer);
+
+  // 5) Lägg in varje kategori i rätt ordning
+  orderedCats.forEach(cat => {
+    const entries = grouped[cat];
+    if (!entries) return;
+
+    // rubrik
+    const catHead = document.createElement('div');
+    catHead.className = 'import-category';
+    catHead.textContent = cat;
+    listContainer.appendChild(catHead);
+
+    // varor
+    entries.forEach(({ item, globalIdx }) => {
+      const row = document.createElement('label');
+      row.className = 'import-row';
+
+      const chk = document.createElement('input');
+      chk.type = 'checkbox';
+      chk.dataset.globalIdx = globalIdx;
+      row.appendChild(chk);
+
+      const txt = document.createElement('span');
+      txt.textContent = item.note
+        ? `${item.name} (${item.note})`
+        : item.name;
+      row.appendChild(txt);
+
+      listContainer.appendChild(row);
+    });
+  });
+
+  // 6) Knappar
   const actions = document.createElement('div');
   actions.className = 'modal-actions';
+  box.appendChild(actions);
 
   const btnCancel = document.createElement('button');
   btnCancel.textContent = 'Avbryt';
   btnCancel.className = 'btn-secondary';
-  btnCancel.onclick = cleanup;
+  btnCancel.onclick = () => overlay.remove();
   actions.appendChild(btnCancel);
 
   const btnImport = document.createElement('button');
   btnImport.textContent = 'Importera';
   btnImport.onclick = () => {
-    // 3) Importera valda
-    const checks = container.querySelectorAll('input[type=checkbox]:checked');
-    checks.forEach(chk => {
-      const srcItem = srcList.items[chk.dataset.idx];
-      // Endast om samma name+note inte redan finns
-      const exists = lists[targetIndex].items.some(it =>
-        it.name === srcItem.name &&
-        (it.note || '') === (srcItem.note || '')
-      );
-      if (!exists) {
-        lists[targetIndex].items.push({
-          name:     srcItem.name,
-          note:     srcItem.note || "",
-          done:     false,
-          category: srcItem.category || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)"
-        });
-      }
-    });
+    listContainer
+      .querySelectorAll('input[type=checkbox]:checked')
+      .forEach(chk => {
+        const gIdx = parseInt(chk.dataset.globalIdx, 10);
+        const srcItem = srcList.items[gIdx];
+        const exists = lists[targetIndex].items.some(it =>
+          it.name === srcItem.name &&
+          (it.note||'') === (srcItem.note||'')
+        );
+        if (!exists) {
+          lists[targetIndex].items.push({
+            name:     srcItem.name,
+            note:     srcItem.note || '',
+            done:     false,
+            category: srcItem.category || '🏠 Övrigt (Hem, Teknik, Kläder, Säsong)'
+          });
+        }
+      });
     saveLists(lists);
     renderListDetail(targetIndex);
-    cleanup();
+    overlay.remove();
   };
   actions.appendChild(btnImport);
-
-  box.appendChild(actions);
-  document.body.appendChild(overlay);
-
-  function cleanup() {
-    document.body.removeChild(overlay);
-  }
 };
+
+
+
 /**
  * Öppnar en modal där du väljer källa‑lista att importera från.
  * Du kan inte välja den lista du redan står i (targetIndex).
