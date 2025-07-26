@@ -209,7 +209,8 @@ input[type="checkbox"] {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 0 0 6px; /* återställt */
+  margin: 0 0 6px;
+  width: 100%; /* full width for proper justification */
 }
 /* ===== To-Do View ===== */
 .todo-list { padding: 0; margin: 0; }
