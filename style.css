@@ -859,7 +859,7 @@ input[type="search"]::placeholder {
 .item-row2 {
   display: flex;
   align-items: center;
-  gap: 6px;             /* avstånd mellan text och datum */
+  gap: 20px;             /* avstånd mellan text och datum */
   margin-top: 4px;      /* behåll lite luft till list‐etiketten ovanför */
 }
 
