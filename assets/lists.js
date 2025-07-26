@@ -356,7 +356,7 @@ window.openListMenuByName = function(name, btn) {
 };
 
 // ===== Rendera enskild lista med samordnad header =====
-// ===== Rendera enskild lista med samordnad header på en rad =====
+// ===== Rendera enskild lista med samordnad header =====
 window.renderListDetail = function(i) {
   const list = lists[i];
   let hideDone = localStorage.getItem("hideDone") === "true";
@@ -387,32 +387,42 @@ window.renderListDetail = function(i) {
     standardKategorier.indexOf(a.cat) - standardKategorier.indexOf(b.cat)
   );
 
-  // 5) Bygg HTML för kategorier + items (oförändrat)
+  // 5) Bygg HTML för kategorier + items
   const categoriesHTML = finalCats.map(({ cat, items }) => {
     const sorted = [
       ...items.filter(x => !x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv')),
       ...items.filter(x => x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv'))
     ];
+
     const rows = sorted.length
       ? sorted.map(item => {
-          const nameHtml = item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`;
-          const note = item.note ? `<span class="item-note">${item.note}</span>` : "";
-          const sig  = item.done && item.doneBy 
-                     ? `<span class="item-sign-date">${item.doneBy} ${formatDate(item.doneAt)}</span>` 
-                     : "";
+          const nameHtml = item.done
+            ? `<s>${item.name}</s>`
+            : `<strong>${item.name}</strong>`;
+          const noteHtml = item.note
+            ? `<span class="item-note">${item.note}</span>`
+            : "";
+          const sigHtml = item.done && item.doneBy
+            ? `<span class="item-sign-date">${item.doneBy} ${formatDate(item.doneAt)}</span>`
+            : "";
+
           return `
             <li class="todo-item ${item.done?'done':''}">
               <input type="checkbox" ${item.done?'checked':''}
-                onchange="toggleItem(${i}, ${item.idx}, lists, user, saveAndRenderList)" />
+                     onchange="toggleItem(${i}, ${item.idx}, lists, user, saveAndRenderList)" />
               <div class="item-name">
                 <div class="item-line1">${nameHtml}</div>
-                <div class="item-line2">${note} ${sig}</div>
+                <div class="item-note-sign-wrapper">
+                  ${noteHtml}
+                  ${sigHtml}
+                </div>
               </div>
               <button class="menu-btn"
-                onclick="openItemMenu(${i}, ${item.idx}, this)">⋮</button>
+                      onclick="openItemMenu(${i}, ${item.idx}, this)">⋮</button>
             </li>`;
         }).join('')
       : `<p class="empty-category">Inga varor i denna kategori</p>`;
+
     return `
       <div class="category-block">
         <h3 class="category-heading">
@@ -427,7 +437,6 @@ window.renderListDetail = function(i) {
   // 6) Rendera header + vy
   app.innerHTML = `
     <div class="top-bar">
-      <!-- Nu på en rad: pil + titel + kontroller -->
       <span class="back-arrow" onclick="renderAllLists()" title="Tillbaka">
         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
              viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2.5"
@@ -471,6 +480,7 @@ window.renderListDetail = function(i) {
   // 8) Fade‑in om du har applyFade
   applyFade && applyFade();
 };
+
 
 
 // ===== Batch-lägg till via kategori-knapp =====
