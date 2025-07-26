@@ -1,152 +1,109 @@
-/* ===== Bas & Layout ===== */
+/* ===== Base & Layout ===== */
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
   background-color: #f2f4f6;
+  color: #1e272e;
   margin: 0;
   padding: 0;
-  color: #1e272e;
 }
-
 #app {
   max-width: 480px;
-  margin: 0 auto;
   min-height: 100vh;
-  background-color: #fff;
+  margin: 0 auto;
+  background: #fff;
   display: flex;
   flex-direction: column;
   position: relative;
 }
 
-/* ===== Top-bar ===== */
+/* ===== Typography ===== */
+h1, .back-title {
+  margin: 0;
+  font-weight: 700;
+  color: #000;
+}
+h1 { font-size: 2rem; }
+.back-title { font-size: 1.5rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+
+/* ===== Top Bar ===== */
 .top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 18px 20px;
-  background: #fff;
-  border-bottom: 1px solid #e3e6ea;
   position: sticky;
   top: 0;
   z-index: 10;
-}
-.top-bar h1, h1 {
-  font-size: 2rem;
-  font-weight: 800;
-  margin: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
-  cursor: pointer;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: #fff;
+  border-bottom: 1px solid #e3e6ea;
 }
-.user-badge {
-  background: #4cd137;
-  color: white;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
+.top-bar .detail-buttons,
+.top-bar .detail-controls { display: flex; gap: 0.75rem; }
+.icon-button,
+.menu-btn,
+button { font-family: inherit; cursor: pointer; }
 .icon-button {
   background: none;
   border: none;
   font-size: 1.3rem;
-  cursor: pointer;
   color: #666;
-  padding: 2px;
-  transition: color 0.2s ease;
+  padding: 4px;
+  border-radius: 6px;
+  transition: color 0.2s, background 0.2s;
 }
-.icon-button:hover { color: #000; }
+.icon-button:hover { color: #000; background: rgba(0,0,0,0.05); }
 
-/* ===== Mall-listor ===== */
-.list-card-template {
-  background-color: #f9f6ee !important;
-  opacity: 0.7;
-  border-left: 5px solid #bcbcbc;
-}
-.list-card-template .list-card-header { color: #bcbcbc; }
-
-/* ===== Arkiv-sektion ===== */
-.archive-section,
-.archived-section {
-  margin: 20px 0 0 0;
-  padding: 0 16px 20px 16px;
-  background: transparent !important;
-  border-top: 2px solid #eee;
-  border-radius: 0 0 16px 16px;
-  box-shadow: none !important;
-}
-
-.archived-toggle {
-  background: none;
-  color: #232323;
+/* ===== Buttons ===== */
+button {
+  background: #4cd137;
+  color: #fff;
   border: none;
-  font-size: 1.05rem;
-  font-weight: 700;
-  padding: 12px 10px;
-  margin: 0 0 5px 0;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  border-radius: 8px;
-  box-shadow: none;
-  transition: background 0.14s;
-}
-.archived-toggle:hover,
-.archived-toggle:focus {
-  background: #f4f4f4;
-}
-#archived-arrow {
-  margin-right: 8px;
-  font-size: 1.1em;
-}
-
-.archive-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  animation: fadeArchive 0.3s;
-}
-@keyframes fadeArchive {
-  from { opacity: 0; transform: translateY(-10px);}
-  to { opacity: 1; transform: translateY(0);}
-}
-.archived-list-card, .archived-card {
-  opacity: 0.7;
-  filter: grayscale(0.10);
-  background: #f7f7f7 !important;
-  border-left: 5px solid #a5a5a5;
-  position: relative;
-}
-.archived-at, .archived-date {
-  position: absolute;
-  top: 13px;
-  right: 16px;
-  font-size: 0.85em;
-  color: #777;
-  background: #fff8;
-  padding: 1px 8px 1px 8px;
-  border-radius: 8px;
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 1rem;
   font-weight: 600;
-  z-index: 2;
-  pointer-events: none;
+  transition: background-color 0.2s;
 }
+button:hover { background: #44bd32; }
+.btn-secondary {
+  background: #eaeef1;
+  color: #2f3542;
+}
+.btn-secondary:hover { background: #dcdde1; }
 
-/* ===== List Wrapper & Cards ===== */
-.list-wrapper { padding: 16px; }
-.list-item {
-  margin-bottom: 16px;
-  list-style: none;
+/* ===== Inputs & Selects ===== */
+input[type="text"],
+input[type="search"],
+select, textarea {
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 12px;
+  border: 1.5px solid #dcdde1;
+  border-radius: 10px;
+  width: 100%;
+  box-sizing: border-box;
 }
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='gray' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 40px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+select:focus { border-color: #4cd137; box-shadow: 0 0 0 2px rgba(76,209,55,0.25); outline: none; }
+input::placeholder { color: #aaa; opacity: 1; }
+
+/* ===== List & Cards ===== */
+.list-wrapper { padding: 16px; }
+.list-item { margin-bottom: 16px; list-style: none; }
 .list-card {
   background: #f9fafe;
   border-radius: 14px;
   padding: 16px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-  transition: background 0.2s ease;
   position: relative;
+  transition: background 0.2s;
 }
 .list-card:hover { background: #eef1f5; }
 .list-card-header {
@@ -157,46 +114,30 @@ body {
   font-size: 1rem;
   margin-bottom: 10px;
 }
-.list-card-title {
-  font-size: 1.22rem;
-  font-weight: 700;
-}
-.menu-btn {
-  background: none;
-  border: none;
-  font-size: 1.3rem;
-  color: #959595;
-  padding: 4px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.13s, color 0.13s;
-}
-.menu-btn:hover, .menu-btn:focus {
-  background: #f2f7ef;
-  color: #289930;
-}
+.list-card-title { font-size: 1.22rem; font-weight: 700; }
+.menu-btn { /* similar to icon-button */ }
 
 /* ===== Progress ===== */
 .progress-bar {
-  background-color: #dfe4ea;
+  background: #dfe4ea;
   height: 8px;
   border-radius: 8px;
   overflow: hidden;
   margin: 8px 0;
+  pointer-events: none;
 }
 .progress-fill {
-  background-color: #4cd137;
+  width: 0;
   height: 100%;
-  width: 0%;
-  transition: width 0.3s ease;
+  background: #4cd137;
+  transition: width 0.3s;
+  pointer-events: none;
 }
-.progress-text {
-  font-size: 0.85rem;
-  color: #636e72;
-}
+.progress-text,
+.progress-timestamp { font-size: 0.85rem; color: #636e72; }
 
-/* ===== To-Do View ===== */
-.todo-list { padding: 0; margin: 0; }
+/* ===== To-Do ===== */
+.todo-list { margin: 0; padding: 0; }
 .todo-item {
   display: flex;
   align-items: center;
@@ -205,101 +146,66 @@ body {
   background: #fff;
 }
 .todo-item:last-child { border-bottom: none; }
-.todo-item.done {
-  opacity: 1;
-  color: #888 !important;
-}
+.todo-item.done { opacity: 0.7; color: #888; }
 .todo-item.done .item-name,
-.todo-item.done .item-name strong,
-.todo-item.done .item-name s,
-.todo-item.done .item-note-sign-wrapper,
-.todo-item.done .item-note-sign-wrapper > .item-note,
-.todo-item.done .item-note-sign-wrapper > .item-sign-date {
-  color: #888 !important;
-  font-style: italic !important;
-}
-.todo-item.done .item-name s { color: #888 !important; opacity: 1; }
-.todo-item .item-name {
-  flex-grow: 1;
-  margin-left: 12px;
-  font-size: 1rem;
-  display: flex;
-  flex-direction: column;
-}
-.item-note-sign-wrapper {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.85rem;
-  margin-top: 4px;
-  line-height: 1.1;
-  font-family: inherit;
-  color: #888;
-  font-style: italic;
-}
-.item-note-sign-wrapper > .item-note { flex: 1; color: #888; font-style: inherit; }
-.item-note-sign-wrapper > .item-sign-date {
-  white-space: nowrap;
-  font-weight: 600;
-  color: #555;
-  margin-left: 10px;
-  font-style: inherit;
-}
+.todo-item.done .item-note,
+.todo-item.done .item-sign-date { color: #888; font-style: italic; }
+.item-name { flex:1; margin-left: 12px; display: flex; flex-direction: column; }
+.item-note-sign-wrapper { display: flex; justify-content: space-between; font-size: 0.85rem; color: #888; font-style: italic; margin-top: 4px; }
 
 /* ===== Checkboxes ===== */
-input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: #999999;
-}
+input[type="checkbox"] { width: 18px; height: 18px; accent-color: #999; }
 
-/* ===== Input & Buttons ===== */
-input[type="text"], input[type="search"] {
-  border: 1.5px solid #dcdde1;
-  border-radius: 10px;
-  padding: 12px;
-  font-size: 1rem;
-  width: 100%;
-  box-sizing: border-box;
+/* ===== Templates & Archive ===== */
+.list-card-template {
+  background: #f9f6ee;
+  opacity: 0.7;
+  border-left: 5px solid #bcbcbc;
 }
-button {
-  background-color: #4cd137;
-  color: #fff;
+.list-card-template .list-card-header { color: #bcbcbc; }
+.archive-section, .archived-section { margin-top: 20px; padding: 0 16px 20px; border-top: 2px solid #eee; border-radius: 0 0 16px 16px; }
+.archived-toggle {
+  background: none;
   border: none;
-  padding: 14px;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 600;
+  color: #232323;
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 12px 10px;
+  width: 100%;
+  text-align: left;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  border-radius: 8px;
+  transition: background 0.14s;
 }
-button:hover { background-color: #44bd32; }
-.btn-secondary {
-  background-color: #eaeef1;
-  color: #2f3542;
+.archived-toggle:hover { background: #f4f4f4; }
+.archive-list { list-style: none; margin: 0; padding: 0; animation: fadeArchive 0.3s; }
+@keyframes fadeArchive { from { opacity: 0; transform: translateY(-10px);} to { opacity: 1; transform: translateY(0);} }
+.archived-list-card, .archived-card {
+  background: #f7f7f7;
+  opacity: 0.7;
+  filter: grayscale(0.1);
+  border-left: 5px solid #a5a5a5;
+  position: relative;
+  padding: 16px;
+  border-radius: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
 }
-.btn-secondary:hover { background-color: #dcdde1; }
-
-/* ===== Flytande plus-knapp ===== */
-.bottom-bar {
-  position: fixed;
-  bottom: 24px;
-  right: calc(24px + 5mm);
-  z-index: 50;
+.archived-date, .archived-at {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: rgba(255,255,255,0.9);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #666;
+  pointer-events: none;
 }
-.bottom-bar button {
-  width: 56px;
-  height: 56px;
-  font-size: 28px;
-  font-weight: bold;
-  border-radius: 50%;
-  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-  padding: 0;
-}
+.archived-list-card .list-card-title { text-decoration: line-through; font-style: italic; }
 
 /* ===== Modal ===== */
-body.modal-open {
-  overflow: hidden !important;
-}
+body.modal-open { overflow: hidden; }
 .modal {
   position: fixed;
   inset: 0;
@@ -321,874 +227,41 @@ body.modal-open {
   display: flex;
   flex-direction: column;
 }
-.modal-content input,
-.modal-content .batch-search-row input {
-  width: 100%;
-  padding: 10px 14px;
-  font-size: 1rem;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  box-sizing: border-box;
-  margin-top: 12px;
-}
+@keyframes popIn { 0% { opacity: 0; transform: scale(0.95);} 100% { opacity: 1; transform: scale(1);} }
+.modal-actions { display: flex; gap: 12px; margin-top: 16px; }
+.modal-actions button { flex:1; }
 
-.modal-actions {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 16px;
-  gap: 12px;
+/* ===== Floating Action Button ===== */
+.bottom-bar {
+  position: fixed;
+  bottom: 24px;
+  right: calc(24px + 5mm);
+  z-index: 50;
 }
-.modal-actions button {
-  flex: 1 0 0;
-  margin: 0 2px;
-}
-
-/* ===== Batch: Temporär lista för tillagda varor ("chips") ===== */
-.add-batch-preview-list {
-  margin: 18px 0 12px 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.add-batch-preview-list li {
-  background: #eaf9ea;
-  border-radius: 16px;
-  padding: 7px 14px 7px 16px;
-  font-size: 1.05em;
-  display: flex;
-  align-items: center;
-  color: #183064;
-  box-shadow: 0 2px 8px rgba(44, 208, 109, 0.07);
-  position: relative;
-}
-.add-batch-preview-list li .remove-btn {
-  margin-left: 12px;
-  background: none;
-  color: #d44;
-  border: none;
-  font-size: 1.2em;
-  line-height: 1;
-  cursor: pointer;
+.bottom-bar button {
+  width: 56px;
+  height: 56px;
+  font-size: 28px;
   border-radius: 50%;
-  width: 1.7em;
-  height: 1.7em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
   padding: 0;
-  transition: background 0.16s;
-}
-.add-batch-preview-list li .remove-btn:hover {
-  background: #ffd6d6;
-  color: #a11;
-}
-.add-batch-preview-list li .remove-btn::after {
-  content: "×";
-  font-size: 1.25em;
-  font-weight: 700;
-  display: inline-block;
 }
 
-/* ===== Batch-add med sök och val från historik/mallar ===== */
-.batch-search-row {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-  margin-bottom: 0;
-}
-.batch-search-row input[type="search"] {
-  flex: 1;
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1.5px solid #dcdde1;
-  font-size: 1rem;
-}
-.additem-source-btns {
-  display: flex;
-  gap: 12px;
-  margin: 10px 0 8px 0;
-}
-.additem-source-btn {
-  background: #4cd137;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 7px 20px;
-  font-size: 1.04rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.14s;
-  box-shadow: 0 1px 4px rgba(80,220,120,0.07);
-}
-.additem-source-btn.active, .additem-source-btn:focus {
-  background: #399e29;
-  color: #fff;
-}
-.additem-source-btn:hover {
-  background: #399e29;
-}
-
-.additem-search-results {
-  margin-top: 8px;
-  margin-bottom: 5px;
-  max-height: 180px;
-  overflow-y: auto;
-  background: #fff;
-  border-radius: 9px;
-  border: 1px solid #e0e0e0;
-  box-shadow: 0 1px 6px rgba(80,80,80,0.08);
-  padding: 4px 0;
-}
-.additem-search-results .search-item-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 32px;
-  padding: 4px 10px 4px 6px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.13s;
-  font-size: 1.07rem;
-  font-weight: 500;
-}
-.additem-search-results .search-item-row label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  margin: 0;
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.additem-search-results .search-item-row .add-btn {
-  background: #f4f4f4;
-  border: 1px solid #b0eac4;
-  color: #399e29;
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  font-size: 1.18rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 10px;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-.additem-search-results .search-item-row .add-btn:hover {
-  background: #eaf9ea;
-  color: #1d7c1a;
-  border-color: #4cd137;
-}
-.additem-search-results .search-item-row .batch-checkbox-title {
-  margin-right: 5px;
-}
-.additem-search-results .search-item-row .batch-checkbox-desc {
-  color: #888;
-  font-size: 0.95em;
-  margin-left: 10px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.additem-search-results .search-item-row:hover,
-.additem-search-results .search-item-row.selected {
-  background: #eaf9ea;
-  color: #38963c;
-}
-.additem-search-results .search-item-row.inactive {
-  opacity: 0.44;
-  pointer-events: none;
-}
-
-/* ===== Meny (popup) ===== */
-.item-menu {
-  position: absolute;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 6px 0;
-  z-index: 1000;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-  width: 180px;
-}
-.item-menu button {
-  padding: 8px 18px;
-  font-size: 1.07rem;
-  font-weight: 500;
-  gap: 12px;
-  display: flex;
-  align-items: center;
-  background: none;
-  border: none;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  color: #333;
-  font-family: "Inter", system-ui, sans-serif;
-  border-radius: 0;
-  transition: background 0.15s;
-}
-.item-menu button:hover { background-color: #e8f5e9; }
-.item-menu button:active { background: #d4edd9; }
-
-/* ===== Animation ===== */
-.fade-enter {
-  opacity: 0;
-  transform: scale(0.98);
-}
-.fade-enter-active {
-  opacity: 1;
-  transform: scale(1);
-  transition: opacity 200ms, transform 200ms;
-}
-@keyframes popIn {
-  0% { opacity: 0; transform: scale(0.95);}
-  100% { opacity: 1; transform: scale(1);}
-}
-.modal-content { animation: popIn 0.25s ease-out; }
-
-/* ===== Toast (Sparad-notifiering) ===== */
+/* ===== Misc ===== */
+.fade-enter { opacity: 0; transform: scale(0.98); }
+.fade-enter-active { opacity: 1; transform: scale(1); transition: opacity 200ms, transform 200ms; }
 .toast {
   position: fixed;
   bottom: 80px;
   left: 50%;
   transform: translateX(-50%);
   background: #4cd137;
-  color: white;
+  color: #fff;
   padding: 12px 20px;
   border-radius: 20px;
   font-weight: 500;
   box-shadow: 0 6px 12px rgba(0,0,0,0.2);
-  opacity: 0;
   animation: fadeToast 2.5s ease-out forwards;
   z-index: 2000;
 }
-@keyframes fadeToast {
-  0% { opacity: 0; transform: translate(-50%, 20px);}
-  10% { opacity: 1; transform: translate(-50%, 0);}
-  90% { opacity: 1;}
-  100% { opacity: 0; transform: translate(-50%, -10px);}
-}
-
-/* ===== Komplettering / Note ===== */
-.item-note {
-  font-size: 0.85rem;
-  color: #636e72;
-}
-
-.item-sign-date {
-  font-size: 0.85rem;
-  color: #636e72;
-  white-space: nowrap;
-  margin-left: 8px;
-}
-
-/* ===== Kategori-rubrik (justerad mindre & luftigare!) ===== */
-.category-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: 1.1rem; /* minskad från 1.22rem */
-  font-weight: 700; /* minskad från 800 för en lättare känsla */
-  color: #232323;
-  margin: 10px 0 3px 0; /* minskad margin */
-  padding: 4px 14px 4px 8px; /* minskad padding */
-  background: #f4faf4;
-  border-left: 4px solid #4cd137; /* minskad tjocklek */
-  border-radius: 7px 24px 24px 7px; /* lite mindre rundning */
-  box-shadow: 0 1px 0 #e0e0e0;
-  text-shadow: 0 1px 0 #fff;
-  min-height: 32px; /* något mindre höjd */
-}
-
-
-.empty-category {
-  /* Ändrat från 25px 0 10px 8px */
-  padding: 8px 0 4px 8px;
-}
-
-/* Plusknapp i kategori-rad */
-.category-add-btn {
-  width: 28px;
-  height: 28px;
-  font-size: 20px;
-  line-height: 28px;
-  margin-left: 6px;
-  margin-top: -4px;
-  background-color: #eee;
-  border-radius: 50%;
-  border: none;
-  color: #555;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  padding: 0;
-  user-select: none;
-}
-.category-add-btn:hover { background-color: #ddd; }
-
-/* ===== Förhindra iOS-autozoom på input/select ===== */
-input, select, textarea { font-size: 16px !important; }
-
-select {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-color: #fff;
-  border: 1.5px solid #dcdde1;
-  border-radius: 10px;
-  padding: 12px 14px;
-  font-size: 16px;
-  width: 100%;
-  box-sizing: border-box;
-  background-image: url("data:image/svg+xml;utf8,<svg fill='gray' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
-  background-repeat: no-repeat;
-  background-position: right 14px center;
-  background-size: 16px 16px;
-  padding-right: 40px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-select:focus {
-  border-color: #4cd137;
-  box-shadow: 0 0 0 2px rgba(76, 209, 55, 0.25);
-  outline: none;
-}
-
-/* ===== Responsivitet ===== */
-@media (max-width: 700px) {
-  .modal {
-    align-items: flex-start !important;
-  }
-  .modal-content {
-    margin-top: 30px !important;
-    margin-bottom: 20px !important;
-  }
-}
-
-/* ===== Tillbaka knapp/rubrik ===== */
-.back-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 1.5rem;
-  font-weight: 800;
-  cursor: pointer;
-}
-.back-arrow {
-  font-size: 1.8em;
-  color: #2863c7;
-  font-weight: bold;
-  margin-right: 2px;
-  user-select: none;
-  transition: color 0.15s;
-}
-.back-title:hover .back-arrow { color: #44bd32; }
-.back-arrow-svg {
-  margin-right: 6px;
-  vertical-align: middle;
-}
-
-.progress-bar,
-.progress-fill {
-  pointer-events: none !important;
-}
-
-.filter-row {
-  background: #f6f7fa;
-  border-bottom: 1px solid #e0e0e0;
-  padding: 8px 12px;
-  font-size: 1.07rem;
-  color: #222;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-/* ===== Placeholder text gråare ===== */
-input::placeholder,
-input[type="search"]::placeholder {
-  color: #aaa !important;
-  opacity: 1;
-}
-
-/* ===== Misc extra ===== */
-.no-lists, .empty-category {
-  padding: 25px 0 10px 8px;
-  color: #bbb;
-  font-size: 1.05em;
-  font-style: italic;
-}
-.hide-done-label {
-  cursor: pointer;
-  user-select: none;
-  font-size: 1.01em;
-}
-.hide-done-text {
-  font-weight: 500;
-  color: #222;
-  margin-left: 0px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #ddd;
-  border-radius: 6px;
-}
-::-webkit-scrollbar {
-  width: 7px;
-  background: #fafcff;
-}
-
-/* ===== Arkiverade kort (anpassning) ===== */
-
-/* Se till att varje arkiverad lista får samma layout som .list-card */
-.archive-section .list-item {
-  /* samma mellanrum som vanliga list-items */
-  margin-bottom: 16px;
-}
-
-/* Applicera på just de kort du märkt som arkiverade */
-.archive-section .list-card.archived-list-card,
-.archive-section .list-card.archived-card {
-  box-sizing: border-box;            /* gör att padding inte spretar ut bredden */
-  width: 100%;                       /* fyller ut hela föräldern (archive-section) */
-  padding: 16px;                     /* samma inre marginal som .list-card */
-  margin-bottom: 16px;               /* samma avstånd som övriga kort */
-  background: #f7f7f7 !important;    /* ljusgrå bakgrund */
-  border-left: 5px solid #a5a5a5;    /* grå markering */
-  border-radius: 14px;               /* samma rundning som .list-card */
-  opacity: 0.7;                      /* nedtonad */
-  filter: grayscale(0.1);            /* lätt gråskala */
-  position: relative;                /* för att kunna positionera datum‑badge */
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-  transition: background 0.2s ease;
-}
-
-/* Datum‑badgeen uppe i högra hörnet */
-.archive-section .list-card.archived-list-card .archived-date,
-.archive-section .list-card.archived-list-card .archived-at,
-.archive-section .list-card.archived-card      .archived-date,
-.archive-section .list-card.archived-card      .archived-at {
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  background: rgba(255,255,255,0.9);
-  padding: 2px 6px;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #666;
-  pointer-events: none;
-}
-
-/* Kursiv text och överstruken titel */
-.archive-section .list-card.archived-list-card .list-card-title,
-.archive-section .list-card.archived-card      .list-card-title {
-  text-decoration: line-through;
-  font-style: italic;
-}
-
-.fade-enter {
-  opacity: 0;
-  transform: scale(0.98);
-}
-.fade-enter-active {
-  opacity: 1;
-  transform: scale(1);
-  transition: opacity 200ms, transform 200ms;
-}
-
-/* ===== Täta ihop kategori‑blocken i detalj‑vyn ===== */
-.category-list .category-block {
-  margin-bottom: 4px !important;      /* litet avstånd mellan varje kategori‑container */
-}
-
-.category-list .category-heading {
-  margin: 4px 0 !important;           /* topp- och botten‑marginal på rubriken */
-  padding: 4px 10px !important;       /* ev. mindre padding om du vill */
-}
-
-.category-list .empty-category {
-  margin: 0 !important;               /* ta bort styckemarginalen */
-  padding: 4px 0 2px 8px !important;  /* justera inre mellanrum på texten */
-}
-
-/* ===== Import‑modal: vänsterställda rader med grid ===== */
-.import-modal .modal-content {
-  max-width: 360px;
-  width: 360px;          /* fasta bredd för att slippa hoppa scrollbar */
-  padding: 16px;
-  text-align: left;
-}
-
-.import-modal .import-list {
-  max-height: 300px;
-  overflow-y: auto;
-  margin: 12px 0;
-  /* ingen horisontell scroll */
-  overflow-x: hidden;
-}
-
-.import-modal .import-category {
-  font-weight: 600;
-  margin: 12px 0 6px;
-}
-
-/* Grid: kolumn 1 = checkbox, kolumn 2 = text */
-.import-modal .import-row {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  column-gap: 8px;
-  align-items: start;
-  margin-bottom: 6px;
-  cursor: pointer;
-}
-
-/* Checkboxen får lite utrymme */
-.import-modal .import-row input[type="checkbox"] {
-  margin-top: 2px;
-  flex: none;
-}
-
-/* Texten bryts automatiskt inom sin kolumn */
-.import-modal .import-row span {
-  white-space: normal;
-  word-break: break-word;
-  text-align: left;
-}
-/* ===== Komplementtext & datum i detaljvy ===== */
-.item-row2 {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 4px;
-}
-
-.item-row2 .left,
-.item-row2 .right {
-  font-size: 0.85rem;
-  color: #888;
-  font-style: italic;
-}
-
-/* ===== Meta‑text för skapad/ändrad datum på listkorten ===== */
-.meta-text {
-  font-size: 0.75rem;
-  color: #888;
-  margin-bottom: 6px;
-}
-
-/* Flex‑footer på list‑kortet för vänster/höger‑justering */
-.list-card-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 0 0 6px;    /* lite mellanrum ovanför progress‑baren */
-}
-
-/* Högerställd timestamp */
-.progress-timestamp {
-  font-size: 0.85rem;
-  color: #636e72;
-}
-
-/* ===== Justering för To-Do View: varuinfo-flex ===== */
-.item-name { flex:1; display:flex; flex-direction:column; }
-.item-line1 { }
-.item-line2 {
-  display:flex;
-  justify-content:space-between;
-  font-size:0.85rem;
-  color:#555;
-}
-
-/* ===== Detaljvy: egna kontroller i top-bar ===== */
-/* Gör om top-bar till två rader: rubrik + kontrollrad */
-.top-bar {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  background: #fff;
-  border-bottom: 1px solid #e3e6ea;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-/* Rad 1: pil + titel som tidigare */
-.top-bar .top-header {
-  display: flex;
-  align-items: center;
-  padding: 18px 20px;
-}
-.top-bar .top-header .back-arrow,
-.top-bar .top-header .back-title {
-  /* ärvda från dina tidigare regler */
-}
-
-/* Rad 2: knapp‑rad med exakt tre knappar */
-.top-bar .detail-controls {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 8px 20px;       /* lite mindre än headern */
-  background: #fafafa;      /* diskret skiljelinje */
-}
-
-/* Styling av knapparna */
-.top-bar .detail-controls button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-  color: #333;
-  padding: 6px 8px;
-  border-radius: 4px;
-  transition: background 0.15s;
-}
-
-/* Hover‑state */
-.top-bar .detail-controls button:hover {
-  background: rgba(0,0,0,0.05);
-}
-
-/* Fokuserad/aktiv */
-.top-bar .detail-controls button.active,
-.top-bar .detail-controls button:focus {
-  background: rgba(0,0,0,0.1);
-}
-
-/* Se till att “Uppdatera vy”-knappen sitter längst ut till höger */
-.top-bar .detail-controls #btnRefresh {
-  margin-left: auto;
-}
-
-/* Detail‑vy: knappar längst ut i top‑bar */
-.top-bar {
-  display: flex;
-  align-items: center;   /* en rad */
-  padding: 18px 20px;
-}
-.top-bar .detail-buttons {
-  margin-left: auto;     /* skjuts helt till höger */
-  display: flex;
-  gap: 0.75rem;
-}
-.icon-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1.3rem;
-  color: #666;
-  padding: 4px;
-  transition: color 0.2s ease, background 0.2s;
-}
-.icon-button:hover {
-  color: #000;
-  background: rgba(0,0,0,0.05);
-}
-
-/* Ta bort fet stil på titeln i detaljvy */
-.top-bar .back-title {
-  font-weight: normal !important;
-}
-
-/* ===== Justera rubrikstorlek i både renderAllLists och renderListDetail ===== */
-.top-bar .back-title {
-  font-size: 1.5rem !important;   /* tidigare 2rem i översikt – sänk till 1.5rem */
-  font-weight: 600 !important;    /* ta bort extrem fetstil */
-}
-
-/* ===== Förfina användar‑signatur‑knappen ===== */
-.user-badge, /* den gröna signatur‑pillern */
-.icon-button { /* små ikoner som byter färg */
-  background: none !important;
-  border: none !important;
-  padding: 4px 8px !important;
-  font-size: 1rem !important;
-  font-weight: 500 !important;
-  color: #444 !important;
-  border-radius: 6px !important;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
-.user-badge:hover,
-.icon-button:hover {
-  background: rgba(0,0,0,0.05) !important;
-  color: #000 !important;
-}
-
-/* Om du har separata regler för just signatur‑knappen: */
-.top-bar .user-badge {
-  padding: 6px 12px !important;
-  font-size: 0. ninerem !important; 
-  border-radius: 12px !important;
-}
-
-/* Gör top-bar relativ för absolut placering av signatur‑knapp */
-.top-bar {
-  position: relative;
-}
-
-/* Tonar ned huvudrubriken i översikts‑vyn */
-.top-bar h1 {
-  font-size: 1.25rem !important;    /* mindre än 2rem */
-  font-weight: 600 !important;      /* normalare än 800 */
-  color: #555 !important;           /* mjuk grå ton */
-}
-
-/* Flyttar user‑badge och penn‑ikon absolut högst upp till höger */
-.user-badge, .icon-button[title="Byt namn"] {
-  position: absolute;
-  top: 8px;
-  right: 12px;
-  background: rgba(76, 209, 55, 0.1) !important; /* lätt transparent bakgrund */
-  color: #2863c7 !important;                     /* matchande färg */
-  font-size: 0.85rem !important;                 /* lite mindre text */
-  padding: 4px 8px !important;
-  border-radius: 6px !important;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
-/* Mjuk hover för signaturknapp */
-.user-badge:hover, .icon-button[title="Byt namn"]:hover {
-  background: rgba(76, 209, 55, 0.2) !important;
-  color: #1b6eaa !important;
-}
-
-/* ===== Header – Inköpslistor ===== */
-.top-bar {
-  position: relative;           /* för absolut placering av knappen */
-  display: flex;
-  align-items: center;
-  padding: 1rem 1.25rem;
-  background: #fff;
-  border-bottom: 1px solid #e3e6ea;
-}
-
-.top-bar .back-title {
-  flex: 1;
-  margin: 0;
-  font-size: 2rem !important;   /* större än listnamnen */
-  font-weight: 700 !important;  /* tydlig men ej överdrivet fet */
-  color: #000 !important;       /* helt svart */
-  text-align: left;
-}
-
-/* Signaturknappen i top-bar */
-.top-bar .icon-button {
-  background: none !important;
-  border: none !important;
-  color: #000 !important;      /* svart text/ikon */
-  font-size: 1rem !important;  /* lagom storlek för 'FB 🖊' */
-  padding: 0 !important;       /* inga extra ytor */
-  transition: color 0.2s ease;
-}
-
-.top-bar .icon-button:hover {
-  color: #333 !important;      /* diskret hover‑effekt */
-}
-
-/* Gör detalj‑top-bar till en rad */
-.top-bar {
-  display: flex !important;
-  align-items: center;
-  padding: 1rem 1.25rem;
-}
-
-/* Back‑arrow, titel och controls får sin flex‑layout */
-.top-bar .back-arrow {
-  margin-right: 0.75rem;
-}
-.top-bar .back-title {
-  flex: 1;
-  margin: 0;
-}
-.top-bar .detail-buttons {
-  display: flex;
-  gap: 0.5rem;
-}
-
-/* ===== Top-bar (gemensam styling för både översikt och detaljvy) ===== */
-.top-bar {
-  position: relative;         /* för absolutplacering av ikonknappar */
-  display: flex;
-  align-items: center;
-  padding: 1rem 1.25rem;
-  background: #fff;
-  border-bottom: 1px solid #e3e6ea;
-  z-index: 10;
-}
-
-/* Rubrik i top-bar */
-.top-bar .back-title {
-  flex: 1;
-  margin: 0;
-  font-size: 2rem !important;   /* tydlig huvudrubrik */
-  font-weight: 700 !important;
-  color: #000 !important;
-  text-align: left;
-}
-
-/* Back‑arrow (om du använder separat klass) */
-.top-bar .back-arrow {
-  margin-right: 0.75rem;
-  cursor: pointer;
-}
-
-/* Signaturknapp (FB 🖊) */
-.top-bar .icon-button {
-  position: absolute;
-  top: 1rem;
-  right: 1.25rem;
-  background: none !important;
-  border: none !important;
-  color: #000 !important;
-  font-size: 1.2rem !important;
-  padding: 0 !important;
-  transition: color 0.2s ease;
-}
-.top-bar .icon-button:hover {
-  color: #333 !important;
-  background: none !important;
-}
-
-/* Detaljvyns kontrollknappar till höger */
-.top-bar .detail-buttons {
-  margin-left: auto;
-  display: flex;
-  gap: 0.75rem;
-}
-.top-bar .detail-buttons .icon-button {
-  position: static;
-  top: auto;
-  right: auto;
-}
-
-
-/* ===== Justera back‑arrow + titel i detalj‑vy ===== */
-.top-bar .top-left .back-arrow svg {
-  width: 24px;
-  height: 24px;
-  stroke: #000;           /* gör pilen svart */
-}
-
-.top-bar .top-left .back-arrow {
-  padding: 0.25rem;
-  margin-right: 0.5rem;
-}
-
-.top-bar .back-title {
-  font-size: 1.75rem;     /* något mindre än översiktens */
-  font-weight: 700;
-  color: #000;
-  margin: 0;
-  line-height: 1;         /* få titeln att hänga ihop med pilen */
-}
-
-/* ===== End of style.css ===== */
+@keyframes fadeToast { 0% { opacity: 0; transform: translate(-50%, 20px);} 10% { opacity: 1; transform: translate(-50%, 0);} 90% { opacity: 1;} 100% { opacity: 0; transform: translate(-50%, -10px);} }
