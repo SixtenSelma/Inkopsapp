@@ -1170,4 +1170,25 @@ input[type="search"]::placeholder {
   right: auto;
 }
 
+
+/* ===== Justera back‑arrow + titel i detalj‑vy ===== */
+.top-bar .top-left .back-arrow svg {
+  width: 24px;
+  height: 24px;
+  stroke: #000;           /* gör pilen svart */
+}
+
+.top-bar .top-left .back-arrow {
+  padding: 0.25rem;
+  margin-right: 0.5rem;
+}
+
+.top-bar .back-title {
+  font-size: 1.75rem;     /* något mindre än översiktens */
+  font-weight: 700;
+  color: #000;
+  margin: 0;
+  line-height: 1;         /* få titeln att hänga ihop med pilen */
+}
+
 /* ===== End of style.css ===== */
