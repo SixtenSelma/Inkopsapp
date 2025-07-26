@@ -265,7 +265,7 @@ input[type="checkbox"] {
 .item-note-sign-wrapper > .item-sign-date {
   margin-left: auto;
   text-align: right;
-  margin-right: 4px
+  margin-right: 10px
   white-space: nowrap;
   font-weight: normal; /* ingen fetstil */
 }
