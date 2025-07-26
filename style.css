@@ -1,3 +1,4 @@
+/* ===== Justering för To-Do View: varuinfo-flex ===== */
 .item-name { flex:1; display:flex; flex-direction:column; }
 .item-line1 { }
 .item-line2 {
@@ -205,7 +206,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 0 0 6px;
+  margin: 0 0 6px; /* separat ovanför progress-bar */
 }
 .progress-text {
   font-size: 0.85rem;
@@ -269,6 +270,7 @@ button:hover { background-color: #44bd32; }
 .bottom-bar {
   position: fixed;
   bottom: 24px;
+  /* flytta 2 mm åt vänster */
   right: calc(24px + 5mm);
   z-index: 50;
 }
