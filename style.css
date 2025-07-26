@@ -1030,5 +1030,36 @@ input[type="search"]::placeholder {
   border-radius: 12px !important;
 }
 
+/* Gör top-bar relativ för absolut placering av signatur‑knapp */
+.top-bar {
+  position: relative;
+}
+
+/* Tonar ned huvudrubriken i översikts‑vyn */
+.top-bar h1 {
+  font-size: 1.25rem !important;    /* mindre än 2rem */
+  font-weight: 600 !important;      /* normalare än 800 */
+  color: #555 !important;           /* mjuk grå ton */
+}
+
+/* Flyttar user‑badge och penn‑ikon absolut högst upp till höger */
+.user-badge, .icon-button[title="Byt namn"] {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: rgba(76, 209, 55, 0.1) !important; /* lätt transparent bakgrund */
+  color: #2863c7 !important;                     /* matchande färg */
+  font-size: 0.85rem !important;                 /* lite mindre text */
+  padding: 4px 8px !important;
+  border-radius: 6px !important;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+/* Mjuk hover för signaturknapp */
+.user-badge:hover, .icon-button[title="Byt namn"]:hover {
+  background: rgba(76, 209, 55, 0.2) !important;
+  color: #1b6eaa !important;
+}
+
 
 /* ===== End of style.css ===== */
