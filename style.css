@@ -199,7 +199,7 @@ input[type="checkbox"] {
   align-items: center;
   font-weight: 600;
   font-size: 1rem;
-  margin-bottom: 10px; /* återställt ursprunglig */
+  margin-bottom: 10px; /* återställt */
 }
 .list-card-title {
   font-size: 1.22rem;
@@ -209,7 +209,7 @@ input[type="checkbox"] {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 0 0 10px; /* återställt ursprunglig spacing */
+  margin: 0 0 6px; /* återställt */
 }
 /* ===== Templates & Archive ===== */
 .list-card-template {
