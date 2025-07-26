@@ -1,5 +1,20 @@
 // lists.js – hanterar inköpslistor och rendering
 
+/**
+ * Sätter createdAt/createdBy (vid nytt list‑objekt) och alltid updatedAt/updatedBy.
+ * @param {Object} list – det list‑objekt som ska stämplas.
+ * @param {boolean} [isNew=false] – true om det är en ny lista.
+ */
+function stampListTimestamps(list, isNew = false) {
+  const now = new Date().toISOString();
+  if (isNew) {
+    list.createdAt = now;
+    list.createdBy = window.user;
+  }
+  list.updatedAt = now;
+  list.updatedBy = window.user;
+}
+
 // ===== Initiera data =====
 window.lists = loadLists();  // Från storage.js
 window.categoryMemory = (() => {
@@ -202,41 +217,60 @@ window.showAddItemsDialog = function({ allaVaror, mallVaror, kategoriVaror, onDo
 };
 
 // ===== Rendera översikt av alla listor =====
+// ===== Rendera översikt av alla listor =====
 window.renderAllLists = function() {
-  const activeLists = lists.filter(l => !l.archived);
+  const activeLists   = lists.filter(l => !l.archived);
   const archivedLists = lists.filter(l => l.archived);
 
+  // Aktiva: Mall:listor sist, sedan alfabetiskt
   const sortedActive = [...activeLists].sort((a,b) => {
-    const tA = a.name.startsWith('Mall:'), tB = b.name.startsWith('Mall:');
-    if (tA !== tB) return tA ? 1 : -1;
+    const aM = a.name.startsWith('Mall:'), bM = b.name.startsWith('Mall:');
+    if (aM !== bM) return aM ? 1 : -1;
     return a.name.localeCompare(b.name,'sv');
   });
 
-  const sortedArchived = [...archivedLists].sort((a,b) => (b.archivedAt||0)-(a.archivedAt||0));
+  // Arkiverade: senaste arkiverade först
+  const sortedArchived = [...archivedLists].sort((a,b) =>
+    (b.archivedAt||0) - (a.archivedAt||0)
+  );
 
+  // ---- Aktiva listkort ----
   const activeHTML = sortedActive.map(list => {
-    const done = list.items.filter(i=>i.done).length;
+    const done  = list.items.filter(x=>x.done).length;
     const total = list.items.length;
-    const pct = total ? Math.round(done/total*100) : 0;
-    const extra = list.name.startsWith('Mall:') ? 'list-card-template' : '';
+    const pct   = total ? Math.round(done/total*100) : 0;
+
+    // Välj högsta timestamp
+    const createdAt = list.createdAt  || 0;
+    const updatedAt = list.updatedAt  || 0;
+    const tsIso     = (updatedAt > createdAt ? updatedAt : createdAt);
+    const by        = (updatedAt > createdAt ? list.updatedBy : list.createdBy) || '';
+    const tsText    = tsIso ? formatDate(tsIso) : '';
+
     return `
       <li class="list-item" onclick="viewListByName('${list.name.replace(/'/g,"\\'")}')">
-        <div class="list-card ${extra}">
+        <div class="list-card ${list.name.startsWith('Mall:')?'list-card-template':''}">
           <div class="list-card-header">
             <span class="list-card-title">${list.name}</span>
             <button class="menu-btn"
-              onclick="event.stopPropagation(); openListMenuByName('${list.name.replace(/'/g,"\\'")}', this)">
+              onclick="event.stopPropagation(); openListMenuByName('${list.name.replace(/'/g,"\\'")}',this)">
               ⋮
             </button>
           </div>
+
+          <div class="list-card-footer">
+            <div class="progress-text">${done} / ${total} klara</div>
+            <div class="progress-timestamp">${by} ${tsText}</div>
+          </div>
+
           <div class="progress-bar">
             <div class="progress-fill" style="width:${pct}%"></div>
           </div>
-          <div class="progress-text">${done} / ${total} klara</div>
         </div>
       </li>`;
   }).join('') || '<p class="no-lists">Inga listor än.</p>';
 
+  // ---- Arkiverade sektionen (oförändrad) ----
   let archivedSection = '';
   if (sortedArchived.length) {
     const archivedHTML = sortedArchived.map(list => {
@@ -247,7 +281,7 @@ window.renderAllLists = function() {
             <div class="list-card-header">
               <span class="list-card-title">${list.name}</span>
               <button class="menu-btn"
-                onclick="event.stopPropagation(); openListMenuByName('${list.name.replace(/'/g,"\\'")}', this)">
+                onclick="event.stopPropagation(); openListMenuByName('${list.name.replace(/'/g,"\\'")}',this)">
                 ⋮
               </button>
             </div>
@@ -255,7 +289,6 @@ window.renderAllLists = function() {
           </div>
         </li>`;
     }).join('');
-
     archivedSection = `
       <div class="archived-section">
         <button class="archived-toggle" onclick="toggleArchivedSection(event)">
@@ -267,6 +300,7 @@ window.renderAllLists = function() {
       </div>`;
   }
 
+  // ---- Skriv ut allt ----
   app.innerHTML = `
     <div class="top-bar">
       <h1>Inköpslista</h1>
@@ -284,21 +318,23 @@ window.renderAllLists = function() {
     </div>
   `;
 
-  window.toggleArchivedSection = function(e) {
+  // Collapsible arkiv
+  window.toggleArchivedSection = function(e){
     e.stopPropagation();
     const btn = e.currentTarget;
-    const ul = btn.nextElementSibling;
-    if (ul.style.display==='none'){
+    const ul  = btn.nextElementSibling;
+    if (ul.style.display==='none') {
       ul.style.display='block';
-      btn.querySelector('#archived-arrow').textContent='▲';
+      btn.querySelector('#archived-arrow').textContent = '▲';
     } else {
       ul.style.display='none';
-      btn.querySelector('#archived-arrow').textContent='▼';
+      btn.querySelector('#archived-arrow').textContent = '▼';
     }
   };
 
   applyFade && applyFade();
 };
+
 
 // ===== Visa lista via namn =====
 window.viewListByName = function(name) {
@@ -555,22 +591,46 @@ window.addItemsWithCategory = function(listIndex = null) {
 // ===== CRUD =====
 
 // Ny lista
-window.showNewListDialog = function() {
-  showNewListModal(newName => {
-    lists.push({ name: newName, items: [] });
-    saveLists(lists);
-    renderAllLists();
-  });
-};
-
-// Byt namn
+// ----- Byt namn på lista -----
 window.renameList = function(i) {
   showRenameDialog('Byt namn på lista', lists[i].name, newName => {
     lists[i].name = newName.trim();
+    // NYTT: stämpla som uppdaterad
+    stampListTimestamps(lists[i]);
     saveLists(lists);
     renderAllLists();
     closeAnyMenu && closeAnyMenu();
   });
+};
+
+// ----- Arkivera lista -----
+window.archiveList = function(i) {
+  lists[i].archived    = true;
+  lists[i].archivedAt  = new Date().toISOString();
+  // NYTT: stämpla som uppdaterad
+  stampListTimestamps(lists[i]);
+  saveLists(lists);
+  renderAllLists();
+  closeAnyMenu && closeAnyMenu();
+};
+
+// ----- Återställ lista -----
+window.unarchiveList = function(i) {
+  delete lists[i].archived;
+  delete lists[i].archivedAt;
+  // NYTT: stämpla som uppdaterad
+  stampListTimestamps(lists[i]);
+  saveLists(lists);
+  renderAllLists();
+  closeAnyMenu && closeAnyMenu();
+};
+
+// ----- Spara & rendera en lista (t.ex. vid bockning) -----
+window.saveAndRenderList = function(i) {
+  // NYTT: stämpla varje gång vi sparar
+  stampListTimestamps(lists[i]);
+  saveLists(lists);
+  renderListDetail(i);
 };
 
 // Ta bort lista
@@ -581,28 +641,6 @@ window.deleteList = function(i) {
     renderAllLists();
     closeAnyMenu && closeAnyMenu();
   }
-};
-
-// Arkivera / Återställ
-window.archiveList = function(i) {
-  lists[i].archived = true;
-  lists[i].archivedAt = new Date().toISOString();
-  saveLists(lists);
-  renderAllLists();
-  closeAnyMenu && closeAnyMenu();
-};
-window.unarchiveList = function(i) {
-  delete lists[i].archived;
-  delete lists[i].archivedAt;
-  saveLists(lists);
-  renderAllLists();
-  closeAnyMenu && closeAnyMenu();
-};
-
-// Spara & rendera lista
-window.saveAndRenderList = function(i) {
-  saveLists(lists);
-  renderListDetail(i);
 };
 
 // Init
