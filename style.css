@@ -471,13 +471,13 @@ body.modal-open {
 /* Import‐knapp: transparent bakgrund + svart “pil i fat” */
 .icon-button.import-button {
   background: transparent !important;
-  padding: 8px !important;
+  color: #000 !important;
+  font-size: 1.5rem;
+  padding: 4px 8px !important;
   border-radius: 8px !important;
+  line-height: 1;
 }
-.icon-button.import-button svg {
-  stroke: #000 !important;
-  fill: none !important;
-}
+
 .icon-button.import-button:hover {
   background: rgba(0,0,0,0.05) !important;
 }
