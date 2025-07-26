@@ -415,7 +415,7 @@ window.renderListDetail = function(i) {
                 onclick="openItemMenu(${i}, ${item.idx}, this)">⋮</button>
             </li>`;
         }).join('')
-      : `<p class="empty-category">Inga varor i denna kategori</p>`;
+      //: `<p class="empty-category">Inga varor i denna kategori</p>`;
 
     return `
       <div class="category-block">
