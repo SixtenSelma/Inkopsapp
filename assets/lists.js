@@ -354,11 +354,9 @@ window.openListMenuByName = function(name, btn) {
 window.renderListDetail = function(i) {
   const list = lists[i];
 
-  // 1) Dölj klara‑inställning
+  // 1) Dölj klara-inställning
   let hideDone = true;
-  try {
-    hideDone = localStorage.getItem("hideDone") === "true";
-  } catch {}
+  try { hideDone = localStorage.getItem("hideDone") === "true"; } catch {}
 
   // 2) Lägg på index
   const allItems = list.items.map((it, idx) => ({ ...it, idx }));
@@ -388,32 +386,24 @@ window.renderListDetail = function(i) {
 
   // 6) Bygg HTML för kategorier + items
   const categoriesHTML = finalCats.map(({ cat, items }) => {
-    // sortera items: ofärdiga först, sedan färdiga
     const sorted = [
-      ...items.filter(x => !x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv')),
-      ...items.filter(x => x.done).sort((a, b) => a.name.localeCompare(b.name, 'sv'))
+      ...items.filter(x => !x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv')),
+      ...items.filter(x => x.done ).sort((a,b)=>a.name.localeCompare(b.name,'sv'))
     ];
-
     const rows = sorted.length
       ? sorted.map(item => {
-          // Rad 1: namn (fet eller överstruken)
           const line1 = item.done
             ? `<s>${item.name}</s>`
             : `<strong>${item.name}</strong>`;
-
-          // Rad 2: komplementtext till vänster, sign/datum till höger
-          const noteText = item.note ? item.note : '';
+          const noteText = item.note || "";
           const sigText = (item.done && item.doneBy)
             ? `${item.doneBy} ${formatDate(item.doneAt)}`
-            : '';
+            : "";
 
           return `
-            <li class="todo-item ${item.done ? 'done' : ''}">
-              <input
-                type="checkbox"
-                ${item.done ? 'checked' : ''}
-                onchange="toggleItem(${i}, ${item.idx}, lists, user, saveAndRenderList)"
-              />
+            <li class="todo-item ${item.done?'done':''}">
+              <input type="checkbox" ${item.done?'checked':''}
+                onchange="toggleItem(${i}, ${item.idx}, lists, user, saveAndRenderList)" />
               <div class="item-name">
                 <div class="item-line1">${line1}</div>
                 <div class="item-line2">
@@ -441,12 +431,20 @@ window.renderListDetail = function(i) {
   // 7) Rendera hela vyn
   app.innerHTML = `
     <div class="top-bar">
-      <span class="back-arrow" onclick="renderAllLists()">
-        <!-- Din SVG för pil här -->
+      <span class="back-arrow"
+            onclick="renderAllLists()"
+            style="cursor:pointer; display:flex; align-items:center; margin-right:10px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
+             viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
       </span>
-      <h1 class="back-title" style="margin:0;">${list.name}</h1>
+      <h1 class="back-title" style="margin:0; font-size:1.45em; font-weight:700;">
+        ${list.name}
+      </h1>
       <div style="flex:1"></div>
-      <label class="hide-done-label" style="display:flex;align-items:center;gap:6px;">
+      <label class="hide-done-label" style="display:flex; align-items:center; gap:6px;">
         <input type="checkbox" id="hideDoneCheckbox" style="margin-right:7px;" />
         <span class="hide-done-text">Dölj klara</span>
       </label>
@@ -460,21 +458,19 @@ window.renderListDetail = function(i) {
     </div>
   `;
 
-  // 8) Initiera “Dölj klara”‑rutan med state och event
+  // 8) Initiera “Dölj klara”
   const chk = document.getElementById("hideDoneCheckbox");
   if (chk) {
     chk.checked = hideDone;
-    chk.onchange = function() {
-      localStorage.setItem("hideDone", this.checked ? "true" : "false");
+    chk.onchange = () => {
+      localStorage.setItem("hideDone", chk.checked ? "true" : "false");
       renderListDetail(i);
     };
   }
 
-  // 9) Fade‑in
+  // 9) Fade-in
   applyFade && applyFade();
 };
-
-
 
 
 // ===== Batch-lägg till via kategori-knapp =====
