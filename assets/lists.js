@@ -357,6 +357,7 @@ window.openListMenuByName = function(name, btn) {
 
 // ===== Rendera enskild lista med "Dölj klara", "Dölj kategorier" och "Uppdatera vy" =====
 // ===== Rendera enskild lista med “☑ Klara”, “☑ Kategorivy” och “↻” =====
+// ===== Rendera enskild lista med “Dölj klara”, “Kategorivy” och “Uppdatera vy” =====
 window.renderListDetail = function(i) {
   const list = lists[i];
 
@@ -374,7 +375,6 @@ window.renderListDetail = function(i) {
   standardKategorier.forEach(cat => grouped[cat] = []);
   allItems.forEach(item => {
     const cat = item.category || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)";
-    if (!grouped[cat]) grouped[cat] = [];
     grouped[cat].push(item);
   });
 
@@ -435,44 +435,29 @@ window.renderListDetail = function(i) {
 
   // 6) Rendera hela vyn
   app.innerHTML = `
-    <div class="top-bar" style="display:flex; flex-direction:column; align-items:flex-start;">
-      <div class="top-header" style="display:flex; align-items:center; width:100%; padding:0.5rem;">
-        <span class="back-arrow"
-              onclick="renderAllLists()"
-              title="Tillbaka"
-              style="cursor:pointer; margin-right:10px; display:flex; align-items:center;">
+    <div class="top-bar">
+      <div class="top-header">
+        <span class="back-arrow" onclick="renderAllLists()" title="Tillbaka">
           <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
                viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2.5"
                stroke-linecap="round" stroke-linejoin="round">
             <polyline points="15 18 9 12 15 6"/>
           </svg>
         </span>
-        <h1 class="back-title"
-            style="margin:0; font-size:1.45em; font-weight:700; flex:1; text-align:left;">
-          ${list.name}
-        </h1>
+        <h1 class="back-title">${list.name}</h1>
       </div>
-      <div class="header-options"
-           style="display:flex; gap:1rem; width:100%; padding:0 0.5rem 0.5rem;">
-        <button id="btnHideDone"
-                style="background:none;border:none;cursor:pointer;font-size:1rem;"
-                title="Visa/göm klara">
+      <div class="detail-controls">
+        <button id="btnHideDone" title="Visa/Göm klara">
           ${hideDone ? '☑ Dölj klara' : '☐ Dölj klara'}
         </button>
-        <button id="btnToggleCats"
-                style="background:none;border:none;cursor:pointer;font-size:1rem;"
-                title="Visa/göm kategorivy">
+        <button id="btnToggleCats" title="Visa/Göm kategorivy">
           ☑ Kategorivy
         </button>
-        <button id="btnRefresh"
-                style="background:none;border:none;cursor:pointer;font-size:1.2rem;"
-                title="Uppdatera vy">
-          ↻
-        </button>
+        <button id="btnRefresh" title="Uppdatera vy">↻</button>
       </div>
     </div>
     <div class="category-list">
-      ${categoriesHTML || '<p>Inga varor än.</p>'}
+      ${categoriesHTML}
     </div>
     <div class="bottom-bar">
       <button onclick="addItemsWithCategory(${i})" title="Lägg till">➕</button>
@@ -493,7 +478,7 @@ window.renderListDetail = function(i) {
   const btnCats = document.getElementById("btnToggleCats");
   btnCats.onclick = () => {
     catsHidden = !catsHidden;
-    btnCats.textContent = catsHidden ? '☐ Visa kategorivy' : '☑ Visa kategorivy';
+    btnCats.textContent = catsHidden ? '☐ Kategorivy' : '☑ Kategorivy';
     document.querySelectorAll(".category-block")
             .forEach(el => el.style.display = catsHidden ? "none" : "");
   };
