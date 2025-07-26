@@ -356,13 +356,10 @@ window.openListMenuByName = function(name, btn) {
 };
 
 // ===== Rendera enskild lista med samordnad header =====
+// ===== Rendera enskild lista med samordnad header på en rad =====
 window.renderListDetail = function(i) {
   const list = lists[i];
-
-  // Läsa/skriva inställning för Dölj klara
   let hideDone = localStorage.getItem("hideDone") === "true";
-
-  // Uppdatera URL‑hash för att behålla detaljvy vid refresh
   window.location.hash = encodeURIComponent(list.name);
 
   // 1) Förbered items med index
@@ -392,10 +389,9 @@ window.renderListDetail = function(i) {
 
   // 5) Bygg HTML för kategorier + items (oförändrat)
   const categoriesHTML = finalCats.map(({ cat, items }) => {
-    // ... exakt samma kod som förut ...
     const sorted = [
       ...items.filter(x => !x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv')),
-      ...items.filter(x => x.done ).sort((a,b)=>a.name.localeCompare(b.name,'sv'))
+      ...items.filter(x => x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv'))
     ];
     const rows = sorted.length
       ? sorted.map(item => {
@@ -428,10 +424,10 @@ window.renderListDetail = function(i) {
       </div>`;
   }).join('');
 
-  // 6) Rendera vyn med samma header‑stil som Inköpslista
+  // 6) Rendera header + vy
   app.innerHTML = `
     <div class="top-bar">
-      <!-- Oförändrad rad 1 -->
+      <!-- Nu på en rad: pil + titel + kontroller -->
       <span class="back-arrow" onclick="renderAllLists()" title="Tillbaka">
         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
              viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2.5"
@@ -440,8 +436,6 @@ window.renderListDetail = function(i) {
         </svg>
       </span>
       <h1 class="back-title">${list.name}</h1>
-
-      <!-- Ny container för våra tre knappar -->
       <div class="detail-buttons">
         <button id="btnHideDone" class="icon-button" title="Visa/Göm klara">
           ${hideDone ? '☑' : '☐'}
@@ -460,7 +454,7 @@ window.renderListDetail = function(i) {
       <button onclick="importItemsFromList(${i})" title="Importera">📥</button>
     </div>`;
 
-  // 7) Koppla på våra knappar
+  // 7) Koppla knapphändelser
   document.getElementById("btnHideDone").onclick = () => {
     hideDone = !hideDone;
     localStorage.setItem("hideDone", hideDone);
@@ -474,10 +468,9 @@ window.renderListDetail = function(i) {
   };
   document.getElementById("btnRefresh").onclick = () => renderListDetail(i);
 
-  // 8) Fade‑in om tillämpligt
+  // 8) Fade‑in om du har applyFade
   applyFade && applyFade();
 };
-
 
 
 // ===== Batch-lägg till via kategori-knapp =====
