@@ -347,44 +347,45 @@ window.renderListDetail = function(i) {
   let hideDone = localStorage.getItem("hideDone") === "true";
   window.location.hash = encodeURIComponent(list.name);
 
-  // 1) Förbered items med index
+  // 1) Förbered och gruppera items
   const allItems = list.items.map((it, idx) => ({ ...it, idx }));
-
-  // 2) Gruppera per kategori
-  const grouped = {};
+  const grouped  = {};
   standardKategorier.forEach(cat => grouped[cat] = []);
   allItems.forEach(item => {
     const category = item.category || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)";
     grouped[category].push(item);
   });
 
-  // 3) Identifiera kategorier med och utan varor
+  // 2) Dela upp kategorier i med varor / utan varor
   const catsWithItems = [];
   const catsWithout  = [];
   standardKategorier.forEach(cat => {
-    const items = grouped[cat];
-    // Visa endast icke-avklarade om hideDone är på
-    const visible = hideDone ? items.filter(x => !x.done) : items;
+    // Visa bara icke-avklarade om hideDone är på
+    const visible = hideDone
+      ? grouped[cat].filter(x => !x.done)
+      : grouped[cat];
     if (visible.length) catsWithItems.push({ cat, items: visible });
     else catsWithout.push({ cat, items: [] });
   });
 
-  // 4) Sätt finalCats: först kategorier med varor, sedan tomma
-  const finalCats = catsWithItems.concat(catsWithout);
+  // 3) Bygg finalCats: visa tomma kategorier bara om hideDone är falskt
+  const finalCats = hideDone
+    ? catsWithItems
+    : catsWithItems.concat(catsWithout);
 
-  // 5) Bygg HTML för varje kategori + varor
+  // 4) Bygg HTML för varje kategori + varor
   const categoriesHTML = finalCats.map(({ cat, items }) => {
     // Sortera kvarvarande items: först ej klara, sedan klara, båda alfabetiskt
     const sorted = [
-      ...items.filter(x => !x.done).sort((a,b) => a.name.localeCompare(b.name,'sv')),
-      ...items.filter(x => x.done).sort((a,b) => a.name.localeCompare(b.name,'sv'))
+      ...items.filter(x => !x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv')),
+      ...items.filter(x => x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv'))
     ];
 
-    // Skapa list-rader; tom kategori ger bara ett tomt <ul>
+    // Skapa <li> för varje vara
     const rows = sorted.map(item => {
       const nameHTML = item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`;
       const noteHTML = item.note ? `<span class="item-note">${item.note}</span>` : "";
-      const sigHTML = item.done && item.doneBy
+      const sigHTML  = item.done && item.doneBy
         ? `<span class="item-sign-date">${item.doneBy} ${formatDate(item.doneAt)}</span>`
         : "";
       return `
@@ -414,13 +415,14 @@ window.renderListDetail = function(i) {
           ${cat}
           <button
             class="category-add-btn"
-            onclick="addItemViaCategory(${i}, '${cat}')">+</button>
+            onclick="addItemViaCategory(${i}, '${cat}')"
+          >+</button>
         </h3>
         <ul class="todo-list">${rows}</ul>
       </div>`;
   }).join('');
 
-  // 6) Rendera detaljvyn
+  // 5) Rendera detaljvyn
   app.innerHTML = `
     <div class="top-bar">
       <span class="back-arrow"
@@ -441,15 +443,13 @@ window.renderListDetail = function(i) {
         <button id="btnRefresh" class="icon-button" title="Uppdatera vy">↻</button>
       </div>
     </div>
-    <div class="category-list">
-      ${categoriesHTML}
-    </div>
+    <div class="category-list">${categoriesHTML}</div>
     <div class="bottom-bar">
       <button onclick="addItemsWithCategory(${i})" title="Lägg till">➕</button>
       <button onclick="importItemsFromList(${i})" title="Importera">📥</button>
     </div>`;
 
-  // 7) Koppla knapphändelser
+  // 6) Koppla knapp­händelser
   document.getElementById("btnHideDone").onclick = () => {
     hideDone = !hideDone;
     localStorage.setItem("hideDone", hideDone);
