@@ -877,4 +877,19 @@ input[type="search"]::placeholder {
   margin-bottom: 6px;
 }
 
+/* Flex‑footer på list‑kortet för vänster/höger‑justering */
+.list-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 0 6px;    /* lite mellanrum ovanför progress‑baren */
+}
+
+/* Högerställd timestamp */
+.progress-timestamp {
+  font-size: 0.85rem;
+  color: #636e72;
+}
+
+
 /* ===== End of style.css ===== */
