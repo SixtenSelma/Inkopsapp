@@ -989,5 +989,18 @@ input[type="search"]::placeholder {
   background: #fff;
 }
 
+/* Se till att hela raden fyller ut och knappen får auto‑marginal */
+.header-options {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.5rem 1rem 0.75rem;
+  background: #f4f4f4;
+}
+
+/* Tryck refresh‑knappen längst till höger */
+.header-options #btnRefresh {
+  margin-left: auto;
+}
 
 /* ===== End of style.css ===== */
