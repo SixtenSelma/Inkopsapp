@@ -252,6 +252,7 @@ input[type="checkbox"] {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-right: 8px
   width: 100%;
   font-size: 0.85rem;
   margin-top: 2px;
