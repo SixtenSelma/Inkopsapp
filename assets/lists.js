@@ -344,10 +344,12 @@ window.openListMenuByName = function(name, btn) {
 // ===== Rendera enskild lista (detaljvy) =====
 window.renderListDetail = function(i) {
   const list = lists[i];
-  // Läs in persisterade lägen
-  let hideDone = localStorage.getItem("hideDone") === "true";
-  let catsHidden = localStorage.getItem("catsHidden") === "true";
 
+  // Läs in persisterade lägen
+  let hideDone      = localStorage.getItem("hideDone") === "true";
+  let compressedMode = localStorage.getItem("compressedMode") === "true";
+
+  // Uppdatera URL-hash
   window.location.hash = encodeURIComponent(list.name);
 
   // 1) Förbered och gruppera items
@@ -359,7 +361,7 @@ window.renderListDetail = function(i) {
     grouped[category].push(item);
   });
 
-  // 2) Dela upp kategorier i med varor / utan varor
+  // 2) Dela upp kategorier i med/utan items
   const catsWithItems = [];
   const catsWithout  = [];
   standardKategorier.forEach(cat => {
@@ -371,21 +373,25 @@ window.renderListDetail = function(i) {
     else catsWithout.push({ cat, items: [] });
   });
 
-  // 3) FinalCats: tomma visas bara om hideDone=false
+  // 3) FinalCats: tomma kategorier bara om !hideDone
   const finalCats = hideDone
     ? catsWithItems
     : catsWithItems.concat(catsWithout);
 
-  // 4) Bygg HTML för varje kategori + varor
+  // 4) Bygg HTML
   const categoriesHTML = finalCats.map(({ cat, items }) => {
     const sorted = [
       ...items.filter(x => !x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv')),
       ...items.filter(x => x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv'))
     ];
     const rows = sorted.map(item => {
-      const nameHTML = item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`;
-      const noteHTML = item.note ? `<span class="item-note">${item.note}</span>` : "";
-      const sigHTML  = item.done && item.doneBy
+      const nameHTML = item.done
+        ? `<s>${item.name}</s>`
+        : `<strong>${item.name}</strong>`;
+      const noteHTML = item.note
+        ? `<span class="item-note">${item.note}</span>`
+        : "";
+      const sigHTML = item.done && item.doneBy
         ? `<span class="item-sign-date">${item.doneBy} ${formatDate(item.doneAt)}</span>`
         : "";
       return `
@@ -402,13 +408,15 @@ window.renderListDetail = function(i) {
               ${sigHTML}
             </div>
           </div>
-          <button class="menu-btn"
-                  onclick="openItemMenu(${i}, ${item.idx}, this)">⋮</button>
+          <button
+            class="menu-btn"
+            onclick="openItemMenu(${i}, ${item.idx}, this)"
+          >⋮</button>
         </li>`;
     }).join('');
     return `
       <div class="category-block">
-        <h3 class="category-heading" style="display:${catsHidden?'none':''}">
+        <h3 class="category-heading" style="display:${compressedMode?'none':''}">
           ${cat}
           <button class="category-add-btn"
                   onclick="addItemViaCategory(${i}, '${cat}')">+</button>
@@ -434,7 +442,7 @@ window.renderListDetail = function(i) {
         <button id="btnHideDone" class="icon-button" title="Visa/Göm klara">
           ${hideDone ? '☑' : '☐'}
         </button>
-        <button id="btnToggleCats" class="icon-button" title="Visa/Göm kategorivy">≡</button>
+        <button id="btnToggleCats" class="icon-button" title="Komprimerat läge">≡</button>
         <button id="btnRefresh" class="icon-button" title="Uppdatera vy">↻</button>
       </div>
     </div>
@@ -453,19 +461,18 @@ window.renderListDetail = function(i) {
     renderListDetail(i);
   };
 
-  // ≡ Visa/Göm kategorirubriker (persistens via localStorage)
+  // ≡ Komprimerat läge (persistens)
   document.getElementById("btnToggleCats").onclick = () => {
-    catsHidden = !catsHidden;
-    localStorage.setItem("catsHidden", catsHidden);
+    compressedMode = !compressedMode;
+    localStorage.setItem("compressedMode", compressedMode);
     renderListDetail(i);
   };
 
-  // ↻ Uppdatera listan (spara timestamp + rendera om)
+  // ↻ Uppdatera listan
   document.getElementById("btnRefresh").onclick = () => saveAndRenderList(i);
 
   applyFade && applyFade();
 };
-
 
 // ===== Lägg till varor via plusknapp =====
 // ===== Lägg till via flytande plus-knapp =====
