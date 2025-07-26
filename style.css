@@ -243,21 +243,16 @@ input[type="checkbox"] {
 
 /* Grid för att vänster/högerjustera komplementtext och tid */
 .item-note-sign-wrapper {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  font-size: 0.85rem;
-  margin-top: 2px;
-  color: #888;
-  font-style: italic;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   width: 100%;
 }
 .item-note-sign-wrapper > .item-note {
   text-align: left;
 }
 .item-note-sign-wrapper > .item-sign-date {
-  text-align: right;
-  white-space: nowrap;
-  margin-left: 8px;
+  margin-left: auto;
 }
 
 .todo-list { padding: 0; margin: 0; }
