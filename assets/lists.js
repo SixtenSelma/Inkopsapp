@@ -217,14 +217,10 @@ window.showAddItemsDialog = function({ allaVaror, mallVaror, kategoriVaror, onDo
 };
 
 // ===== Rendera översikt av alla listor =====
-// ===== Rendera översikt av alla listor =====
-// ===== Rendera översikt av alla listor =====
 window.renderAllLists = function() {
-  // Filtrera aktiva och arkiverade
   const activeLists   = lists.filter(l => !l.archived);
   const archivedLists = lists.filter(l => l.archived);
 
-  // Sortera aktiva: Mall-listor sist, sedan alfabetiskt
   const sortedActive = [...activeLists].sort((a, b) => {
     const aIsTemplate = a.name.startsWith('Mall:');
     const bIsTemplate = b.name.startsWith('Mall:');
@@ -232,31 +228,25 @@ window.renderAllLists = function() {
     return a.name.localeCompare(b.name, 'sv');
   });
 
-  // Sortera arkiverade: senaste arkiverade först
   const sortedArchived = [...archivedLists].sort((a, b) =>
     (b.archivedAt || 0) - (a.archivedAt || 0)
   );
 
-  // Bygg HTML för aktiva listor
   const activeHTML = sortedActive.map(list => {
     const done  = list.items.filter(x => x.done).length;
     const total = list.items.length;
     const pct   = total ? Math.round(done / total * 100) : 0;
-
-    // Tidsstämpel
-    const cAt   = list.createdAt  || list.archivedAt || null;
-    const uAt   = list.updatedAt  || list.archivedAt || null;
-    const tsIso = (uAt && (!cAt || uAt >= cAt)) ? uAt : cAt;
-    const by     = (uAt && list.updatedBy) || (cAt && list.createdBy) || '';
-    const tsText = tsIso ? formatDate(tsIso) : '';
+    const uAt   = list.updatedAt  || list.archivedAt || list.createdAt || null;
+    const by     = (list.updatedBy || list.createdBy) || '';
+    const tsText = uAt ? formatDate(uAt) : '';
 
     return `
-      <li class="list-item" onclick="viewListByName('${list.name.replace(/'/g, "\'")}')">
+      <li class="list-item" onclick="viewListByName('${list.name.replace(/'/g, "\\'")}')">
         <div class="list-card ${list.name.startsWith('Mall:') ? 'list-card-template' : ''}">
           <div class="list-card-header">
             <span class="list-card-title">${list.name}</span>
             <button class="menu-btn"
-              onclick="event.stopPropagation(); openListMenuByName('${list.name.replace(/'/g, "\'")}', this)">
+              onclick="event.stopPropagation(); openListMenuByName('${list.name.replace(/'/g, "\\'")}', this)">
               ⋮
             </button>
           </div>
@@ -271,18 +261,17 @@ window.renderAllLists = function() {
       </li>`;
   }).join('') || '<p class="no-lists">Inga listor än.</p>';
 
-  // Bygg HTML för arkiverade listor
   let archivedSection = '';
   if (sortedArchived.length) {
     const archivedHTML = sortedArchived.map(list => {
       const dateTxt = list.archivedAt ? formatDate(list.archivedAt) : '';
       return `
-        <li class="list-item archived" onclick="viewListByName('${list.name.replace(/'/g, "\'")}')">
+        <li class="list-item archived" onclick="viewListByName('${list.name.replace(/'/g, "\\'")}')">
           <div class="list-card archived-list-card">
             <div class="list-card-header">
               <span class="list-card-title">${list.name}</span>
               <button class="menu-btn"
-                onclick="event.stopPropagation(); openListMenuByName('${list.name.replace(/'/g, "\'")}', this)">
+                onclick="event.stopPropagation(); openListMenuByName('${list.name.replace(/'/g, "\\'")}', this)">
                 ⋮
               </button>
             </div>
@@ -302,11 +291,9 @@ window.renderAllLists = function() {
       </div>`;
   }
 
-  // Rendera allt
   app.innerHTML = `
     <div class="top-bar">
       <h1 class="back-title" onclick="renderAllLists()">Inköpslistor</h1>
-      <!-- Signatur + penna, helt utan bakgrund -->
       <button class="icon-button" onclick="changeUser()" title="Byt namn">
         ${user} 🖊
       </button>
@@ -319,7 +306,6 @@ window.renderAllLists = function() {
       <button onclick="showNewListDialog()" title="Ny lista">➕</button>
     </div>`;
 
-  // Gör arkivsektionen kollapsbar
   window.toggleArchivedSection = function(e) {
     e.stopPropagation();
     const ul = e.currentTarget.nextElementSibling;
@@ -355,17 +341,13 @@ window.openListMenuByName = function(name, btn) {
   if (idx>=0) openListMenu(idx, btn);
 };
 
-// ===== Rendera enskild lista med samordnad header =====
-// ===== Rendera enskild lista med samordnad header =====
+// ===== Rendera enskild lista (detaljvy) =====
 window.renderListDetail = function(i) {
   const list = lists[i];
   let hideDone = localStorage.getItem("hideDone") === "true";
   window.location.hash = encodeURIComponent(list.name);
 
-  // 1) Förbered items med index
   const allItems = list.items.map((it, idx) => ({ ...it, idx }));
-
-  // 2) Gruppera per kategori
   const grouped = {};
   standardKategorier.forEach(cat => grouped[cat] = []);
   allItems.forEach(item => {
@@ -373,7 +355,6 @@ window.renderListDetail = function(i) {
     grouped[cat].push(item);
   });
 
-  // 3) Dela upp fyllda/tomma
   const filled = [], empty = [];
   Object.entries(grouped).forEach(([cat, items]) => {
     const visible = hideDone ? items.filter(x => !x.done) : items;
@@ -381,13 +362,11 @@ window.renderListDetail = function(i) {
     else empty.push({ cat, items: [] });
   });
 
-  // 4) Slå ihop och sortera
   const finalCats = hideDone ? filled : [...filled, ...empty];
   finalCats.sort((a, b) =>
     standardKategorier.indexOf(a.cat) - standardKategorier.indexOf(b.cat)
   );
 
-  // 5) Bygg HTML för kategorier + items
   const categoriesHTML = finalCats.map(({ cat, items }) => {
     const sorted = [
       ...items.filter(x => !x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv')),
@@ -434,17 +413,9 @@ window.renderListDetail = function(i) {
       </div>`;
   }).join('');
 
-  // 6) Rendera header + vy
   app.innerHTML = `
     <div class="top-bar">
-      <span class="back-arrow" onclick="renderAllLists()" title="Tillbaka">
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
-             viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2.5"
-             stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="15 18 9 12 15 6"/>
-        </svg>
-      </span>
-      <h1 class="back-title">${list.name}</h1>
+      <h1 class="back-title" onclick="renderAllLists()">Inköpslistor</h1>
       <div class="detail-buttons">
         <button id="btnHideDone" class="icon-button" title="Visa/Göm klara">
           ${hideDone ? '☑' : '☐'}
@@ -453,17 +424,14 @@ window.renderListDetail = function(i) {
         <button id="btnRefresh"    class="icon-button" title="Uppdatera vy">↻</button>
       </div>
     </div>
-
     <div class="category-list">
       ${categoriesHTML}
     </div>
-
     <div class="bottom-bar">
       <button onclick="addItemsWithCategory(${i})" title="Lägg till">➕</button>
       <button onclick="importItemsFromList(${i})" title="Importera">📥</button>
     </div>`;
 
-  // 7) Koppla knapphändelser
   document.getElementById("btnHideDone").onclick = () => {
     hideDone = !hideDone;
     localStorage.setItem("hideDone", hideDone);
@@ -477,11 +445,8 @@ window.renderListDetail = function(i) {
   };
   document.getElementById("btnRefresh").onclick = () => renderListDetail(i);
 
-  // 8) Fade‑in om du har applyFade
   applyFade && applyFade();
 };
-
-
 
 // ===== Batch-lägg till via kategori-knapp =====
 // ===== Lägg till via kategori-knapp =====
