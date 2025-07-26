@@ -371,7 +371,6 @@ window.renderListDetail = function(i) {
 
   // 4) Bygg HTML för kategorier + varor
   const categoriesHTML = finalCats.map(({ cat, items }) => {
-    // Sortera kvarvarande items: först ej klara, sedan klara, båda alfabetiskt
     const sorted = [
       ...items.filter(x => !x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv')),
       ...items.filter(x => x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv'))
@@ -427,7 +426,13 @@ window.renderListDetail = function(i) {
         class="back-arrow"
         onclick="window.location.hash=''; renderAllLists()"
         title="Tillbaka"
-      ></span>
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+             viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </span>
       <h1 class="back-title">${list.name}</h1>
       <div class="detail-buttons">
         <button
@@ -455,28 +460,26 @@ window.renderListDetail = function(i) {
       <button onclick="importItemsFromList(${i})" title="Importera">📥</button>
     </div>`;
 
-  // 6) Koppla knapp­händelser
-
-  // ☑ Visa/Göm klara varor
+  // 6) Koppla knapphändelser
   document.getElementById("btnHideDone").onclick = () => {
     hideDone = !hideDone;
     localStorage.setItem("hideDone", hideDone);
     renderListDetail(i);
   };
-
-  // ≡ Visa/Göm bara rubrik­rader
   let catsHidden = false;
   document.getElementById("btnToggleCats").onclick = () => {
     catsHidden = !catsHidden;
-    document.querySelectorAll(".category-heading")
-      .forEach(h => h.style.display = catsHidden ? "none" : "");
+    document.querySelectorAll(".category-heading").forEach(h => {
+      h.style.display = catsHidden ? "none" : "";
+    });
   };
-
-  // ↻ Uppdatera listan (spara timestamp och rendera om)
-  document.getElementById("btnRefresh").onclick = () => saveAndRenderList(i);
+  document.getElementById("btnRefresh").onclick = () => {
+    saveAndRenderList(i);
+  };
 
   applyFade && applyFade();
 };
+
 
 // ===== Lägg till via kategori-knapp =====
 window.addItemViaCategory = function(listIndex, category) {
