@@ -993,4 +993,9 @@ input[type="search"]::placeholder {
   background: rgba(0,0,0,0.05);
 }
 
+/* Ta bort fet stil på titeln i detaljvy */
+.top-bar .back-title {
+  font-weight: normal !important;
+}
+
 /* ===== End of style.css ===== */
