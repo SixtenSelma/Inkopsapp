@@ -222,38 +222,39 @@ window.renderAllLists = function() {
   const activeLists   = lists.filter(l => !l.archived);
   const archivedLists = lists.filter(l => l.archived);
 
-  // Aktiva: Mall:listor sist, sedan alfabetiskt
-  const sortedActive = [...activeLists].sort((a,b) => {
-    const aM = a.name.startsWith('Mall:'), bM = b.name.startsWith('Mall:');
-    if (aM !== bM) return aM ? 1 : -1;
-    return a.name.localeCompare(b.name,'sv');
+  // Aktiva: Mall-listor sist, sedan alfabetiskt
+  const sortedActive = [...activeLists].sort((a, b) => {
+    const aIsTemplate = a.name.startsWith('Mall:');
+    const bIsTemplate = b.name.startsWith('Mall:');
+    if (aIsTemplate !== bIsTemplate) return aIsTemplate ? 1 : -1;
+    return a.name.localeCompare(b.name, 'sv');
   });
 
   // Arkiverade: senaste arkiverade först
-  const sortedArchived = [...archivedLists].sort((a,b) =>
-    (b.archivedAt||0) - (a.archivedAt||0)
+  const sortedArchived = [...archivedLists].sort((a, b) =>
+    (b.archivedAt || 0) - (a.archivedAt || 0)
   );
 
-  // ---- Aktiva listkort ----
+  // Bygg HTML för aktiva
   const activeHTML = sortedActive.map(list => {
-    const done  = list.items.filter(x=>x.done).length;
+    const done  = list.items.filter(x => x.done).length;
     const total = list.items.length;
-    const pct   = total ? Math.round(done/total*100) : 0;
+    const pct   = total ? Math.round(done / total * 100) : 0;
 
-    // Välj högsta timestamp
-    const createdAt = list.createdAt  || 0;
-    const updatedAt = list.updatedAt  || 0;
-    const tsIso     = (updatedAt > createdAt ? updatedAt : createdAt);
-    const by        = (updatedAt > createdAt ? list.updatedBy : list.createdBy) || '';
-    const tsText    = tsIso ? formatDate(tsIso) : '';
+    // Välj högsta timestamp med fallback
+    const cAt  = list.createdAt  || list.archivedAt || null;
+    const uAt  = list.updatedAt  || list.archivedAt || null;
+    const tsIso = (uAt && (!cAt || uAt >= cAt)) ? uAt : cAt;
+    const by     = (uAt && list.updatedBy) || (cAt && list.createdBy) || '';
+    const tsText = tsIso ? formatDate(tsIso) : '';
 
     return `
       <li class="list-item" onclick="viewListByName('${list.name.replace(/'/g,"\\'")}')">
-        <div class="list-card ${list.name.startsWith('Mall:')?'list-card-template':''}">
+        <div class="list-card ${list.name.startsWith('Mall:') ? 'list-card-template' : ''}">
           <div class="list-card-header">
             <span class="list-card-title">${list.name}</span>
             <button class="menu-btn"
-              onclick="event.stopPropagation(); openListMenuByName('${list.name.replace(/'/g,"\\'")}',this)">
+              onclick="event.stopPropagation(); openListMenuByName('${list.name.replace(/'/g,"\\'")}', this)">
               ⋮
             </button>
           </div>
@@ -270,7 +271,7 @@ window.renderAllLists = function() {
       </li>`;
   }).join('') || '<p class="no-lists">Inga listor än.</p>';
 
-  // ---- Arkiverade sektionen (oförändrad) ----
+  // Bygg HTML för arkiverade
   let archivedSection = '';
   if (sortedArchived.length) {
     const archivedHTML = sortedArchived.map(list => {
@@ -281,7 +282,7 @@ window.renderAllLists = function() {
             <div class="list-card-header">
               <span class="list-card-title">${list.name}</span>
               <button class="menu-btn"
-                onclick="event.stopPropagation(); openListMenuByName('${list.name.replace(/'/g,"\\'")}',this)">
+                onclick="event.stopPropagation(); openListMenuByName('${list.name.replace(/'/g,"\\'")}', this)">
                 ⋮
               </button>
             </div>
@@ -289,6 +290,7 @@ window.renderAllLists = function() {
           </div>
         </li>`;
     }).join('');
+
     archivedSection = `
       <div class="archived-section">
         <button class="archived-toggle" onclick="toggleArchivedSection(event)">
@@ -300,7 +302,7 @@ window.renderAllLists = function() {
       </div>`;
   }
 
-  // ---- Skriv ut allt ----
+  // Rendera allt
   app.innerHTML = `
     <div class="top-bar">
       <h1>Inköpslista</h1>
@@ -318,16 +320,16 @@ window.renderAllLists = function() {
     </div>
   `;
 
-  // Collapsible arkiv
-  window.toggleArchivedSection = function(e){
+  // Gör arkiv‑sektionen kollapsbar
+  window.toggleArchivedSection = function(e) {
     e.stopPropagation();
     const btn = e.currentTarget;
     const ul  = btn.nextElementSibling;
-    if (ul.style.display==='none') {
-      ul.style.display='block';
+    if (ul.style.display === 'none') {
+      ul.style.display = 'block';
       btn.querySelector('#archived-arrow').textContent = '▲';
     } else {
-      ul.style.display='none';
+      ul.style.display = 'none';
       btn.querySelector('#archived-arrow').textContent = '▼';
     }
   };
