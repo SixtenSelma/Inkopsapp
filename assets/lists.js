@@ -427,11 +427,45 @@ window.renderListDetail = function(i) {
   let compressedMode = localStorage.getItem("compressedMode") === "true";
   window.location.hash = encodeURIComponent(list.name);
 
-  // Funktion för att refresha listan
-  const refreshList = () => saveAndRenderList(i);
+  // Funktion för att importera
+  const importFromList = () => importItemsFromList(i);
+
+  // ---------- Hjälpfunktion för top‑bar markup ----------
+  function topBarHtml() {
+    return `
+      <div class="top-bar">
+        <span class="back-arrow"
+              onclick="window.location.hash=''; renderAllLists()"
+              title="Tillbaka">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
+               viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </span>
+        <h1 class="back-title">${list.name}</h1>
+        <div class="detail-buttons">
+          <button id="btnHideDone" class="icon-button" title="Visa/Göm klara">
+            ${hideDone ? '☑' : '☐'}
+          </button>
+          <button id="btnToggleCats" class="icon-button" title="Komprimerat läge">≡</button>
+          <button id="btnImportList" class="icon-button import-button" title="Importera från lista"
+                  onclick="importFromList()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                 viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="12 5 12 16"/>
+              <polyline points="5 9 12 16 19 9"/>
+            </svg>
+          </button>
+        </div>
+      </div>`;
+  }
 
   // ---------- Komprimerat läge ----------
+  let contentHtml;
   if (compressedMode) {
+    // Dela upp ej klara / klara
     let incomplete = list.items.filter(item => !item.done);
     let complete   = list.items.filter(item => item.done);
     if (hideDone) complete = [];
@@ -445,7 +479,8 @@ window.renderListDetail = function(i) {
       const nameHTML = item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`;
       const noteHTML = item.note ? `<span class="item-note">${item.note}</span>` : "";
       const sigHTML  = item.done && item.doneBy
-        ? `<span class="item-sign-date">${item.doneBy} ${formatDate(item.doneAt)}</span>` : "";
+        ? `<span class="item-sign-date">${item.doneBy} ${formatDate(item.doneAt)}</span>`
+        : "";
       return `
         <li class="todo-item ${item.done?'done':''}">
           <input type="checkbox" ${item.done?'checked':''}
@@ -461,22 +496,8 @@ window.renderListDetail = function(i) {
         </li>`;
     }).join('');
 
-    app.innerHTML = `
-      <div class="top-bar">
-        <span class="back-arrow" onclick="window.location.hash=''; renderAllLists()" title="Tillbaka">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
-               fill="none" stroke="#232323" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
-        </span>
-        <h1 class="back-title" onclick="refreshList()">${list.name}</h1>
-        <div class="detail-buttons">
-          <button id="btnHideDone" class="icon-button" title="Visa/Göm klara">
-            ${hideDone ? '☑' : '☐'}
-          </button>
-          <button id="btnToggleCats" class="icon-button" title="Komprimerat läge">≡</button>
-        </div>
-      </div>
+    contentHtml = `
+      ${topBarHtml()}
       <ul class="todo-list">${rows}</ul>
       <div class="bottom-bar">
         <button onclick="addItemsWithCategory(${i})" title="Lägg till">➕</button>
@@ -485,12 +506,13 @@ window.renderListDetail = function(i) {
   }
   // ---------- Kategoriview ----------
   else {
+    // Grupp och filter
     const allItems = list.items.map((it, idx) => ({ ...it, idx }));
     const grouped  = {};
     standardKategorier.forEach(cat => grouped[cat] = []);
     allItems.forEach(item => {
-      const cat = item.category || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)";
-      grouped[cat].push(item);
+      const c = item.category || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)";
+      grouped[c].push(item);
     });
 
     const catsWithItems = [], catsWithout = [];
@@ -539,22 +561,8 @@ window.renderListDetail = function(i) {
         </div>`;
     }).join('');
 
-    app.innerHTML = `
-      <div class="top-bar">
-        <span class="back-arrow" onclick="window.location.hash=''; renderAllLists()" title="Tillbaka">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
-               fill="none" stroke="#232323" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
-        </span>
-        <h1 class="back-title" onclick="refreshList()">${list.name}</h1>
-        <div class="detail-buttons">
-          <button id="btnHideDone" class="icon-button" title="Visa/Göm klara">
-            ${hideDone ? '☑' : '☐'}
-          </button>
-          <button id="btnToggleCats" class="icon-button" title="Komprimerat läge">≡</button>
-        </div>
-      </div>
+    contentHtml = `
+      ${topBarHtml()}
       <div class="category-list">${categoriesHTML}</div>
       <div class="bottom-bar">
         <button onclick="addItemsWithCategory(${i})" title="Lägg till">➕</button>
@@ -562,7 +570,10 @@ window.renderListDetail = function(i) {
       </div>`;
   }
 
-  // ===== Knapplogik =====
+  // Rendera allt
+  app.innerHTML = contentHtml;
+
+  // Knapplogik
   document.getElementById("btnHideDone").onclick = () => {
     hideDone = !hideDone;
     localStorage.setItem("hideDone", hideDone);
