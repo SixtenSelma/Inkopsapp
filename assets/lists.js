@@ -434,11 +434,7 @@ window.renderListDetail = function(i) {
         <span class="back-arrow"
               onclick="window.location.hash=''; renderAllLists()"
               title="Tillbaka">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
-               viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2.5"
-               stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
+          <!-- ... din befintliga bakåt‑ikon ... -->
         </span>
         <h1 class="back-title">${list.name}</h1>
         <div class="detail-buttons">
@@ -448,7 +444,15 @@ window.renderListDetail = function(i) {
           <button id="btnToggleCats" class="icon-button" title="Komprimerat läge">≡</button>
           <button class="icon-button import-button" title="Importera från lista"
                   onclick="importItemsFromList(${i})">
-            ⭳
+            <!-- ersätt Unicode med denna SVG -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                 viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <!-- stam -->
+              <line x1="12" y1="4" x2="12" y2="16"/>
+              <!-- pilspets -->
+              <polyline points="8 12 12 16 16 12"/>
+            </svg>
           </button>
         </div>
       </div>`;
