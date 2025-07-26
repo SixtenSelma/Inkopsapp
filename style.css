@@ -579,9 +579,14 @@ body.modal-open {
 /* ===== Komplettering / Note ===== */
 .item-note {
   font-size: 0.85rem;
-  color: #888;
-  margin-left: 6px;
-  font-style: italic;
+  color: #636e72;
+}
+
+.item-sign-date {
+  font-size: 0.85rem;
+  color: #636e72;
+  white-space: nowrap;
+  margin-left: 8px;
 }
 
 /* ===== Kategori-rubrik (extra tydlig!) ===== */
@@ -858,9 +863,9 @@ input[type="search"]::placeholder {
 /* ===== Komplementtext & datum i detaljvy ===== */
 .item-row2 {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 20px;             /* avstånd mellan text och datum */
-  margin-top: 4px;      /* behåll lite luft till list‐etiketten ovanför */
+  margin-top: 4px;
 }
 
 .item-row2 .left,
