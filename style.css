@@ -1061,5 +1061,41 @@ input[type="search"]::placeholder {
   color: #1b6eaa !important;
 }
 
+/* ===== Header – Inköpslistor ===== */
+.top-bar {
+  position: relative;           /* för absolut placering av knappen */
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: #fff;
+  border-bottom: 1px solid #e3e6ea;
+}
+
+.top-bar .back-title {
+  flex: 1;
+  margin: 0;
+  font-size: 2rem !important;   /* större än listnamnen */
+  font-weight: 700 !important;  /* tydlig men ej överdrivet fet */
+  color: #000 !important;       /* helt svart */
+  text-align: left;
+}
+
+/* Ta bort bakgrund på signaturknappen */
+.top-bar .icon-button {
+  position: absolute;
+  top: 0.75rem;
+  right: 1rem;
+  background: none !important;
+  border: none !important;
+  color: #000 !important;
+  font-size: 1.2rem !important;
+  padding: 0 !important;
+  transition: color 0.2s ease;
+}
+
+.top-bar .icon-button:hover {
+  color: #333 !important;
+  background: none !important;
+}
 
 /* ===== End of style.css ===== */
