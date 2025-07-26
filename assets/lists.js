@@ -422,14 +422,27 @@ window.renderListDetail = function(i) {
       </div>`;
   }).join('');
 
-  // 7) Rendera hela vyn
+   // 7) Rendera hela vyn
   app.innerHTML = `
-    <div class="top-bar" style="display:flex; flex-direction:column;">
-      <div class="top-header" style="display:flex; align-items:center; padding:0.5rem;">
-        <span class="back-arrow" onclick="renderAllLists()" title="Tillbaka" style="cursor:pointer; margin-right:10px; font-size:1.5rem;">‹</span>
-        <h1 class="back-title" style="margin:0; font-size:1.45em; font-weight:700; flex:1; text-align:left;">${list.name}</h1>
+    <div class="top-bar" style="display:flex; flex-direction:column; align-items:flex-start;">
+      <div class="top-header" style="display:flex; align-items:center; width:100%; padding:0.5rem;">
+        <span class="back-arrow"
+              onclick="renderAllLists()"
+              title="Tillbaka"
+              style="cursor:pointer; margin-right:10px; display:flex; align-items:center;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
+               viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </span>
+        <h1 class="back-title"
+            style="margin:0; font-size:1.45em; font-weight:700; flex:1;">
+          ${list.name}
+        </h1>
       </div>
-      <div class="header-options" style="display:flex; gap:1rem; padding:0 0.5rem 0.5rem;">
+      <div class="header-options"
+           style="display:flex; gap:1rem; width:100%; padding:0 0.5rem 0.5rem;">
         <label style="display:flex; align-items:center; gap:0.25rem;">
           <input type="checkbox" id="hideDoneCheckbox" />
           <span>Dölj klara</span>
@@ -438,7 +451,10 @@ window.renderListDetail = function(i) {
           <input type="checkbox" id="toggleCatsCheckbox" />
           <span>Dölj kategorier</span>
         </label>
-        <button id="undoBtn" style="background:none; border:none; cursor:pointer;">Ångra senaste val</button>
+        <button id="undoBtn"
+                style="background:none; border:none; cursor:pointer;">
+          Ångra senaste val
+        </button>
       </div>
     </div>
     <div class="category-list">
