@@ -652,7 +652,7 @@ window.importItemsFromList = async function(targetIndex) {
   if (srcIdx == null) return;
   const srcList = lists[srcIdx];
 
-  // 2) Gruppera varor per kategori, spara globalt index
+  // 2) Gruppera per kategori, spara globalt index
   const grouped = {};
   srcList.items.forEach((item, globalIdx) => {
     const cat = item.category || '🏠 Övrigt (Hem, Teknik, Kläder, Säsong)';
@@ -666,7 +666,7 @@ window.importItemsFromList = async function(targetIndex) {
     ...Object.keys(grouped).filter(cat => !standardKategorier.includes(cat))
   ];
 
-  // 4) Bygg modal
+  // 4) Bygg modal-overlay
   const overlay = document.createElement('div');
   overlay.className = 'modal import-modal';
   overlay.style.backdropFilter = 'blur(4px)';
@@ -677,22 +677,23 @@ window.importItemsFromList = async function(targetIndex) {
   box.innerHTML = `<h2>Importera varor från <em>${srcList.name}</em></h2>`;
   overlay.appendChild(box);
 
+  // 5) Lista med scroll
   const listContainer = document.createElement('div');
   listContainer.className = 'import-list';
   box.appendChild(listContainer);
 
-  // 5) Lägg in varje kategori i rätt ordning
+  // 6) Lägg in varje kategori i rätt ordning
   orderedCats.forEach(cat => {
     const entries = grouped[cat];
     if (!entries) return;
 
-    // rubrik
+    // kategori-rubrik
     const catHead = document.createElement('div');
     catHead.className = 'import-category';
     catHead.textContent = cat;
     listContainer.appendChild(catHead);
 
-    // varor
+    // varor i kategori
     entries.forEach(({ item, globalIdx }) => {
       const row = document.createElement('label');
       row.className = 'import-row';
@@ -712,7 +713,7 @@ window.importItemsFromList = async function(targetIndex) {
     });
   });
 
-  // 6) Knappar
+  // 7) Knappar för Avbryt och Importera
   const actions = document.createElement('div');
   actions.className = 'modal-actions';
   box.appendChild(actions);
