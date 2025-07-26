@@ -1080,22 +1080,18 @@ input[type="search"]::placeholder {
   text-align: left;
 }
 
-/* Ta bort bakgrund på signaturknappen */
+/* Signaturknappen i top-bar */
 .top-bar .icon-button {
-  position: absolute;
-  top: 0.75rem;
-  right: 1rem;
   background: none !important;
   border: none !important;
-  color: #000 !important;
-  font-size: 1.2rem !important;
-  padding: 0 !important;
+  color: #000 !important;      /* svart text/ikon */
+  font-size: 1rem !important;  /* lagom storlek för 'FB 🖊' */
+  padding: 0 !important;       /* inga extra ytor */
   transition: color 0.2s ease;
 }
 
 .top-bar .icon-button:hover {
-  color: #333 !important;
-  background: none !important;
+  color: #333 !important;      /* diskret hover‑effekt */
 }
 
 /* ===== End of style.css ===== */
