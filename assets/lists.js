@@ -218,6 +218,9 @@ window.showAddItemsDialog = function({ allaVaror, mallVaror, kategoriVaror, onDo
 
 // ===== Rendera översikt av alla listor =====
 window.renderAllLists = function() {
+  // Nollställ URL-hashen så du hamnar på översikten
+  window.location.hash = "";
+  
   const activeLists   = lists.filter(l => !l.archived);
   const archivedLists = lists.filter(l => l.archived);
 
