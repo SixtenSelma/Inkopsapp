@@ -870,5 +870,11 @@ input[type="search"]::placeholder {
   font-style: italic;
 }
 
+/* ===== Meta‑text för skapad/ändrad datum på listkorten ===== */
+.meta-text {
+  font-size: 0.75rem;
+  color: #888;
+  margin-bottom: 6px;
+}
 
 /* ===== End of style.css ===== */
