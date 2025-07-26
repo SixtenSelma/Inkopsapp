@@ -413,8 +413,7 @@ window.renderListDetail = function(i) {
 
   app.innerHTML = `
     <div class="top-bar">
-      //<span class="back-arrow" onclick="renderAllLists()" title="Tillbaka">
-      <span class="back-arrow" onclick="window.location.hash=''; renderAllLists()" title="Tillbaka">…</span>
+      <span class="back-arrow" onclick="window.location.hash=''; renderAllLists() "title="Tillbaka">
         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
              viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2.5"
              stroke-linecap="round" stroke-linejoin="round">
