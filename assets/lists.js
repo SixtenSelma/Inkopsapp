@@ -427,10 +427,7 @@ window.renderListDetail = function(i) {
   let compressedMode = localStorage.getItem("compressedMode") === "true";
   window.location.hash = encodeURIComponent(list.name);
 
-  // Funktion för att importera
-  const importFromList = () => importItemsFromList(i);
-
-  // ---------- Hjälpfunktion för top‑bar markup ----------
+  // ---------- Hjälpfunktion för top‑bar HTML ----------
   function topBarHtml() {
     return `
       <div class="top-bar">
@@ -449,15 +446,6 @@ window.renderListDetail = function(i) {
             ${hideDone ? '☑' : '☐'}
           </button>
           <button id="btnToggleCats" class="icon-button" title="Komprimerat läge">≡</button>
-          <button id="btnImportList" class="icon-button import-button" title="Importera från lista"
-                  onclick="importFromList()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                 viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="12 5 12 16"/>
-              <polyline points="5 9 12 16 19 9"/>
-            </svg>
-          </button>
         </div>
       </div>`;
   }
@@ -465,15 +453,16 @@ window.renderListDetail = function(i) {
   // ---------- Komprimerat läge ----------
   let contentHtml;
   if (compressedMode) {
-    // Dela upp ej klara / klara
-    let incomplete = list.items.filter(item => !item.done);
-    let complete   = list.items.filter(item => item.done);
+    // 1) Dela på klara/ej klara
+    let incomplete = list.items.filter(it => !it.done);
+    let complete   = list.items.filter(it => it.done);
     if (hideDone) complete = [];
     const cmp = (a,b) => a.name.localeCompare(b.name,'sv');
     incomplete.sort(cmp);
     complete.sort(cmp);
     const items = [...incomplete, ...complete];
 
+    // 2) Generera rader
     const rows = items.map(item => {
       const idx = list.items.indexOf(item);
       const nameHTML = item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`;
@@ -487,9 +476,7 @@ window.renderListDetail = function(i) {
             onchange="toggleItem(${i}, ${idx}, lists, user, saveAndRenderList)" />
           <div class="item-name">
             <div class="item-line1">${nameHTML}</div>
-            <div class="item-note-sign-wrapper">
-              ${noteHTML}${sigHTML}
-            </div>
+            <div class="item-note-sign-wrapper">${noteHTML}${sigHTML}</div>
           </div>
           <button class="menu-btn"
                   onclick="openItemMenu(${i}, ${idx}, this)">⋮</button>
@@ -506,7 +493,7 @@ window.renderListDetail = function(i) {
   }
   // ---------- Kategoriview ----------
   else {
-    // Grupp och filter
+    // 1) Grupp och filter
     const allItems = list.items.map((it, idx) => ({ ...it, idx }));
     const grouped  = {};
     standardKategorier.forEach(cat => grouped[cat] = []);
@@ -515,6 +502,7 @@ window.renderListDetail = function(i) {
       grouped[c].push(item);
     });
 
+    // 2) Dela upp i med/utan
     const catsWithItems = [], catsWithout = [];
     standardKategorier.forEach(cat => {
       const src = grouped[cat];
@@ -522,13 +510,13 @@ window.renderListDetail = function(i) {
       if (vis.length) catsWithItems.push({cat,items:vis});
       else catsWithout.push({cat,items:[]});
     });
-
     const finalCats = hideDone ? catsWithItems : catsWithItems.concat(catsWithout);
 
+    // 3) Generera HTML per kategori
     const categoriesHTML = finalCats.map(({cat,items}) => {
       const sorted = [
         ...items.filter(x=>!x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv')),
-        ...items.filter(x=>x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv'))
+        ...items.filter(x=> x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv'))
       ];
       const rows = sorted.map(item => {
         return `
@@ -587,7 +575,6 @@ window.renderListDetail = function(i) {
 
   applyFade && applyFade();
 };
-
 
 
 
