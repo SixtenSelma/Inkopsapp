@@ -210,18 +210,24 @@ input[type="checkbox"] {
   justify-content: space-between;
   align-items: center;
   margin: 0 0 6px;
-  width: 100%; /* full width for proper justification */
+  width: 100%;
 }
+
 /* ===== To-Do View ===== */
-.todo-list { padding: 0; margin: 0; }
+.todo-list {
+  padding: 0;
+  margin: 0;
+}
 .todo-item {
   display: flex;
   align-items: center;
-  padding: 8px 12px;
+  padding: 8px 12px;  /* tajtare rader */
   border-bottom: 1px solid #eaeaea;
   background: #fff;
 }
-.todo-item:last-child { border-bottom: none; }
+.todo-item:last-child {
+  border-bottom: none;
+}
 .todo-item.done {
   opacity: 1;
   color: #888 !important;
@@ -241,80 +247,26 @@ input[type="checkbox"] {
   flex-direction: column;
 }
 
-/* Grid för att vänster/högerjustera komplementtext och tid */
+/* ===== Note & Signature Alignment ===== */
 .item-note-sign-wrapper {
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
-}
-.item-note-sign-wrapper > .item-note {
-  text-align: left;
-}
-.item-note-sign-wrapper > .item-sign-date {
-  margin-left: auto;
-}
-
-.todo-list { padding: 0; margin: 0; }
-.todo-item {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;  /* minskad padding för tajtare rader */
-  border-bottom: 1px solid #eaeaea;
-  background: #fff;
-}
-.todo-item:last-child { border-bottom: none; }
-.todo-item.done {
-  opacity: 1;
-  color: #888 !important;
-}
-.todo-item.done .item-name,
-.todo-item.done .item-name strong,
-.todo-item.done .item-name s,
-.todo-item.done .item-note-sign-wrapper,
-.todo-item.done .item-note-sign-wrapper > .item-note,
-.todo-item.done .item-note-sign-wrapper > .item-sign-date {
-  color: #888 !important;
-  font-style: italic !important;
-}
-.todo-item.done .item-name s { color: #888 !important; opacity: 1; }
-.todo-item .item-name {
-  flex-grow: 1;
-  margin-left: 8px;  /* mindre mellanrum */
-  font-size: 1rem;
-  display: flex;
-  flex-direction: column;
-}
-.item-note-sign-wrapper {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%; /* full width for correct alignment */
   font-size: 0.85rem;
   margin-top: 2px;
-  line-height: 1.1;
-  font-family: inherit;
   color: #888;
   font-style: italic;
 }
 .item-note-sign-wrapper > .item-note {
-  flex: 1;
   text-align: left;
+  flex: 1;
 }
 .item-note-sign-wrapper > .item-sign-date {
-  flex-shrink: 0;
+  margin-left: auto;
   text-align: right;
-  margin-left: 8px;
-}
-.item-note-sign-wrapper > .item-note {
-  flex: 1;
-  text-align: left;
-}
-.item-note-sign-wrapper > .item-sign-date {
   white-space: nowrap;
-  font-weight: 600;
-  text-align: right;
-  margin-left: 8px;
+  font-weight: normal; /* ingen fetstil */
 }
 
 /* ===== Templates & Archive ===== */
@@ -358,8 +310,8 @@ input[type="checkbox"] {
   animation: fadeArchive 0.3s;
 }
 @keyframes fadeArchive {
-  from { opacity: 0; transform: translateY(-10px);} 
-  to { opacity: 1; transform: translateY(0);} 
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 .archived-list-card, .archived-card {
   background: #f7f7f7;
@@ -383,7 +335,7 @@ input[type="checkbox"] {
   color: #777;
   pointer-events: none;
 }
-.archived-list-card .list-card-title, 
+.archived-list-card .list-card-title,
 .archived-card .list-card-title {
   text-decoration: line-through;
   font-style: italic;
@@ -414,15 +366,9 @@ body.modal-open {
   display: flex;
   flex-direction: column;
 }
-.modal-content input,
-.modal-content .batch-search-row input {
-  width: 100%;
-  padding: 10px 14px;
-  font-size: 1rem;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  box-sizing: border-box;
-  margin-top: 12px;
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.95); }
+ 100% { opacity: 1; transform: scale(1); }
 }
 .modal-actions {
   display: flex;
@@ -433,10 +379,6 @@ body.modal-open {
 .modal-actions button {
   flex: 1;
   margin: 0 2px;
-}
-@keyframes popIn {
-  0% { opacity: 0; transform: scale(0.95);} 
-  100% { opacity: 1; transform: scale(1);} 
 }
 
 /* ===== Floating Action Button ===== */
@@ -473,7 +415,7 @@ body.modal-open {
   text-shadow: 0 1px 0 #fff;
 }
 
-/* Plusknapp i kategori-rad */
+/* ===== Category Add Button ===== */
 .category-add-btn {
   width: 28px;
   height: 28px;
@@ -489,23 +431,6 @@ body.modal-open {
   justify-content: center;
   transition: background 0.2s;
 }
-.category-add-btn:hover { background-color: #399e29; }
-
-/* Komplementtext och sign/tid justering i varuposter */
-.item-note-sign-wrapper {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.85rem;
-  margin-top: 4px;
-  line-height: 1.1;
+.category-add-btn:hover {
+  background-color: #399e29;
 }
-.item-note-sign-wrapper > .item-note {
-  text-align: left;
-  flex: 1;
-}
-.item-note-sign-wrapper > .item-sign-date {
-  text-align: right;
-  margin-left: 10px;
-}
-
-$1
