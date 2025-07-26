@@ -358,13 +358,14 @@ window.openListMenuByName = function(name, btn) {
 // ===== Rendera enskild lista med "Dölj klara", "Dölj kategorier" och "Uppdatera vy" =====
 // ===== Rendera enskild lista med “☑ Klara”, “☑ Kategorivy” och “↻” =====
 // ===== Rendera enskild lista med “Dölj klara”, “Kategorivy” och “Uppdatera vy” =====
+// ===== Rendera enskild lista med “Dölj klara”, “Kategorivy” och “Uppdatera vy” =====
 window.renderListDetail = function(i) {
   const list = lists[i];
 
   // Läs inställning för Dölj klara
   let hideDone = localStorage.getItem("hideDone") === "true";
 
-  // Uppdatera URL‐hash för att behålla detaljvy vid refresh
+  // Uppdatera URL‑hash för att behålla detaljvy vid refresh
   window.location.hash = encodeURIComponent(list.name);
 
   // 1) Förbered items med index
@@ -412,13 +413,13 @@ window.renderListDetail = function(i) {
           return `
             <li class="todo-item ${item.done?'done':''}">
               <input type="checkbox" ${item.done?'checked':''}
-                onchange="toggleItem(${i}, ${item.idx}, lists, user, saveAndRenderList)" />
+                     onchange="toggleItem(${i}, ${item.idx}, lists, user, saveAndRenderList)" />
               <div class="item-name">
                 <div class="item-line1">${nameHtml}</div>
                 <div class="item-line2">${note} ${sig}</div>
               </div>
               <button class="menu-btn"
-                onclick="openItemMenu(${i}, ${item.idx}, this)">⋮</button>
+                      onclick="openItemMenu(${i}, ${item.idx}, this)">⋮</button>
             </li>`;
         }).join('')
       : `<p class="empty-category">Inga varor i denna kategori</p>`;
@@ -436,6 +437,7 @@ window.renderListDetail = function(i) {
   // 6) Rendera hela vyn
   app.innerHTML = `
     <div class="top-bar">
+      <!-- Rad 1: Original rubrikrad -->
       <div class="top-header">
         <span class="back-arrow" onclick="renderAllLists()" title="Tillbaka">
           <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
@@ -446,44 +448,42 @@ window.renderListDetail = function(i) {
         </span>
         <h1 class="back-title">${list.name}</h1>
       </div>
+      <!-- Rad 2: Detalj‑kontroller -->
       <div class="detail-controls">
         <button id="btnHideDone" title="Visa/Göm klara">
           ${hideDone ? '☑ Dölj klara' : '☐ Dölj klara'}
         </button>
         <button id="btnToggleCats" title="Visa/Göm kategorivy">
-          ☑ Kategorivy
+          ☐ Kategorivy
         </button>
         <button id="btnRefresh" title="Uppdatera vy">↻</button>
       </div>
     </div>
+    <!-- Lista med kategorier och varor -->
     <div class="category-list">
       ${categoriesHTML}
     </div>
+    <!-- Befintliga botten‑knappar -->
     <div class="bottom-bar">
       <button onclick="addItemsWithCategory(${i})" title="Lägg till">➕</button>
       <button onclick="importItemsFromList(${i})" title="Importera">📥</button>
     </div>`;
 
-  // 7) Event‑handlers för knapparna
-
-  // Dölj/Göm klara
+  // 7) Event‑handlers för det nya kontrollfältet
   document.getElementById("btnHideDone").onclick = () => {
     hideDone = !hideDone;
     localStorage.setItem("hideDone", hideDone);
     renderListDetail(i);
   };
 
-  // Dölj/Göm kategorivy
   let catsHidden = false;
-  const btnCats = document.getElementById("btnToggleCats");
-  btnCats.onclick = () => {
+  document.getElementById("btnToggleCats").onclick = function() {
     catsHidden = !catsHidden;
-    btnCats.textContent = catsHidden ? '☐ Kategorivy' : '☑ Kategorivy';
+    this.textContent = catsHidden ? '☑ Kategorivy' : '☐ Kategorivy';
     document.querySelectorAll(".category-block")
             .forEach(el => el.style.display = catsHidden ? "none" : "");
   };
 
-  // Uppdatera vy
   document.getElementById("btnRefresh").onclick = () => {
     renderListDetail(i);
   };
@@ -491,7 +491,6 @@ window.renderListDetail = function(i) {
   // 8) Fade‑in om tillämpligt
   applyFade && applyFade();
 };
-
 
 // ===== Batch-lägg till via kategori-knapp =====
 // ===== Lägg till via kategori-knapp =====
