@@ -389,6 +389,8 @@ window.renderListDetail = function(i) {
             <li class="todo-item ${item.done?'done':''}">
               <input type="checkbox" ${item.done?'checked':''}
                      onchange="toggleItem(${i}, ${item.idx}, lists, user, saveAndRenderList)" />
+              <button class="menu-btn"
+                      onclick="openItemMenu(${i}, ${item.idx}, this)">⋮</button>
               <div class="item-name">
                 <div class="item-line1">${nameHtml}</div>
                 <div class="item-note-sign-wrapper">
@@ -396,8 +398,6 @@ window.renderListDetail = function(i) {
                   ${sigHtml}
                 </div>
               </div>
-              <button class="menu-btn"
-                      onclick="openItemMenu(${i}, ${item.idx}, this)">⋮</button>
             </li>`;
         }).join('')
       : `<p class="empty-category">Inga varor i denna kategori</p>`;
@@ -415,7 +415,14 @@ window.renderListDetail = function(i) {
 
   app.innerHTML = `
     <div class="top-bar">
-      <h1 class="back-title" onclick="renderAllLists()">Inköpslistor</h1>
+      <span class="back-arrow" onclick="renderAllLists()" title="Tillbaka">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
+             viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </span>
+      <h1 class="back-title">${list.name}</h1>
       <div class="detail-buttons">
         <button id="btnHideDone" class="icon-button" title="Visa/Göm klara">
           ${hideDone ? '☑' : '☐'}
@@ -447,7 +454,6 @@ window.renderListDetail = function(i) {
 
   applyFade && applyFade();
 };
-
 // ===== Batch-lägg till via kategori-knapp =====
 // ===== Lägg till via kategori-knapp =====
 window.addItemViaCategory = function(listIndex, category) {
