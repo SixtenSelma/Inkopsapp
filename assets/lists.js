@@ -446,7 +446,7 @@ window.renderListDetail = function(i) {
             <polyline points="15 18 9 12 15 6"/>
           </svg>
         </span>
-        <h1 class="back-title">${list.name}</h1>
+        <h1 class="back-title" style="font-size:1.45em;">${list.name}</h1>
       </div>
       <!-- Rad 2: Detalj‑kontroller -->
       <div class="detail-controls">
