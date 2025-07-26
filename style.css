@@ -400,33 +400,56 @@ body.modal-open {
   padding: 0;
 }
 
-/* ===== Misc ===== */
-.fade-enter {
-  opacity: 0;
-  transform: scale(0.98);
+/* ===== Category Heading ===== */
+.category-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #232323;
+  padding: 4px 14px 4px 8px;
+  background: #f4faf4;
+  border-left: 4px solid #4cd137;
+  border-radius: 7px 24px 24px 7px;
+  box-shadow: 0 1px 0 #e0e0e0;
+  text-shadow: 0 1px 0 #fff;
 }
-.fade-enter-active {
-  opacity: 1;
-  transform: scale(1);
-  transition: opacity 200ms, transform 200ms;
+
+/* Plusknapp i kategori-rad */
+.category-add-btn {
+  width: 28px;
+  height: 28px;
+  font-size: 20px;
+  line-height: 28px;
+  background-color: #4cd137;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
 }
-.toast {
-  position: fixed;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #4cd137;
-  color: white;
-  padding: 12px 20px;
-  border-radius: 20px;
-  font-weight: 500;
-  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
-  animation: fadeToast 2.5s ease-out forwards;
-  z-index: 2000;
+.category-add-btn:hover { background-color: #399e29; }
+
+/* Komplementtext och sign/tid justering i varuposter */
+.item-note-sign-wrapper {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  margin-top: 4px;
+  line-height: 1.1;
 }
-@keyframes fadeToast {
-  0% { opacity: 0; transform: translate(-50%, 20px);} 
-  10% { opacity: 1; transform: translate(-50%, 0);} 
-  90% { opacity: 1;} 
-  100% { opacity: 0; transform: translate(-50%, -10px);} 
+.item-note-sign-wrapper > .item-note {
+  text-align: left;
+  flex: 1;
 }
+.item-note-sign-wrapper > .item-sign-date {
+  text-align: right;
+  margin-left: 10px;
+}
+
+$1
