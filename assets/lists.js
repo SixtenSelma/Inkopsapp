@@ -457,7 +457,7 @@ window.renderListDetail = function(i) {
         <button id="btnHideDone"
                 style="background:none;border:none;cursor:pointer;font-size:1rem;"
                 title="Visa/göm klara">
-          ${hideDone ? '☑ Klara' : '☐ Klara'}
+          ${hideDone ? '☑ Dölj klara' : '☐ Dölj klara'}
         </button>
         <button id="btnToggleCats"
                 style="background:none;border:none;cursor:pointer;font-size:1rem;"
@@ -493,7 +493,7 @@ window.renderListDetail = function(i) {
   const btnCats = document.getElementById("btnToggleCats");
   btnCats.onclick = () => {
     catsHidden = !catsHidden;
-    btnCats.textContent = catsHidden ? '☐ Kategorivy' : '☑ Kategorivy';
+    btnCats.textContent = catsHidden ? '☐ Visa kategorivy' : '☑ Visa kategorivy';
     document.querySelectorAll(".category-block")
             .forEach(el => el.style.display = catsHidden ? "none" : "");
   };
