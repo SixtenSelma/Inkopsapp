@@ -468,3 +468,15 @@ body.modal-open {
   color: #636e72;
 }
 
+/* ===== Import‑knapp i top‑bar ===== */
+.icon-button.import-button {
+  background: transparent !important;
+  padding: 4px !important;
+}
+.icon-button.import-button svg {
+  stroke: #000 !important;
+  fill: none;
+}
+.icon-button.import-button:hover {
+  background: rgba(0,0,0,0.05) !important;
+}
