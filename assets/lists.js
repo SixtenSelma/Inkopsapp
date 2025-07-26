@@ -342,6 +342,7 @@ window.openListMenuByName = function(name, btn) {
 };
 
 // ===== Rendera enskild lista (detaljvy) =====
+// ===== Rendera enskild lista (detaljvy) =====
 window.renderListDetail = function(i) {
   const list = lists[i];
   let hideDone = localStorage.getItem("hideDone") === "true";
@@ -351,8 +352,8 @@ window.renderListDetail = function(i) {
   const grouped = {};
   standardKategorier.forEach(cat => grouped[cat] = []);
   allItems.forEach(item => {
-    const cat = item.category || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)";
-    grouped[cat].push(item);
+    const category = item.category || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)";
+    grouped[category].push(item);
   });
 
   const filled = [], empty = [];
@@ -363,9 +364,7 @@ window.renderListDetail = function(i) {
   });
 
   const finalCats = hideDone ? filled : [...filled, ...empty];
-  finalCats.sort((a, b) =>
-    standardKategorier.indexOf(a.cat) - standardKategorier.indexOf(b.cat)
-  );
+  finalCats.sort((a,b) => standardKategorier.indexOf(a.cat) - standardKategorier.indexOf(b.cat));
 
   const categoriesHTML = finalCats.map(({ cat, items }) => {
     const sorted = [
@@ -375,29 +374,27 @@ window.renderListDetail = function(i) {
 
     const rows = sorted.length
       ? sorted.map(item => {
-          const nameHtml = item.done
-            ? `<s>${item.name}</s>`
-            : `<strong>${item.name}</strong>`;
-          const noteHtml = item.note
-            ? `<span class="item-note">${item.note}</span>`
-            : "";
-          const sigHtml = item.done && item.doneBy
-            ? `<span class="item-sign-date">${item.doneBy} ${formatDate(item.doneAt)}</span>`
-            : "";
+          const nameHTML = item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`;
+          const noteHTML = item.note ? `<span class="item-note">${item.note}</span>` : "";
+          const sigHTML  = item.done && item.doneBy
+                         ? `<span class="item-sign-date">${item.doneBy} ${formatDate(item.doneAt)}</span>`
+                         : "";
 
           return `
             <li class="todo-item ${item.done?'done':''}">
               <input type="checkbox" ${item.done?'checked':''}
                      onchange="toggleItem(${i}, ${item.idx}, lists, user, saveAndRenderList)" />
-              <button class="menu-btn"
-                      onclick="openItemMenu(${i}, ${item.idx}, this)">⋮</button>
+              
               <div class="item-name">
-                <div class="item-line1">${nameHtml}</div>
+                <div class="item-line1">${nameHTML}</div>
                 <div class="item-note-sign-wrapper">
-                  ${noteHtml}
-                  ${sigHtml}
+                  ${noteHTML}
+                  ${sigHTML}
                 </div>
               </div>
+              
+              <button class="menu-btn"
+                      onclick="openItemMenu(${i}, ${item.idx}, this)">⋮</button>
             </li>`;
         }).join('')
       : `<p class="empty-category">Inga varor i denna kategori</p>`;
@@ -454,6 +451,7 @@ window.renderListDetail = function(i) {
 
   applyFade && applyFade();
 };
+
 // ===== Batch-lägg till via kategori-knapp =====
 // ===== Lägg till via kategori-knapp =====
 window.addItemViaCategory = function(listIndex, category) {
