@@ -434,3 +434,22 @@ body.modal-open {
 .category-add-btn:hover {
   background-color: #399e29;
 }
+
+/* ===== Progress ===== */
+.progress-bar {
+  background-color: #dfe4ea;
+  height: 8px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+.progress-fill {
+  background-color: #4cd137;
+  height: 100%;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+.progress-text {
+  font-size: 0.85rem;
+  color: #636e72;
+}
