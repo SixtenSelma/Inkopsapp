@@ -448,10 +448,14 @@ window.renderListDetail = function(i) {
           <button id="btnToggleCats" class="icon-button" title="Komprimerat läge">≡</button>
           <button class="icon-button import-button" title="Importera från lista"
                   onclick="importItemsFromList(${i})">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"
-                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="12 5 12 16"/>
-              <polyline points="5 9 12 16 19 9"/>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                 viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+              <!-- Fat (låda) -->
+              <path d="M4 17h16v-6H4z" stroke="#000"/>
+              <!-- Pilens stam -->
+              <path d="M12 3v8" stroke="#000"/>
+              <!-- Pilspets -->
+              <path d="M8 9l4 4 4-4" stroke="#000"/>
             </svg>
           </button>
         </div>
