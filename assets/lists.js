@@ -642,7 +642,8 @@ if (typeof renderAllLists === 'function') renderAllLists();
 
 /**
  * Importerar valda varor från en annan lista.
- * Visar kategorier i samma ordning som i detaljvyn (standardKategorier först).
+ * Visar kategorier i samma ordning som i detaljvyn:
+ * först de i standardKategorier, sedan resten alfabetiskt.
  *
  * @param {number} targetIndex – index på den lista vi är i
  */
@@ -660,11 +661,23 @@ window.importItemsFromList = async function(targetIndex) {
     grouped[cat].push({ item, globalIdx });
   });
 
-  // 3) Bestäm ordning: först standardKategorier, sen övriga
-  const orderedCats = [
-    ...standardKategorier.filter(cat => grouped[cat]),
-    ...Object.keys(grouped).filter(cat => !standardKategorier.includes(cat))
-  ];
+  // 3) Skapa en array med alla kategorinamn, sorterade
+  const allCats = Object.keys(grouped);
+  allCats.sort((a, b) => {
+    const aIdx = standardKategorier.indexOf(a);
+    const bIdx = standardKategorier.indexOf(b);
+    const aIsStd = aIdx !== -1;
+    const bIsStd = bIdx !== -1;
+
+    // Om båda är standard, jämför deras index
+    if (aIsStd && bIsStd) return aIdx - bIdx;
+    // Om bara a är standard → a först
+    if (aIsStd) return -1;
+    // Om bara b är standard → b först
+    if (bIsStd) return 1;
+    // Annars, båda icke-standard → svensk alfabetisk
+    return a.localeCompare(b, 'sv');
+  });
 
   // 4) Bygg modal-overlay
   const overlay = document.createElement('div');
@@ -677,23 +690,23 @@ window.importItemsFromList = async function(targetIndex) {
   box.innerHTML = `<h2>Importera varor från <em>${srcList.name}</em></h2>`;
   overlay.appendChild(box);
 
-  // 5) Lista med scroll
+  // 5) Container för listan
   const listContainer = document.createElement('div');
   listContainer.className = 'import-list';
   box.appendChild(listContainer);
 
-  // 6) Lägg in varje kategori i rätt ordning
-  orderedCats.forEach(cat => {
+  // 6) Rendera varje kategori i rätt ordning
+  allCats.forEach(cat => {
     const entries = grouped[cat];
-    if (!entries) return;
+    if (!entries || entries.length === 0) return;
 
-    // kategori-rubrik
+    // Rubrik
     const catHead = document.createElement('div');
     catHead.className = 'import-category';
     catHead.textContent = cat;
     listContainer.appendChild(catHead);
 
-    // varor i kategori
+    // Rader
     entries.forEach(({ item, globalIdx }) => {
       const row = document.createElement('label');
       row.className = 'import-row';
@@ -713,7 +726,7 @@ window.importItemsFromList = async function(targetIndex) {
     });
   });
 
-  // 7) Knappar för Avbryt och Importera
+  // 7) Knappar
   const actions = document.createElement('div');
   actions.className = 'modal-actions';
   box.appendChild(actions);
@@ -751,7 +764,6 @@ window.importItemsFromList = async function(targetIndex) {
   };
   actions.appendChild(btnImport);
 };
-
 
 
 /**
