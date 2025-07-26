@@ -475,8 +475,7 @@ body.modal-open {
   border-radius: 8px !important;
 }
 .icon-button.import-button svg {
-  stroke: #000 !important;
-  fill: none !important;
+  display: block;
 }
 .icon-button.import-button:hover {
   background: rgba(0,0,0,0.05) !important;
