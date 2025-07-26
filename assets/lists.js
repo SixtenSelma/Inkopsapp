@@ -427,7 +427,7 @@ window.renderListDetail = function(i) {
   let compressedMode = localStorage.getItem("compressedMode") === "true";
   window.location.hash = encodeURIComponent(list.name);
 
-  // ---------- Hjälpfunktion för top‑bar HTML ----------
+  // ---------- Helper for top bar ----------
   function topBarHtml() {
     return `
       <div class="top-bar">
@@ -446,6 +446,14 @@ window.renderListDetail = function(i) {
             ${hideDone ? '☑' : '☐'}
           </button>
           <button id="btnToggleCats" class="icon-button" title="Komprimerat läge">≡</button>
+          <button class="icon-button import-button" title="Importera från lista"
+                  onclick="importItemsFromList(${i})">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="12 5 12 16"/>
+              <polyline points="5 9 12 16 19 9"/>
+            </svg>
+          </button>
         </div>
       </div>`;
   }
@@ -453,7 +461,6 @@ window.renderListDetail = function(i) {
   // ---------- Komprimerat läge ----------
   let contentHtml;
   if (compressedMode) {
-    // 1) Dela på klara/ej klara
     let incomplete = list.items.filter(it => !it.done);
     let complete   = list.items.filter(it => it.done);
     if (hideDone) complete = [];
@@ -462,7 +469,6 @@ window.renderListDetail = function(i) {
     complete.sort(cmp);
     const items = [...incomplete, ...complete];
 
-    // 2) Generera rader
     const rows = items.map(item => {
       const idx = list.items.indexOf(item);
       const nameHTML = item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`;
@@ -488,21 +494,18 @@ window.renderListDetail = function(i) {
       <ul class="todo-list">${rows}</ul>
       <div class="bottom-bar">
         <button onclick="addItemsWithCategory(${i})" title="Lägg till">➕</button>
-        <button onclick="importItemsFromList(${i})" title="Importera">📥</button>
       </div>`;
   }
   // ---------- Kategoriview ----------
   else {
-    // 1) Grupp och filter
     const allItems = list.items.map((it, idx) => ({ ...it, idx }));
     const grouped  = {};
     standardKategorier.forEach(cat => grouped[cat] = []);
     allItems.forEach(item => {
-      const c = item.category || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)";
+      const c = item.category || "🏠 Övrigt";
       grouped[c].push(item);
     });
 
-    // 2) Dela upp i med/utan
     const catsWithItems = [], catsWithout = [];
     standardKategorier.forEach(cat => {
       const src = grouped[cat];
@@ -512,11 +515,10 @@ window.renderListDetail = function(i) {
     });
     const finalCats = hideDone ? catsWithItems : catsWithItems.concat(catsWithout);
 
-    // 3) Generera HTML per kategori
     const categoriesHTML = finalCats.map(({cat,items}) => {
       const sorted = [
         ...items.filter(x=>!x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv')),
-        ...items.filter(x=> x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv'))
+        ...items.filter(x=>x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv'))
       ];
       const rows = sorted.map(item => {
         return `
@@ -554,7 +556,6 @@ window.renderListDetail = function(i) {
       <div class="category-list">${categoriesHTML}</div>
       <div class="bottom-bar">
         <button onclick="addItemsWithCategory(${i})" title="Lägg till">➕</button>
-        <button onclick="importItemsFromList(${i})" title="Importera">📥</button>
       </div>`;
   }
 
@@ -575,7 +576,6 @@ window.renderListDetail = function(i) {
 
   applyFade && applyFade();
 };
-
 
 
 // ===== Lägg till varor via plusknapp =====
