@@ -217,6 +217,53 @@ input[type="checkbox"] {
 .todo-item {
   display: flex;
   align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid #eaeaea;
+  background: #fff;
+}
+.todo-item:last-child { border-bottom: none; }
+.todo-item.done {
+  opacity: 1;
+  color: #888 !important;
+}
+.todo-item.done .item-name,
+.todo-item.done .item-note-sign-wrapper,
+.todo-item.done .item-note-sign-wrapper > .item-note,
+.todo-item.done .item-note-sign-wrapper > .item-sign-date {
+  color: #888 !important;
+  font-style: italic !important;
+}
+.todo-item .item-name {
+  flex-grow: 1;
+  margin-left: 8px;
+  font-size: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Grid för att vänster/högerjustera komplementtext och tid */
+.item-note-sign-wrapper {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  font-size: 0.85rem;
+  margin-top: 2px;
+  color: #888;
+  font-style: italic;
+  width: 100%;
+}
+.item-note-sign-wrapper > .item-note {
+  text-align: left;
+}
+.item-note-sign-wrapper > .item-sign-date {
+  text-align: right;
+  white-space: nowrap;
+  margin-left: 8px;
+}
+
+.todo-list { padding: 0; margin: 0; }
+.todo-item {
+  display: flex;
+  align-items: center;
   padding: 8px 12px;  /* minskad padding för tajtare rader */
   border-bottom: 1px solid #eaeaea;
   background: #fff;
