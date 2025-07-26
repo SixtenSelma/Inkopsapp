@@ -218,6 +218,7 @@ window.showAddItemsDialog = function({ allaVaror, mallVaror, kategoriVaror, onDo
 
 // ===== Rendera översikt av alla listor =====
 // ===== Rendera översikt av alla listor =====
+// ===== Rendera översikt av alla listor =====
 window.renderAllLists = function() {
   // Filtrera aktiva och arkiverade
   const activeLists   = lists.filter(l => !l.archived);
@@ -305,7 +306,10 @@ window.renderAllLists = function() {
   app.innerHTML = `
     <div class="top-bar">
       <h1 class="back-title">Inköpslistor</h1>
-      <button class="icon-button" onclick="changeUser()" title="Byt namn">🖊</button>
+      <div class="user-badge">
+        ${user}
+        <button class="icon-button" onclick="changeUser()" title="Byt namn">🖊</button>
+      </div>
     </div>
     <ul class="list-wrapper">
       ${activeHTML}
@@ -330,6 +334,7 @@ window.renderAllLists = function() {
 
   applyFade && applyFade();
 };
+
 
 
 
