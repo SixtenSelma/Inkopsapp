@@ -355,7 +355,6 @@ window.openListMenuByName = function(name, btn) {
   if (idx>=0) openListMenu(idx, btn);
 };
 
-// ===== Rendera enskild lista med fungerande "Dölj klara" =====
 window.renderListDetail = function(i) {
   const list = lists[i];
 
