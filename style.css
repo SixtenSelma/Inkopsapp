@@ -283,7 +283,7 @@ button:hover { background-color: #44bd32; }
 .bottom-bar {
   position: fixed;
   bottom: 24px;
-  right: 24px;
+  right: calc(24px + 2mm);
   z-index: 50;
 }
 .bottom-bar button {
