@@ -248,27 +248,28 @@ window.showAddItemsDialog = function({ allaVaror, mallVaror, kategoriVaror, onDo
 
 // ===== Rendera översikt av alla listor =====
 window.renderAllLists = function() {
- 
   const activeLists   = lists.filter(l => !l.archived);
   const archivedLists = lists.filter(l => l.archived);
 
+  // Sortera aktiva listor efter senaste uppdatering (uppdateratAt eller createdAt)
   const sortedActive = [...activeLists].sort((a, b) => {
-    const aIsTemplate = a.name.startsWith('Mall:');
-    const bIsTemplate = b.name.startsWith('Mall:');
-    if (aIsTemplate !== bIsTemplate) return aIsTemplate ? 1 : -1;
-    return a.name.localeCompare(b.name, 'sv');
+    const aTime = new Date(a.updatedAt || a.createdAt).getTime();
+    const bTime = new Date(b.updatedAt || b.createdAt).getTime();
+    return bTime - aTime;
   });
 
+  // Sortera arkiverade listor: senast arkiverade först
   const sortedArchived = [...archivedLists].sort((a, b) =>
     (b.archivedAt || 0) - (a.archivedAt || 0)
   );
 
+  // Bygg HTML för aktiva listor
   const activeHTML = sortedActive.map(list => {
     const done  = list.items.filter(x => x.done).length;
     const total = list.items.length;
     const pct   = total ? Math.round(done / total * 100) : 0;
-    const uAt   = list.updatedAt  || list.archivedAt || list.createdAt || null;
-    const by     = (list.updatedBy || list.createdBy) || '';
+    const uAt   = list.updatedAt || list.createdAt || list.archivedAt || null;
+    const by    = list.updatedBy || list.createdBy || '';
     const tsText = uAt ? formatDate(uAt) : '';
 
     return `
@@ -292,6 +293,7 @@ window.renderAllLists = function() {
       </li>`;
   }).join('') || '<p class="no-lists">Inga listor än.</p>';
 
+  // Bygg HTML för arkiverade listor
   let archivedSection = '';
   if (sortedArchived.length) {
     const archivedHTML = sortedArchived.map(list => {
@@ -322,11 +324,12 @@ window.renderAllLists = function() {
       </div>`;
   }
 
+  // Rendera hela vyn
   app.innerHTML = `
     <div class="top-bar">
       <h1 class="back-title" onclick="renderAllLists()">Inköpslistor</h1>
       <button class="icon-button" onclick="changeUser()" title="Byt namn">
-        ${user} 🖊
+        ${window.user} 🖊
       </button>
     </div>
     <ul class="list-wrapper">
@@ -337,6 +340,7 @@ window.renderAllLists = function() {
       <button onclick="showNewListDialog()" title="Ny lista">➕</button>
     </div>`;
 
+  // Gör arkivsektionen kollapsbar
   window.toggleArchivedSection = function(e) {
     e.stopPropagation();
     const ul = e.currentTarget.nextElementSibling;
@@ -351,7 +355,6 @@ window.renderAllLists = function() {
 
   applyFade && applyFade();
 };
-
 
 
 
