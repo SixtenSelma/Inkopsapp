@@ -382,7 +382,7 @@ window.addItemViaCategory = function(listIndex, category) {
           category
         });
       });
-
+      stampListTimestamps(lists[listIndex]);
       saveLists(lists);
       renderListDetail(listIndex);
     }
@@ -649,7 +649,7 @@ window.addItemsWithCategory = function(listIndex = null) {
           category: cat
         });
       }
-
+      stampListTimestamps(lists[i]);
       saveLists(lists);
       renderListDetail(i);
     }
@@ -841,6 +841,7 @@ window.importItemsFromList = async function(targetIndex) {
           });
         }
       });
+    stampListTimestamps(lists[targetIndex]);
     saveLists(lists);
     renderListDetail(targetIndex);
     overlay.remove();
