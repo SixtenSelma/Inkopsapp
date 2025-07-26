@@ -906,4 +906,67 @@ input[type="search"]::placeholder {
   font-size:0.85rem;
   color:#555;
 }
+
+/* ===== Detaljvy: egna kontroller i top-bar ===== */
+/* Gör om top-bar till två rader: rubrik + kontrollrad */
+.top-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  background: #fff;
+  border-bottom: 1px solid #e3e6ea;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+/* Rad 1: pil + titel som tidigare */
+.top-bar .top-header {
+  display: flex;
+  align-items: center;
+  padding: 18px 20px;
+}
+.top-bar .top-header .back-arrow,
+.top-bar .top-header .back-title {
+  /* ärvda från dina tidigare regler */
+}
+
+/* Rad 2: knapp‑rad med exakt tre knappar */
+.top-bar .detail-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 8px 20px;       /* lite mindre än headern */
+  background: #fafafa;      /* diskret skiljelinje */
+}
+
+/* Styling av knapparna */
+.top-bar .detail-controls button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #333;
+  padding: 6px 8px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+/* Hover‑state */
+.top-bar .detail-controls button:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+/* Fokuserad/aktiv */
+.top-bar .detail-controls button.active,
+.top-bar .detail-controls button:focus {
+  background: rgba(0,0,0,0.1);
+}
+
+/* Se till att “Uppdatera vy”-knappen sitter längst ut till höger */
+.top-bar .detail-controls #btnRefresh {
+  margin-left: auto;
+}
+
+
 /* ===== End of style.css ===== */
