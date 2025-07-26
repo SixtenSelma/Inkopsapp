@@ -306,10 +306,10 @@ window.renderAllLists = function() {
   app.innerHTML = `
     <div class="top-bar">
       <h1 class="back-title">Inköpslistor</h1>
-      <div class="user-badge">
-        ${user}
-        <button class="icon-button" onclick="changeUser()" title="Byt namn">🖊</button>
-      </div>
+      <!-- Signatur + penna, helt utan bakgrund -->
+      <button class="icon-button" onclick="changeUser()" title="Byt namn">
+        ${user} 🖊
+      </button>
     </div>
     <ul class="list-wrapper">
       ${activeHTML}
