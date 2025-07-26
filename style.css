@@ -199,7 +199,7 @@ input[type="checkbox"] {
   align-items: center;
   font-weight: 600;
   font-size: 1rem;
-  margin-bottom: 6px;
+  margin-bottom: 10px; /* återställt ursprunglig */
 }
 .list-card-title {
   font-size: 1.22rem;
@@ -209,28 +209,8 @@ input[type="checkbox"] {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 0 0 6px;
+  margin: 0 0 10px; /* återställt ursprunglig spacing */
 }
-.progress-bar {
-  background: #dfe4ea;
-  height: 8px;
-  border-radius: 8px;
-  overflow: hidden;
-  margin: 8px 0;
-  pointer-events: none;
-}
-.progress-fill {
-  width: 0;
-  height: 100%;
-  background: #4cd137;
-  transition: width 0.3s;
-  pointer-events: none;
-}
-.progress-text, .progress-timestamp {
-  font-size: 0.85rem;
-  color: #636e72;
-}
-
 /* ===== Templates & Archive ===== */
 .list-card-template {
   background: #f9f6ee;
