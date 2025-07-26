@@ -251,8 +251,13 @@ window.renderAllLists = function() {
   const activeLists   = lists.filter(l => !l.archived);
   const archivedLists = lists.filter(l => l.archived);
 
-  // Sortera aktiva listor efter senaste uppdatering (uppdateratAt eller createdAt)
+  // Sortera aktiva listor: templates sist, därefter efter senaste uppdatering (nyast först)
   const sortedActive = [...activeLists].sort((a, b) => {
+    const aIsTemplate = a.name.startsWith('Mall:');
+    const bIsTemplate = b.name.startsWith('Mall:');
+    if (aIsTemplate !== bIsTemplate) {
+      return aIsTemplate ? 1 : -1;
+    }
     const aTime = new Date(a.updatedAt || a.createdAt).getTime();
     const bTime = new Date(b.updatedAt || b.createdAt).getTime();
     return bTime - aTime;
