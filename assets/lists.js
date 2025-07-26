@@ -348,6 +348,46 @@ window.viewListByName = function(name) {
   }
 };
 
+// ===== Lägg till varor via kategori-knapp =====
+window.addItemViaCategory = function(listIndex, category) {
+  const allaVaror     = getAllUniqueItemNames(lists);
+  const mallVaror     = getTemplateItemNames(lists);
+  const kategoriVaror = getCategoryItemNames(lists[listIndex], category);
+
+  showAddItemsDialog({
+    allaVaror,
+    mallVaror,
+    kategoriVaror,
+    onlyCategory: true,    // <–– här talar vi om att endast kategori‑varor ska föreslås
+    onDone: added => {
+      if (!added || !added.length) return;
+
+      added.forEach(raw => {
+        const [namePart, ...noteParts] = raw.split(',');
+        const name = namePart.trim();
+        const note = noteParts.join(',').trim();
+
+        // Hoppa över dubbletter
+        const exists = lists[listIndex].items.some(item =>
+          item.name.trim().toLowerCase() === name.toLowerCase() &&
+          (item.note||'').trim().toLowerCase() === note.toLowerCase()
+        );
+        if (exists) return;
+
+        // Lägg till posten
+        lists[listIndex].items.push({
+          name,
+          note,
+          done: false,
+          category
+        });
+      });
+
+      saveLists(lists);
+      renderListDetail(listIndex);
+    }
+  });
+};
 
 // ===== Öppna meny via namn =====
 window.openListMenuByName = function(name, btn) {
