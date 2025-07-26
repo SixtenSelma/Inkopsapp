@@ -442,18 +442,17 @@ window.renderListDetail = function(i) {
             ${hideDone ? '☑' : '☐'}
           </button>
           <button id="btnToggleCats" class="icon-button" title="Komprimerat läge">≡</button>
-          <button class="icon-button import-button" title="Importera från lista"
-                  onclick="importItemsFromList(${i})">
-            <!-- ersätt Unicode med denna SVG -->
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                 viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round">
-              <!-- stam -->
-              <line x1="12" y1="4" x2="12" y2="16"/>
-              <!-- pilspets -->
-              <polyline points="8 12 12 16 16 12"/>
-            </svg>
-          </button>
+         <button class="icon-button import-button" title="Importera från lista"
+        onclick="importItemsFromList(${i})">
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+       viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round">
+    <!-- Längre stam -->
+    <line x1="12" y1="2" x2="12" y2="18"/>
+    <!-- Större pilspets -->
+    <polyline points="6 14 12 20 18 14"/>
+  </svg>
+</button>
         </div>
       </div>`;
   }
