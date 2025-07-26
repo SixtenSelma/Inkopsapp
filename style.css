@@ -216,7 +216,7 @@ input[type="checkbox"] {
 .todo-item {
   display: flex;
   align-items: center;
-  padding: 14px 16px;
+  padding: 8px 12px;  /* minskad padding för tajtare rader */
   border-bottom: 1px solid #eaeaea;
   background: #fff;
 }
@@ -237,7 +237,7 @@ input[type="checkbox"] {
 .todo-item.done .item-name s { color: #888 !important; opacity: 1; }
 .todo-item .item-name {
   flex-grow: 1;
-  margin-left: 12px;
+  margin-left: 8px;  /* mindre mellanrum */
   font-size: 1rem;
   display: flex;
   flex-direction: column;
@@ -246,19 +246,21 @@ input[type="checkbox"] {
   display: flex;
   justify-content: space-between;
   font-size: 0.85rem;
-  margin-top: 4px;
+  margin-top: 2px;  /* mindre mellanrum */
   line-height: 1.1;
   font-family: inherit;
   color: #888;
   font-style: italic;
 }
-.item-note-sign-wrapper > .item-note { flex: 1; color: #888; font-style: inherit; }
+.item-note-sign-wrapper > .item-note {
+  flex: 1;
+  text-align: left;
+}
 .item-note-sign-wrapper > .item-sign-date {
   white-space: nowrap;
   font-weight: 600;
-  color: #555;
-  margin-left: 10px;
-  font-style: inherit;
+  text-align: right;
+  margin-left: 8px;
 }
 
 /* ===== Templates & Archive ===== */
