@@ -295,6 +295,25 @@ button:hover { background-color: #44bd32; }
   box-shadow: 0 6px 12px rgba(0,0,0,0.15);
   padding: 0;
 }
+/* Gör bottom-bar‑knapparna transparenta och utan kant */
+.bottom-bar button {
+  background: none;
+  border: none;
+  padding: 0.5rem 0.75rem; /* justera vid behov */
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+/* Hover‑effekt */
+.bottom-bar button:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+/* Om du vill ge dem samma rundning som header‑knappar */
+.bottom-bar button {
+  border-radius: 4px;
+}
+
 
 /* ===== Modal ===== */
 body.modal-open {
@@ -1001,6 +1020,31 @@ input[type="search"]::placeholder {
 /* Tryck refresh‑knappen längst till höger */
 .header-options #btnRefresh {
   margin-left: auto;
+}
+
+.bottom-bar {
+  position: fixed;
+  bottom: 24px;
+  right: calc(24px + 5mm);
+  z-index: 50;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: none;       /* ta bort vit bakgrund */
+  border-top: none;       /* om den fanns */
+}
+
+.bottom-bar button {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-radius: 4px;
+}
+.bottom-bar button:hover {
+  background: rgba(0,0,0,0.05);
 }
 
 /* ===== End of style.css ===== */
