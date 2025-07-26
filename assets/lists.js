@@ -427,42 +427,29 @@ window.renderListDetail = function(i) {
   let compressedMode = localStorage.getItem("compressedMode") === "true";
   window.location.hash = encodeURIComponent(list.name);
 
+  // Funktion för att refresha listan
+  const refreshList = () => saveAndRenderList(i);
+
   // ---------- Komprimerat läge ----------
   if (compressedMode) {
-    // 1) Dela upp i ej klara och klara
     let incomplete = list.items.filter(item => !item.done);
     let complete   = list.items.filter(item => item.done);
-
-    // 2) Dölj klara om hideDone är på
     if (hideDone) complete = [];
-
-    // 3) Sortera båda listor A→Ö
-    const cmp = (a, b) => a.name.localeCompare(b.name, 'sv');
+    const cmp = (a,b) => a.name.localeCompare(b.name,'sv');
     incomplete.sort(cmp);
     complete.sort(cmp);
-
-    // 4) Sätt ihop
     const items = [...incomplete, ...complete];
 
-    // 5) Generera HTML-rader
     const rows = items.map(item => {
       const idx = list.items.indexOf(item);
-      const nameHTML = item.done
-        ? `<s>${item.name}</s>`
-        : `<strong>${item.name}</strong>`;
-      const noteHTML = item.note
-        ? `<span class="item-note">${item.note}</span>`
-        : "";
-      const sigHTML = item.done && item.doneBy
-        ? `<span class="item-sign-date">${item.doneBy} ${formatDate(item.doneAt)}</span>`
-        : "";
+      const nameHTML = item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`;
+      const noteHTML = item.note ? `<span class="item-note">${item.note}</span>` : "";
+      const sigHTML  = item.done && item.doneBy
+        ? `<span class="item-sign-date">${item.doneBy} ${formatDate(item.doneAt)}</span>` : "";
       return `
-        <li class="todo-item ${item.done ? 'done' : ''}">
-          <input
-            type="checkbox"
-            ${item.done ? 'checked' : ''}
-            onchange="toggleItem(${i}, ${idx}, lists, user, saveAndRenderList)"
-          />
+        <li class="todo-item ${item.done?'done':''}">
+          <input type="checkbox" ${item.done?'checked':''}
+            onchange="toggleItem(${i}, ${idx}, lists, user, saveAndRenderList)" />
           <div class="item-name">
             <div class="item-line1">${nameHTML}</div>
             <div class="item-note-sign-wrapper">
@@ -474,25 +461,20 @@ window.renderListDetail = function(i) {
         </li>`;
     }).join('');
 
-    // 6) Rendera komprimerad vy
     app.innerHTML = `
       <div class="top-bar">
-        <span class="back-arrow"
-              onclick="window.location.hash=''; renderAllLists()"
-              title="Tillbaka">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
-               viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2.5"
-               stroke-linecap="round" stroke-linejoin="round">
+        <span class="back-arrow" onclick="window.location.hash=''; renderAllLists()" title="Tillbaka">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
+               fill="none" stroke="#232323" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="15 18 9 12 15 6"/>
           </svg>
         </span>
-        <h1 class="back-title">${list.name}</h1>
+        <h1 class="back-title" onclick="refreshList()">${list.name}</h1>
         <div class="detail-buttons">
           <button id="btnHideDone" class="icon-button" title="Visa/Göm klara">
             ${hideDone ? '☑' : '☐'}
           </button>
           <button id="btnToggleCats" class="icon-button" title="Komprimerat läge">≡</button>
-          <button id="btnRefresh" class="icon-button" title="Uppdatera vy">↻</button>
         </div>
       </div>
       <ul class="todo-list">${rows}</ul>
@@ -503,56 +485,43 @@ window.renderListDetail = function(i) {
   }
   // ---------- Kategoriview ----------
   else {
-    // 1) Förbered & gruppera
     const allItems = list.items.map((it, idx) => ({ ...it, idx }));
     const grouped  = {};
     standardKategorier.forEach(cat => grouped[cat] = []);
     allItems.forEach(item => {
-      const category = item.category || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)";
-      grouped[category].push(item);
+      const cat = item.category || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)";
+      grouped[cat].push(item);
     });
 
-    // 2) Dela upp i med varor / utan varor
-    const catsWithItems = [];
-    const catsWithout  = [];
+    const catsWithItems = [], catsWithout = [];
     standardKategorier.forEach(cat => {
-      const src   = grouped[cat];
-      const vis   = hideDone ? src.filter(x => !x.done) : src;
-      if (vis.length) catsWithItems.push({ cat, items: vis });
-      else catsWithout.push({ cat, items: [] });
+      const src = grouped[cat];
+      const vis = hideDone ? src.filter(x=>!x.done) : src;
+      if (vis.length) catsWithItems.push({cat,items:vis});
+      else catsWithout.push({cat,items:[]});
     });
 
-    // 3) Bestäm ordning: tomma sist
-    const finalCats = catsWithItems.concat(catsWithout);
+    const finalCats = hideDone ? catsWithItems : catsWithItems.concat(catsWithout);
 
-    // 4) Generera HTML för varje kategori
-    const categoriesHTML = finalCats.map(({ cat, items }) => {
-      // Sortera ej klara först, sedan klara
+    const categoriesHTML = finalCats.map(({cat,items}) => {
       const sorted = [
-        ...items.filter(x => !x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv')),
-        ...items.filter(x => x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv'))
+        ...items.filter(x=>!x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv')),
+        ...items.filter(x=>x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv'))
       ];
       const rows = sorted.map(item => {
-        const nameHTML = item.done
-          ? `<s>${item.name}</s>`
-          : `<strong>${item.name}</strong>`;
-        const noteHTML = item.note
-          ? `<span class="item-note">${item.note}</span>`
-          : "";
-        const sigHTML = item.done && item.doneBy
-          ? `<span class="item-sign-date">${item.doneBy} ${formatDate(item.doneAt)}</span>`
-          : "";
         return `
           <li class="todo-item ${item.done?'done':''}">
-            <input
-              type="checkbox"
-              ${item.done?'checked':''}
-              onchange="toggleItem(${i}, ${item.idx}, lists, user, saveAndRenderList)"
-            />
+            <input type="checkbox" ${item.done?'checked':''}
+              onchange="toggleItem(${i}, ${item.idx}, lists, user, saveAndRenderList)" />
             <div class="item-name">
-              <div class="item-line1">${nameHTML}</div>
+              <div class="item-line1">
+                ${item.done?`<s>${item.name}</s>`:`<strong>${item.name}</strong>`}
+              </div>
               <div class="item-note-sign-wrapper">
-                ${noteHTML}${sigHTML}
+                ${item.note?`<span class="item-note">${item.note}</span>`:""}
+                ${item.done && item.doneBy
+                  ? `<span class="item-sign-date">${item.doneBy} ${formatDate(item.doneAt)}</span>`
+                  : ""}
               </div>
             </div>
             <button class="menu-btn"
@@ -570,25 +539,20 @@ window.renderListDetail = function(i) {
         </div>`;
     }).join('');
 
-    // 5) Rendera kategorivyn
     app.innerHTML = `
       <div class="top-bar">
-        <span class="back-arrow"
-              onclick="window.location.hash=''; renderAllLists()"
-              title="Tillbaka">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
-               viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2.5"
-               stroke-linecap="round" stroke-linejoin="round">
+        <span class="back-arrow" onclick="window.location.hash=''; renderAllLists()" title="Tillbaka">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
+               fill="none" stroke="#232323" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="15 18 9 12 15 6"/>
           </svg>
         </span>
-        <h1 class="back-title">${list.name}</h1>
+        <h1 class="back-title" onclick="refreshList()">${list.name}</h1>
         <div class="detail-buttons">
           <button id="btnHideDone" class="icon-button" title="Visa/Göm klara">
             ${hideDone ? '☑' : '☐'}
           </button>
           <button id="btnToggleCats" class="icon-button" title="Komprimerat läge">≡</button>
-          <button id="btnRefresh" class="icon-button" title="Uppdatera vy">↻</button>
         </div>
       </div>
       <div class="category-list">${categoriesHTML}</div>
@@ -598,7 +562,7 @@ window.renderListDetail = function(i) {
       </div>`;
   }
 
-  // ===== Knapparnas logik =====
+  // ===== Knapplogik =====
   document.getElementById("btnHideDone").onclick = () => {
     hideDone = !hideDone;
     localStorage.setItem("hideDone", hideDone);
@@ -609,10 +573,10 @@ window.renderListDetail = function(i) {
     localStorage.setItem("compressedMode", compressedMode);
     renderListDetail(i);
   };
-  document.getElementById("btnRefresh").onclick = () => saveAndRenderList(i);
 
   applyFade && applyFade();
 };
+
 
 
 
