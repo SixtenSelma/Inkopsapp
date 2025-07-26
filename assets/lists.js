@@ -305,7 +305,7 @@ window.renderAllLists = function() {
   // Rendera allt
   app.innerHTML = `
     <div class="top-bar">
-      <h1 class="back-title">Inköpslistor</h1>
+      <h1 class="back-title" onclick="renderAllLists()">Inköpslistor</h1>
       <!-- Signatur + penna, helt utan bakgrund -->
       <button class="icon-button" onclick="changeUser()" title="Byt namn">
         ${user} 🖊
