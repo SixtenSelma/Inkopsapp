@@ -589,24 +589,25 @@ body.modal-open {
   margin-left: 8px;
 }
 
-/* ===== Kategori-rubrik (extra tydlig!) ===== */
+/* ===== Kategori-rubrik (justerad mindre & luftigare!) ===== */
 .category-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  font-size: 1.22rem;
-  font-weight: 800;
+  gap: 8px;
+  font-size: 1.1rem; /* minskad från 1.22rem */
+  font-weight: 700; /* minskad från 800 för en lättare känsla */
   color: #232323;
-  margin: 12px 0 4px 0;
-  padding: 6px 16px 6px 10px;
+  margin: 10px 0 3px 0; /* minskad margin */
+  padding: 4px 14px 4px 8px; /* minskad padding */
   background: #f4faf4;
-  border-left: 6px solid #4cd137;
-  border-radius: 9px 30px 30px 9px;
+  border-left: 4px solid #4cd137; /* minskad tjocklek */
+  border-radius: 7px 24px 24px 7px; /* lite mindre rundning */
   box-shadow: 0 1px 0 #e0e0e0;
   text-shadow: 0 1px 0 #fff;
-  min-height: 36px;
+  min-height: 32px; /* något mindre höjd */
 }
+
 
 .empty-category {
   /* Ändrat från 25px 0 10px 8px */
