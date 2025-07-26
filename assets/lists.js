@@ -15,6 +15,20 @@ function stampListTimestamps(list, isNew = false) {
   list.updatedBy = window.user;
 }
 
+// ===== Dialog & skapande av ny lista =====
+function showNewListDialog() {
+  const name = prompt("Vad ska listan heta?");
+  if (!name || !name.trim()) return;
+  const newList = {
+    name: name.trim(),
+    items: []
+  };
+  stampListTimestamps(newList, true);
+  lists.push(newList);
+  saveLists(lists);
+  renderAllLists();
+}
+
 // ===== Initiera data =====
 window.lists = loadLists();  // Från storage.js
 window.categoryMemory = (() => {
