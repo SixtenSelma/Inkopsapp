@@ -826,27 +826,31 @@ function chooseSourceList(targetIndex) {
 /**
  * Importerar valda varor efter att ha kört chooseSourceList(targetIndex).
  */
+/**
+ * Importerar valda varor efter att ha kört chooseSourceList(targetIndex).
+ */
 window.importItemsFromList = async function(targetIndex) {
   const srcIdx = await chooseSourceList(targetIndex);
   if (srcIdx == null) return;
   const srcList = lists[srcIdx];
 
-  // Gruppera per kategori
+  // Gruppera per kategori, men behåll globalt index
   const grouped = {};
-  srcList.items.forEach(item => {
+  srcList.items.forEach((item, globalIdx) => {
     const cat = item.category || '🏠 Övrigt (Hem, Teknik, Kläder, Säsong)';
     if (!grouped[cat]) grouped[cat] = [];
-    grouped[cat].push(item);
+    grouped[cat].push({ item, globalIdx });
   });
 
   // Bygg overlay
   const overlay = document.createElement('div');
   overlay.className = 'modal import-modal';
+  overlay.style.backdropFilter = 'blur(4px)';
   document.body.appendChild(overlay);
 
   const box = document.createElement('div');
   box.className = 'modal-content';
-  box.innerHTML = `<h2>Importera varor från ${srcList.name}</h2>`;
+  box.innerHTML = `<h2>Importera varor från <em>${srcList.name}</em></h2>`;
   overlay.appendChild(box);
 
   // Lista med scroll
@@ -855,19 +859,22 @@ window.importItemsFromList = async function(targetIndex) {
   box.appendChild(listContainer);
 
   // Kategorirubriker + rader
-  Object.entries(grouped).forEach(([cat, items]) => {
+  Object.entries(grouped).forEach(([cat, entries]) => {
+    // Rubrik
     const catHead = document.createElement('div');
     catHead.className = 'import-category';
     catHead.textContent = cat;
     listContainer.appendChild(catHead);
 
-    items.forEach((item, idx) => {
+    // Rader
+    entries.forEach(({ item, globalIdx }) => {
       const row = document.createElement('label');
       row.className = 'import-row';
 
       const chk = document.createElement('input');
       chk.type = 'checkbox';
-      chk.dataset.idx = idx;
+      // Här sparar vi globala indexet
+      chk.dataset.globalIdx = globalIdx;
       row.appendChild(chk);
 
       const txt = document.createElement('span');
@@ -894,10 +901,12 @@ window.importItemsFromList = async function(targetIndex) {
   const btnImport = document.createElement('button');
   btnImport.textContent = 'Importera';
   btnImport.onclick = () => {
+    // Importera valda med korrekt globalIdx
     listContainer
       .querySelectorAll('input[type=checkbox]:checked')
       .forEach(chk => {
-        const srcItem = srcList.items[chk.dataset.idx];
+        const gIdx = parseInt(chk.dataset.globalIdx, 10);
+        const srcItem = srcList.items[gIdx];
         const exists = lists[targetIndex].items.some(it =>
           it.name === srcItem.name &&
           (it.note||'') === (srcItem.note||'')
@@ -921,3 +930,4 @@ window.importItemsFromList = async function(targetIndex) {
     overlay.remove();
   }
 };
+
