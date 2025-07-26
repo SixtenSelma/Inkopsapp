@@ -219,10 +219,11 @@ window.showAddItemsDialog = function({ allaVaror, mallVaror, kategoriVaror, onDo
 // ===== Rendera översikt av alla listor =====
 // ===== Rendera översikt av alla listor =====
 window.renderAllLists = function() {
+  // Filtrera aktiva och arkiverade
   const activeLists   = lists.filter(l => !l.archived);
   const archivedLists = lists.filter(l => l.archived);
 
-  // Aktiva: Mall-listor sist, sedan alfabetiskt
+  // Sortera aktiva: Mall-listor sist, sedan alfabetiskt
   const sortedActive = [...activeLists].sort((a, b) => {
     const aIsTemplate = a.name.startsWith('Mall:');
     const bIsTemplate = b.name.startsWith('Mall:');
@@ -230,40 +231,38 @@ window.renderAllLists = function() {
     return a.name.localeCompare(b.name, 'sv');
   });
 
-  // Arkiverade: senaste arkiverade först
+  // Sortera arkiverade: senaste arkiverade först
   const sortedArchived = [...archivedLists].sort((a, b) =>
     (b.archivedAt || 0) - (a.archivedAt || 0)
   );
 
-  // Bygg HTML för aktiva
+  // Bygg HTML för aktiva listor
   const activeHTML = sortedActive.map(list => {
     const done  = list.items.filter(x => x.done).length;
     const total = list.items.length;
     const pct   = total ? Math.round(done / total * 100) : 0;
 
-    // Välj högsta timestamp med fallback
-    const cAt  = list.createdAt  || list.archivedAt || null;
-    const uAt  = list.updatedAt  || list.archivedAt || null;
+    // Tidsstämpel
+    const cAt   = list.createdAt  || list.archivedAt || null;
+    const uAt   = list.updatedAt  || list.archivedAt || null;
     const tsIso = (uAt && (!cAt || uAt >= cAt)) ? uAt : cAt;
     const by     = (uAt && list.updatedBy) || (cAt && list.createdBy) || '';
     const tsText = tsIso ? formatDate(tsIso) : '';
 
     return `
-      <li class="list-item" onclick="viewListByName('${list.name.replace(/'/g,"\\'")}')">
+      <li class="list-item" onclick="viewListByName('${list.name.replace(/'/g, "\'")}')">
         <div class="list-card ${list.name.startsWith('Mall:') ? 'list-card-template' : ''}">
           <div class="list-card-header">
             <span class="list-card-title">${list.name}</span>
             <button class="menu-btn"
-              onclick="event.stopPropagation(); openListMenuByName('${list.name.replace(/'/g,"\\'")}', this)">
+              onclick="event.stopPropagation(); openListMenuByName('${list.name.replace(/'/g, "\'")}', this)">
               ⋮
             </button>
           </div>
-
           <div class="list-card-footer">
             <div class="progress-text">${done} / ${total} klara</div>
             <div class="progress-timestamp">${by} ${tsText}</div>
           </div>
-
           <div class="progress-bar">
             <div class="progress-fill" style="width:${pct}%"></div>
           </div>
@@ -271,18 +270,18 @@ window.renderAllLists = function() {
       </li>`;
   }).join('') || '<p class="no-lists">Inga listor än.</p>';
 
-  // Bygg HTML för arkiverade
+  // Bygg HTML för arkiverade listor
   let archivedSection = '';
   if (sortedArchived.length) {
     const archivedHTML = sortedArchived.map(list => {
       const dateTxt = list.archivedAt ? formatDate(list.archivedAt) : '';
       return `
-        <li class="list-item archived" onclick="viewListByName('${list.name.replace(/'/g,"\\'")}')">
+        <li class="list-item archived" onclick="viewListByName('${list.name.replace(/'/g, "\'")}')">
           <div class="list-card archived-list-card">
             <div class="list-card-header">
               <span class="list-card-title">${list.name}</span>
               <button class="menu-btn"
-                onclick="event.stopPropagation(); openListMenuByName('${list.name.replace(/'/g,"\\'")}', this)">
+                onclick="event.stopPropagation(); openListMenuByName('${list.name.replace(/'/g, "\'")}', this)">
                 ⋮
               </button>
             </div>
@@ -305,11 +304,8 @@ window.renderAllLists = function() {
   // Rendera allt
   app.innerHTML = `
     <div class="top-bar">
-      <h1>Inköpslista</h1>
-      <div class="user-badge">
-        ${user}
-        <button class="icon-button" onclick="changeUser()" title="Byt namn">🖊</button>
-      </div>
+      <h1 class="back-title">Inköpslistor</h1>
+      <button class="icon-button" onclick="changeUser()" title="Byt namn">🖊</button>
     </div>
     <ul class="list-wrapper">
       ${activeHTML}
@@ -317,25 +313,24 @@ window.renderAllLists = function() {
     ${archivedSection}
     <div class="bottom-bar">
       <button onclick="showNewListDialog()" title="Ny lista">➕</button>
-    </div>
-  `;
+    </div>`;
 
-  // Gör arkiv‑sektionen kollapsbar
+  // Gör arkivsektionen kollapsbar
   window.toggleArchivedSection = function(e) {
     e.stopPropagation();
-    const btn = e.currentTarget;
-    const ul  = btn.nextElementSibling;
+    const ul = e.currentTarget.nextElementSibling;
     if (ul.style.display === 'none') {
       ul.style.display = 'block';
-      btn.querySelector('#archived-arrow').textContent = '▲';
+      e.currentTarget.querySelector('#archived-arrow').textContent = '▲';
     } else {
       ul.style.display = 'none';
-      btn.querySelector('#archived-arrow').textContent = '▼';
+      e.currentTarget.querySelector('#archived-arrow').textContent = '▼';
     }
   };
 
   applyFade && applyFade();
 };
+
 
 
 // ===== Visa lista via namn =====
