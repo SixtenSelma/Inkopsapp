@@ -755,13 +755,14 @@ window.addEventListener('load', () => {
  *
  * @param {number} targetIndex – index på den lista vi är i
  */
+// ===== Importera varor från en annan lista =====
 window.importItemsFromList = async function(targetIndex) {
-  // 1) Välj källa-lista
+  // 1) Välj källa‐lista
   const srcIdx = await chooseSourceList(targetIndex);
   if (srcIdx == null) return;
   const srcList = lists[srcIdx];
 
-  // 2) Gruppera per kategori, spara globalt index
+  // 2) Gruppera per kategori
   const grouped = {};
   srcList.items.forEach((item, globalIdx) => {
     const cat = item.category || '🏠 Övrigt (Hem, Teknik, Kläder, Säsong)';
@@ -769,25 +770,15 @@ window.importItemsFromList = async function(targetIndex) {
     grouped[cat].push({ item, globalIdx });
   });
 
-  // 3) Skapa en array med alla kategorinamn, sorterade
-  const allCats = Object.keys(grouped);
-  allCats.sort((a, b) => {
-    const aIdx = standardKategorier.indexOf(a);
-    const bIdx = standardKategorier.indexOf(b);
-    const aIsStd = aIdx !== -1;
-    const bIsStd = bIdx !== -1;
-
-    // Om båda är standard, jämför deras index
-    if (aIsStd && bIsStd) return aIdx - bIdx;
-    // Om bara a är standard → a först
-    if (aIsStd) return -1;
-    // Om bara b är standard → b först
-    if (bIsStd) return 1;
-    // Annars, båda icke-standard → svensk alfabetisk
+  // 3) Sortera kategorier som i detaljvyn
+  const allCats = Object.keys(grouped).sort((a, b) => {
+    const ai = standardKategorier.indexOf(a);
+    const bi = standardKategorier.indexOf(b);
+    if (ai !== -1 || bi !== -1) return (ai === -1) ? 1 : (bi === -1) ? -1 : ai - bi;
     return a.localeCompare(b, 'sv');
   });
 
-  // 4) Bygg modal-overlay
+  // 4) Bygg modal
   const overlay = document.createElement('div');
   overlay.className = 'modal import-modal';
   overlay.style.backdropFilter = 'blur(4px)';
@@ -798,25 +789,34 @@ window.importItemsFromList = async function(targetIndex) {
   box.innerHTML = `<h2>Importera varor från <em>${srcList.name}</em></h2>`;
   overlay.appendChild(box);
 
-  // 5) Container för listan
+  // 5) "Markera alla"-knapp
+  const btnSelectAll = document.createElement('button');
+  btnSelectAll.textContent = 'Markera alla';
+  btnSelectAll.className = 'btn-secondary';
+  btnSelectAll.style.marginBottom = '8px';
+  btnSelectAll.onclick = () => {
+    box.querySelectorAll('input[type=checkbox]').forEach(chk => chk.checked = true);
+  };
+  box.appendChild(btnSelectAll);
+
+  // 6) Lista med kategorier och varor
   const listContainer = document.createElement('div');
   listContainer.className = 'import-list';
   box.appendChild(listContainer);
 
-  // 6) Rendera varje kategori i rätt ordning
   allCats.forEach(cat => {
     const entries = grouped[cat];
-    if (!entries || entries.length === 0) return;
+    if (!entries || !entries.length) return;
 
-    // Rubrik
+    // Kategori‐rubrik
     const catHead = document.createElement('div');
     catHead.className = 'import-category';
     catHead.textContent = cat;
     listContainer.appendChild(catHead);
 
-    // Rader
+    // Varor
     entries.forEach(({ item, globalIdx }) => {
-      const row = document.createElement('label');
+      const row = document.createElement('div');
       row.className = 'import-row';
 
       const chk = document.createElement('input');
@@ -824,17 +824,17 @@ window.importItemsFromList = async function(targetIndex) {
       chk.dataset.globalIdx = globalIdx;
       row.appendChild(chk);
 
-      const txt = document.createElement('span');
-      txt.textContent = item.note
+      const label = document.createElement('span');
+      label.textContent = item.note
         ? `${item.name} (${item.note})`
         : item.name;
-      row.appendChild(txt);
+      row.appendChild(label);
 
       listContainer.appendChild(row);
     });
   });
 
-  // 7) Knappar
+  // 7) Knappar längst ned
   const actions = document.createElement('div');
   actions.className = 'modal-actions';
   box.appendChild(actions);
@@ -848,8 +848,8 @@ window.importItemsFromList = async function(targetIndex) {
   const btnImport = document.createElement('button');
   btnImport.textContent = 'Importera';
   btnImport.onclick = () => {
-    listContainer
-      .querySelectorAll('input[type=checkbox]:checked')
+    // Lägg till valda varor
+    listContainer.querySelectorAll('input[type=checkbox]:checked')
       .forEach(chk => {
         const gIdx = parseInt(chk.dataset.globalIdx, 10);
         const srcItem = srcList.items[gIdx];
@@ -866,6 +866,7 @@ window.importItemsFromList = async function(targetIndex) {
           });
         }
       });
+    // Stämpla och spara
     stampListTimestamps(lists[targetIndex]);
     saveLists(lists);
     renderListDetail(targetIndex);
