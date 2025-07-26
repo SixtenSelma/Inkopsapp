@@ -340,9 +340,14 @@ window.renderAllLists = function() {
 
 // ===== Visa lista via namn =====
 window.viewListByName = function(name) {
-  const idx = lists.findIndex(l=>l.name===name);
-  if (idx>=0) renderListDetail(idx);
+  const idx = lists.findIndex(l => l.name === name);
+  if (idx >= 0) {
+    // uppdatera hash så vi kan refresha
+    window.location.hash = encodeURIComponent(name);
+    renderListDetail(idx);
+  }
 };
+
 
 // ===== Öppna meny via namn =====
 window.openListMenuByName = function(name, btn) {
@@ -351,10 +356,14 @@ window.openListMenuByName = function(name, btn) {
 };
 
 // ===== Rendera enskild lista med fungerande "Dölj klara" =====
+// ===== Rendera enskild lista med fungerande "Dölj klara" och refresh via URL-hash =====
 window.renderListDetail = function(i) {
   const list = lists[i];
 
-  // 1) Dölj klara-inställning
+  // Uppdatera hash så att sidan kan refresha i detaljvyn
+  window.location.hash = encodeURIComponent(list.name);
+
+  // 1) Dölj klara‑inställning
   let hideDone = true;
   try { hideDone = localStorage.getItem("hideDone") === "true"; } catch {}
 
@@ -378,7 +387,7 @@ window.renderListDetail = function(i) {
     else empty.push({ cat, items: [] });
   });
 
-  // 5) Slå ihop enligt hideDone och sortera
+  // 5) Slå ihop enligt hideDone och sortera kategorier enligt standardKategorier
   const finalCats = hideDone ? filled : [...filled, ...empty];
   finalCats.sort((a, b) =>
     standardKategorier.indexOf(a.cat) - standardKategorier.indexOf(b.cat)
@@ -415,7 +424,7 @@ window.renderListDetail = function(i) {
                 onclick="openItemMenu(${i}, ${item.idx}, this)">⋮</button>
             </li>`;
         }).join('')
-      : `<p class="empty-category">   Inga varor i denna kategori</p>`;
+      : `<p class="empty-category">Inga varor i denna kategori</p>`;
 
     return `
       <div class="category-block">
@@ -453,10 +462,9 @@ window.renderListDetail = function(i) {
       ${categoriesHTML || '<p>Inga varor än.</p>'}
     </div>
     <div class="bottom-bar">
-      <button onclick="addItemsWithCategory(${i})">➕</button>
-      <button onclick="importItemsFromList(${i})">📥</button>
-    </div>
-  `;
+      <button onclick="addItemsWithCategory(${i})" title="Lägg till">➕</button>
+      <button onclick="importItemsFromList(${i})" title="Importera">📥</button>
+    </div>`;
 
   // 8) Initiera “Dölj klara”
   const chk = document.getElementById("hideDoneCheckbox");
@@ -468,7 +476,7 @@ window.renderListDetail = function(i) {
     };
   }
 
-  // 9) Fade-in
+  // 9) Fade-in (om du använder applyFade)
   applyFade && applyFade();
 };
 
