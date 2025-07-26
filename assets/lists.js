@@ -347,8 +347,10 @@ window.renderListDetail = function(i) {
   let hideDone = localStorage.getItem("hideDone") === "true";
   window.location.hash = encodeURIComponent(list.name);
 
-  // 1) Förbered och gruppera items
+  // 1) Förbered items med index
   const allItems = list.items.map((it, idx) => ({ ...it, idx }));
+
+  // 2) Gruppera per kategori
   const grouped = {};
   standardKategorier.forEach(cat => grouped[cat] = []);
   allItems.forEach(item => {
@@ -356,23 +358,26 @@ window.renderListDetail = function(i) {
     grouped[category].push(item);
   });
 
-  // 2) Dela upp fyllda/tomma, exkludera helt tomma grupper
+  // 3) Dela upp fyllda/tomma
   const filled = [], empty = [];
   Object.entries(grouped).forEach(([cat, items]) => {
     const visible = hideDone ? items.filter(x => !x.done) : items;
     if (visible.length) filled.push({ cat, items: visible });
     else empty.push({ cat, items: [] });
   });
+
+  // 4) Slå ihop och sortera – INKLUDERA även tomma kategorier
   const finalCats = (hideDone ? filled : [...filled, ...empty])
-    .filter(g => g.items.length > 0)
     .sort((a, b) => standardKategorier.indexOf(a.cat) - standardKategorier.indexOf(b.cat));
 
-  // 3) Bygg HTML för varje kategori + varor
+  // 5) Bygg HTML för kategorier + varor
   const categoriesHTML = finalCats.map(({ cat, items }) => {
     const sorted = [
       ...items.filter(x => !x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv')),
       ...items.filter(x => x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv'))
     ];
+
+    // Om inga varor (tom kategori), visa ingen "Inga varor" utan bara en tom <ul>
     const rows = sorted.map(item => {
       const nameHTML = item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`;
       const noteHTML = item.note ? `<span class="item-note">${item.note}</span>` : "";
@@ -399,6 +404,7 @@ window.renderListDetail = function(i) {
           >⋮</button>
         </li>`;
     }).join('');
+
     return `
       <div class="category-block">
         <h3 class="category-heading">
@@ -410,7 +416,7 @@ window.renderListDetail = function(i) {
       </div>`;
   }).join('');
 
-  // 4) Rendera detaljvyn
+  // 6) Rendera detaljvyn
   app.innerHTML = `
     <div class="top-bar">
       <span class="back-arrow"
@@ -437,64 +443,29 @@ window.renderListDetail = function(i) {
       <button onclick="importItemsFromList(${i})" title="Importera">📥</button>
     </div>`;
 
-  // 5) Knapparnas logik
+  // 7) Koppla knapphändelser
+
+  // Visa/Göm klara varor (☐)
   document.getElementById("btnHideDone").onclick = () => {
     hideDone = !hideDone;
     localStorage.setItem("hideDone", hideDone);
     renderListDetail(i);
   };
+
+  // Visa/Göm kategorirubriker (≡) – bara rubrikerna, varorna stannar kvar
   let catsHidden = false;
   document.getElementById("btnToggleCats").onclick = () => {
     catsHidden = !catsHidden;
     document.querySelectorAll(".category-heading")
       .forEach(h => h.style.display = catsHidden ? "none" : "");
   };
+
+  // Uppdatera listan (↻)
   document.getElementById("btnRefresh").onclick = () => saveAndRenderList(i);
 
   applyFade && applyFade();
 };
 
-
-// ===== Lägg till via kategori-knapp =====
-window.addItemViaCategory = function(listIndex, category) {
-  const allaVaror     = getAllUniqueItemNames(lists);
-  const mallVaror     = getTemplateItemNames(lists);
-  const kategoriVaror = getCategoryItemNames(lists[listIndex], category);
-
-  showAddItemsDialog({
-    allaVaror,
-    mallVaror,
-    kategoriVaror,
-    onlyCategory: true,      // Endast varor i den valda kategorin
-    onDone: added => {
-      if (!added || !added.length) return;
-
-      added.forEach(raw => {
-        const [namePart, ...noteParts] = raw.split(',');
-        const name = namePart.trim();
-        const note = noteParts.join(',').trim();
-
-        // Undvik dubbletter
-        const exists = lists[listIndex].items.some(item =>
-          item.name.trim().toLowerCase() === name.toLowerCase() &&
-          (item.note || '').trim().toLowerCase() === note.toLowerCase()
-        );
-        if (exists) return;
-
-        // Lägg till ny post
-        lists[listIndex].items.push({
-          name,
-          note,
-          done: false,
-          category
-        });
-      });
-
-      saveLists(lists);
-      renderListDetail(listIndex);
-    }
-  });
-};
 
 // ===== Lägg till varor via plusknapp =====
 // ===== Lägg till via flytande plus-knapp =====
