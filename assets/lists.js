@@ -344,7 +344,10 @@ window.openListMenuByName = function(name, btn) {
 // ===== Rendera enskild lista (detaljvy) =====
 window.renderListDetail = function(i) {
   const list = lists[i];
+  // Läs in persisterade lägen
   let hideDone = localStorage.getItem("hideDone") === "true";
+  let catsHidden = localStorage.getItem("catsHidden") === "true";
+
   window.location.hash = encodeURIComponent(list.name);
 
   // 1) Förbered och gruppera items
@@ -360,28 +363,25 @@ window.renderListDetail = function(i) {
   const catsWithItems = [];
   const catsWithout  = [];
   standardKategorier.forEach(cat => {
-    // Visa bara icke-avklarade om hideDone är på
+    const sourceItems = grouped[cat];
     const visible = hideDone
-      ? grouped[cat].filter(x => !x.done)
-      : grouped[cat];
+      ? sourceItems.filter(x => !x.done)
+      : sourceItems;
     if (visible.length) catsWithItems.push({ cat, items: visible });
     else catsWithout.push({ cat, items: [] });
   });
 
-  // 3) Bygg finalCats: visa tomma kategorier bara om hideDone är falskt
+  // 3) FinalCats: tomma visas bara om hideDone=false
   const finalCats = hideDone
     ? catsWithItems
     : catsWithItems.concat(catsWithout);
 
   // 4) Bygg HTML för varje kategori + varor
   const categoriesHTML = finalCats.map(({ cat, items }) => {
-    // Sortera kvarvarande items: först ej klara, sedan klara, båda alfabetiskt
     const sorted = [
       ...items.filter(x => !x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv')),
       ...items.filter(x => x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv'))
     ];
-
-    // Skapa <li> för varje vara
     const rows = sorted.map(item => {
       const nameHTML = item.done ? `<s>${item.name}</s>` : `<strong>${item.name}</strong>`;
       const noteHTML = item.note ? `<span class="item-note">${item.note}</span>` : "";
@@ -402,21 +402,16 @@ window.renderListDetail = function(i) {
               ${sigHTML}
             </div>
           </div>
-          <button
-            class="menu-btn"
-            onclick="openItemMenu(${i}, ${item.idx}, this)"
-          >⋮</button>
+          <button class="menu-btn"
+                  onclick="openItemMenu(${i}, ${item.idx}, this)">⋮</button>
         </li>`;
     }).join('');
-
     return `
       <div class="category-block">
-        <h3 class="category-heading">
+        <h3 class="category-heading" style="display:${catsHidden?'none':''}">
           ${cat}
-          <button
-            class="category-add-btn"
-            onclick="addItemViaCategory(${i}, '${cat}')"
-          >+</button>
+          <button class="category-add-btn"
+                  onclick="addItemViaCategory(${i}, '${cat}')">+</button>
         </h3>
         <ul class="todo-list">${rows}</ul>
       </div>`;
@@ -449,18 +444,23 @@ window.renderListDetail = function(i) {
       <button onclick="importItemsFromList(${i})" title="Importera">📥</button>
     </div>`;
 
-  // 6) Koppla knapp­händelser
+  // 6) Knapparnas logik
+
+  // ☑ Visa/Göm klara
   document.getElementById("btnHideDone").onclick = () => {
     hideDone = !hideDone;
     localStorage.setItem("hideDone", hideDone);
     renderListDetail(i);
   };
-  let catsHidden = false;
+
+  // ≡ Visa/Göm kategorirubriker (persistens via localStorage)
   document.getElementById("btnToggleCats").onclick = () => {
     catsHidden = !catsHidden;
-    document.querySelectorAll(".category-heading")
-      .forEach(h => h.style.display = catsHidden ? "none" : "");
+    localStorage.setItem("catsHidden", catsHidden);
+    renderListDetail(i);
   };
+
+  // ↻ Uppdatera listan (spara timestamp + rendera om)
   document.getElementById("btnRefresh").onclick = () => saveAndRenderList(i);
 
   applyFade && applyFade();
