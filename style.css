@@ -998,4 +998,37 @@ input[type="search"]::placeholder {
   font-weight: normal !important;
 }
 
+/* ===== Justera rubrikstorlek i både renderAllLists och renderListDetail ===== */
+.top-bar .back-title {
+  font-size: 1.5rem !important;   /* tidigare 2rem i översikt – sänk till 1.5rem */
+  font-weight: 600 !important;    /* ta bort extrem fetstil */
+}
+
+/* ===== Förfina användar‑signatur‑knappen ===== */
+.user-badge, /* den gröna signatur‑pillern */
+.icon-button { /* små ikoner som byter färg */
+  background: none !important;
+  border: none !important;
+  padding: 4px 8px !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  color: #444 !important;
+  border-radius: 6px !important;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.user-badge:hover,
+.icon-button:hover {
+  background: rgba(0,0,0,0.05) !important;
+  color: #000 !important;
+}
+
+/* Om du har separata regler för just signatur‑knappen: */
+.top-bar .user-badge {
+  padding: 6px 12px !important;
+  font-size: 0. ninerem !important; 
+  border-radius: 12px !important;
+}
+
+
 /* ===== End of style.css ===== */
