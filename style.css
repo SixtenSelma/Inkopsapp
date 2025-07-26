@@ -271,6 +271,18 @@ input[type="checkbox"] {
   font-weight: normal; /* ingen fetstil */
 }
 
+.todo-item .item-note-sign-wrapper {
+  padding-right: 8px !important;  /* luft in till kanten */
+  box-sizing: border-box !important;
+}
+
+
+.todo-item .item-note-sign-wrapper > .item-sign-date {
+  margin-left: auto !important;
+  margin-right: 8px !important;  /* extra luft innan ⋮-knappen */
+}
+
+
 /* ===== Templates & Archive ===== */
 .list-card-template {
   background: #f9f6ee;
@@ -454,14 +466,4 @@ body.modal-open {
 .progress-text {
   font-size: 0.85rem;
   color: #636e72;
-}
-+/* Ge luft på högra kanten av datumen på varuposter */
-.todo-item .item-note-sign-wrapper {
-  padding-right: 8px !important;  /* luft in till kanten */
-  box-sizing: border-box !important;
-}
-
-.todo-item .item-note-sign-wrapper > .item-sign-date {
-  margin-left: auto !important;
-  margin-right: 8px !important;  /* extra luft innan ⋮-knappen */
 }
