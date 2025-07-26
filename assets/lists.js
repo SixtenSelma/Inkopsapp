@@ -645,8 +645,16 @@ window.deleteList = function(i) {
   }
 };
 
-// Init
-if (typeof renderAllLists === 'function') renderAllLists();
+// Init: visa antingen detaljvy eller översikt beroende på URL-hash
+window.addEventListener('load', () => {
+  const name = decodeURIComponent(window.location.hash.slice(1));
+  const idx  = lists.findIndex(l => l.name === name);
+  if (idx >= 0) {
+    renderListDetail(idx);
+  } else {
+    renderAllLists();
+  }
+});
 
 /**
  * Importerar valda varor från en annan lista.
