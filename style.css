@@ -1094,4 +1094,23 @@ input[type="search"]::placeholder {
   color: #333 !important;      /* diskret hover‑effekt */
 }
 
+/* Gör detalj‑top-bar till en rad */
+.top-bar {
+  display: flex !important;
+  align-items: center;
+  padding: 1rem 1.25rem;
+}
+
+/* Back‑arrow, titel och controls får sin flex‑layout */
+.top-bar .back-arrow {
+  margin-right: 0.75rem;
+}
+.top-bar .back-title {
+  flex: 1;
+  margin: 0;
+}
+.top-bar .detail-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
 /* ===== End of style.css ===== */
