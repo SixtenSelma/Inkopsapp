@@ -434,7 +434,9 @@ window.renderListDetail = function(i) {
         <span class="back-arrow"
               onclick="window.location.hash=''; renderAllLists()"
               title="Tillbaka">
-          <!-- ... din befintliga bakåt‑ikon ... -->
+         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" …>
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
         </span>
         <h1 class="back-title">${list.name}</h1>
         <div class="detail-buttons">
