@@ -855,7 +855,20 @@ input[type="search"]::placeholder {
   word-break: break-word;
   text-align: left;
 }
+/* ===== Komplementtext & datum i detaljvy ===== */
+.item-row2 {
+  display: flex;
+  align-items: center;
+  gap: 6px;             /* avstånd mellan text och datum */
+  margin-top: 4px;      /* behåll lite luft till list‐etiketten ovanför */
+}
 
+.item-row2 .left,
+.item-row2 .right {
+  font-size: 0.85rem;
+  color: #888;
+  font-style: italic;
+}
 
 
 /* ===== End of style.css ===== */
