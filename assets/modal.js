@@ -49,7 +49,97 @@ window.showListSettingsDialog = function(title, currentName, currentHideCats, on
 };
 
 
-// modal.js
+// ===== Lägg till varor via flytande ➕ (agerar på hideCategories) =====
+window.addItemsWithCategory = function(listIndex = null) {
+  let i = listIndex;
+  if (i === null) {
+    if (!lists.length) return;
+    const promptTxt = "Vilken lista vill du lägga till i?\n" +
+      lists.map((l, idx) => `${idx+1}: ${l.name}`).join("\n");
+    const val = prompt(promptTxt);
+    if (!val) return;
+    i = parseInt(val, 10) - 1;
+    if (isNaN(i) || i < 0 || i >= lists.length) return;
+  }
+
+  const list = lists[i];
+  const allaVaror = getAllUniqueItemNames(lists);
+  const kategoriVaror = list.hideCategories
+    ? []
+    : getCategoryItemNames(list, null);
+
+  showAddItemsDialog({
+    kategori: null,
+    allaVaror,
+    kategoriVaror,
+    onlyCategory: false,
+    onDone: added => {
+      if (!added || !added.length) return;
+      added.forEach(raw => {
+        const [namePart, ...noteParts] = raw.split(',');
+        const name = namePart.trim();
+        const note = noteParts.join(',').trim();
+        // undvik dubblett
+        if (lists[i].items.some(it =>
+          it.name.trim().toLowerCase() === name.toLowerCase() &&
+          (it.note||'').trim().toLowerCase() === note.toLowerCase()
+        )) return;
+        // lägg till
+        lists[i].items.push({
+          name,
+          note,
+          done: false,
+          ...(list.hideCategories ? {} : { category: null })
+        });
+      });
+      stampListTimestamps(lists[i]);
+      saveLists(lists);
+      renderListDetail(i);
+    }
+  });
+};
+
+// ===== Lägg till via kategori‑knapp – visar källa från alla listor =====
+window.addItemViaCategory = function(listIndex, category) {
+  const list = lists[listIndex];
+  if (list.hideCategories) {
+    // fallback till flytande ➕
+    return window.addItemsWithCategory(listIndex);
+  }
+
+  // vi vill autocomplete mot alla andra listors varor
+  const allaVaror = getAllUniqueItemNames(lists);
+  const kategoriVaror = getCategoryItemNames(lists[listIndex], category);
+
+  showAddItemsDialog({
+    kategori,
+    allaVaror,
+    kategoriVaror,
+    onlyCategory: true,
+    onDone: added => {
+      if (!added || !added.length) return;
+      added.forEach(raw => {
+        const [namePart, ...noteParts] = raw.split(',');
+        const name = namePart.trim();
+        const note = noteParts.join(',').trim();
+        if (lists[listIndex].items.some(it =>
+          it.name.trim().toLowerCase() === name.toLowerCase() &&
+          (it.note||'').trim().toLowerCase() === note.toLowerCase()
+        )) return;
+        lists[listIndex].items.push({
+          name,
+          note,
+          done: false,
+          category
+        });
+      });
+      stampListTimestamps(lists[listIndex]);
+      saveLists(lists);
+      renderListDetail(listIndex);
+    }
+  });
+};
+
 
 // modal.js
 window.showAddItemsDialog = function({
