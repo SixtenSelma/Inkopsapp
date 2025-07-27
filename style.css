@@ -213,6 +213,14 @@ input[type="checkbox"] {
   width: 100%;
 }
 
+/* ===== Samma font på progress-text och progress-timestamp ===== */
+.progress-text,
+.progress-timestamp {
+  font-size: 1rem;    /* samma som din ”X / Y klara”-text */
+  font-weight: 500;   /* om din progress-text är semibold */
+  color: inherit;     /* behåll respektive färg om du vill */
+}
+
 /* ===== To-Do View ===== */
 .todo-list {
   padding: 0;
