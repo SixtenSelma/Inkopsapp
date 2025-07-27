@@ -35,15 +35,17 @@ function toggleItem(listIndex, itemIndex, lists, user, callback) {
 
 // ===== Initiera data =====
 window.lists = loadLists();  // Från storage.js
+
+// Hämta globalt kategori‑minne en gång
 window.categoryMemory = (() => {
   try { return JSON.parse(localStorage.getItem('categoryMemory')) || {}; }
   catch { return {}; }
 })();
+
 window.user = getUser() || prompt("Vad heter du?");
 setUser(window.user);
 
 const app = document.getElementById("app");
-
 // ===== Hjälpfunktioner =====
 
 // Formatera ISO-datum till dd/MM hh:mm
@@ -735,9 +737,11 @@ function chooseSourceList(targetIndex) {
   });
 }
 
+// ===== Lägg till varor utan kategori‑begränsning, med globalt minne =====
 window.addItemsWithCategory = function(listIndex) {
   const list = lists[listIndex];
-  const handlesCategories = list.hideCategories === false;
+  // Om listan inte hanterar kategorier → hoppa över allt kategorilogik
+  const skipCategory = list.hideCategories === true;
 
   window.showAddItemsDialog({
     kategori: null,
@@ -745,35 +749,32 @@ window.addItemsWithCategory = function(listIndex) {
     onlyCategory: false,
     onDone: items => {
       (async () => {
-        // Ladda categoryMemory på nytt från localStorage
-        let categoryMemory = {};
-        try {
-          categoryMemory = JSON.parse(localStorage.getItem('categoryMemory')) || {};
-        } catch (e) {}
-
         for (const { name, note } of items) {
           const newItem = { name, note, done: false };
 
-          if (handlesCategories) {
+          if (!skipCategory) {
             const key = name.trim().toLowerCase();
-            const savedCat = categoryMemory[key];
+            const savedCat = window.categoryMemory[key];
 
             if (savedCat) {
-              // Använd redan sparad kategori
+              // Använd globalt sparad kategori
               newItem.category = savedCat;
             } else {
-              // Fråga användaren
+              // Fråga användaren – global pick
               const chosenCat = await new Promise(resolve => {
                 showCategoryPicker(name, resolve);
               });
               if (chosenCat) {
                 newItem.category = chosenCat;
-                // Spara direkt i localStorage
-                categoryMemory[key] = chosenCat;
+                // Spara globalt
+                window.categoryMemory[key] = chosenCat;
                 try {
-                  localStorage.setItem('categoryMemory', JSON.stringify(categoryMemory));
+                  localStorage.setItem(
+                    'categoryMemory',
+                    JSON.stringify(window.categoryMemory)
+                  );
                 } catch (e) {
-                  console.warn('Misslyckades spara categoryMemory', e);
+                  console.warn('Kunde inte spara categoryMemory', e);
                 }
               }
             }
@@ -789,6 +790,7 @@ window.addItemsWithCategory = function(listIndex) {
     }
   });
 };
+
 
 
 
