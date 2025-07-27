@@ -48,191 +48,153 @@ window.showListSettingsDialog = function(title, currentName, currentHideCats, on
   };
 };
 
-// NY: Batch add med stöd för historik/mallar/kategori och rätt autofokus på iOS
-window.showAddItemsDialog = function ({
+
+/**
+ * Visar dialog för att lägga till varor, med stöd för manuellt, historik, mallar eller kategori‑läge.
+ *
+ * @param {Object} options
+ * @param {string|null} options.kategori – Namnet på aktuell kategori (om anyCategory = true)
+ * @param {string[]} options.allaVaror – Lista på alla varor för historikläge
+ * @param {string[]} options.mallVaror – Lista på mall‑varor
+ * @param {string[]} options.kategoriVaror – Lista på varor i aktuell kategori
+ * @param {function(string[])} options.onDone – Callback med den slutliga arrayen av valda varor
+ * @param {boolean} [options.onlyCategory=false] – Om true: börja alltid i kategori‑läge
+ */
+window.showAddItemsDialog = function({
   kategori = null,
   allaVaror = [],
   mallVaror = [],
   kategoriVaror = [],
-  onDone
+  onDone,
+  onlyCategory = false
 }) {
   const m = document.createElement("div");
   m.className = "modal";
 
-  let currentMode = "manual"; // "manual" | "historik" | "mallar" | "kategori"
-  let batchItems = [];
-  let searchText = "";
+  // Vilka lägen finns: manual, historik, mallar, kategori
+  let currentMode = onlyCategory && kategori ? "kategori" : "manual";
+  let batchItems   = [];
+  let searchText   = "";
 
   function render() {
-    let infoText = kategori
-      ? `Lägg till varor i kategori <b>${kategori}</b>`
-      : `Lägg till varor`;
-    let previewHTML = batchItems.length
-      ? `<ul class="preview-list">${batchItems
-          .map((item, i) => `<li>
-            ${item} <button class="btn-remove-batch-item" data-idx="${i}" title="Ta bort">🗑</button>
-          </li>`)
-          .join("")}</ul>`
+    // Dynamisk titel
+    const titleText = currentMode === "kategori" && kategori
+      ? `Lägg till varor i kategori "${kategori}"`
+      : "Lägg till varor";
+
+    // Preview‐lista (chips)
+    const previewHTML = batchItems.length
+      ? `<ul class="preview-list">${batchItems.map((item,i) =>
+           `<li>${item}<button class="btn-remove-batch-item" data-idx="${i}" title="Ta bort">×</button></li>`
+         ).join("")}</ul>`
       : "";
 
-    let resultList = "";
-    let resultSource = [];
-    if (currentMode === "historik") resultSource = allaVaror;
-    if (currentMode === "mallar") resultSource = mallVaror;
-    if (currentMode === "kategori") resultSource = kategoriVaror;
-    if (searchText && resultSource.length) {
-      resultSource = resultSource.filter((n) =>
-        n.toLowerCase().includes(searchText.toLowerCase())
-      );
+    // Välj källa för autocomplete
+    let source = [];
+    if (currentMode === "historik") source = allaVaror;
+    if (currentMode === "mallar")    source = mallVaror;
+    if (currentMode === "kategori")  source = kategoriVaror;
+    // Filtrera om söktext
+    if (searchText && source.length) {
+      source = source.filter(n => n.toLowerCase().includes(searchText.toLowerCase()));
     }
-    if (["historik", "mallar", "kategori"].includes(currentMode)) {
-      resultList = `
-        <div class="additem-search-results">
-          ${resultSource.length
-            ? resultSource
-                .map(
-                  (name, idx) => `
-                  <div class="search-item-row">
-                    <input type="checkbox" id="additem_chk${idx}" data-name="${name.replace(
-                    /"/g,
-                    "&quot;"
-                  )}" ${batchItems.includes(name) ? "checked" : ""}>
-                    <label for="additem_chk${idx}">${name}</label>
-                  </div>
-                `
-                )
-                .join("")
-            : `<div class="empty-list-text">Inga matchande varor</div>`}
-        </div>
-      `;
-    }
+
+    const resultList = (["historik","mallar","kategori"].includes(currentMode))
+      ? `<div class="additem-search-results">
+           ${source.length
+             ? source.map((name,idx) => `
+                 <div class="search-item-row">
+                   <input type="checkbox" id="chk${idx}" data-name="${name}" ${batchItems.includes(name)?"checked":""}/>
+                   <label for="chk${idx}">${name}</label>
+                 </div>`).join("")
+             : `<div class="empty-list-text">Inga matchande varor</div>`
+           }
+         </div>`
+      : "";
 
     m.innerHTML = `
       <div class="modal-content additem-modal">
-        <h2>${infoText}</h2>
-        <input id="addItemInput" placeholder="Skriv en vara och tryck Enter…" autocomplete="off" value="">
+        <h2>${titleText}</h2>
+        <input id="addItemInput" placeholder="Skriv en vara och tryck Enter…" autocomplete="off" value="${searchText}"/>
         <div class="additem-button-row">
-          <button class="additem-mode-btn" id="additem-historik-btn" type="button">${
-            kategori ? "Välj från denna kategori" : "Välj från historik"
-          }</button>
-          <button class="additem-mode-btn" id="additem-mallar-btn" type="button">Välj från mallar</button>
+          <button type="button" id="btnManual" class="additem-mode-btn">Manuellt</button>
+          <button type="button" id="btnHistory" class="additem-mode-btn">Historik</button>
+          <button type="button" id="btnTemplates" class="additem-mode-btn">Mallar</button>
+          ${kategori ? `<button type="button" id="btnCategory" class="additem-mode-btn">Kategori</button>` : ""}
         </div>
         ${resultList}
         ${previewHTML}
-        <div class="modal-actions" style="margin-top:14px;">
-          <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
-          <button id="confirmAddItemsBtn" ${batchItems.length ? "" : "disabled"}>Klar</button>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="btnCancel">Avbryt</button>
+          <button type="button" id="btnConfirm" ${batchItems.length?"":"disabled"}>Klar</button>
         </div>
       </div>
     `;
-  }
 
-  function rerenderAndFocusInput() {
-    render();
     setupListeners();
-    const input = m.querySelector("#addItemInput");
-    // Bara ge focus om vi är i manuellt läge!
-    if (input && currentMode === "manual") {
-      setTimeout(() => {
-        input.focus();
-        input.setSelectionRange(input.value.length, input.value.length);
-        window.scrollModalToTop && window.scrollModalToTop();
-      }, 100);
-    }
   }
 
   function setupListeners() {
+    // Input
     const input = m.querySelector("#addItemInput");
-    if (input) {
-      input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && input.value.trim()) {
-          const name = input.value.trim();
-          if (
-            name &&
-            !batchItems.some(
-              (existing) =>
-                existing.trim().toLowerCase() === name.trim().toLowerCase()
-            )
-          ) {
-            batchItems.push(name.trim());
-            input.value = "";
-            rerenderAndFocusInput();
-          }
-          e.preventDefault();
-        }
-      });
-      input.addEventListener("input", (e) => {
-        searchText = input.value;
-        if (["historik", "mallar", "kategori"].includes(currentMode)) {
-          rerenderAndFocusInput();
-        }
-      });
+    input.focus();
+    input.oninput = () => {
+      searchText = input.value;
+      if (currentMode !== "manual") render();
+    };
+    input.onkeydown = e => {
+      if (e.key === "Enter" && input.value.trim()) {
+        const val = input.value.trim();
+        if (!batchItems.includes(val)) batchItems.push(val);
+        input.value = "";
+        render();
+      }
+    };
+
+    // Mode‑knappar
+    m.querySelector("#btnManual").onclick  = () => { currentMode = "manual"; render(); };
+    m.querySelector("#btnHistory").onclick = () => { currentMode = "historik"; render(); };
+    m.querySelector("#btnTemplates").onclick = () => { currentMode = "mallar"; render(); };
+    if (kategori) {
+      m.querySelector("#btnCategory").onclick = () => { currentMode = "kategori"; render(); };
     }
 
-    const historikBtn = m.querySelector("#additem-historik-btn");
-    if (historikBtn) {
-      historikBtn.onclick = () => {
-        currentMode = kategori ? "kategori" : "historik";
-        searchText = "";
-        rerenderAndFocusInput();
-      };
-    }
-    const mallarBtn = m.querySelector("#additem-mallar-btn");
-    if (mallarBtn) {
-      mallarBtn.onclick = () => {
-        currentMode = "mallar";
-        searchText = "";
-        rerenderAndFocusInput();
-      };
-    }
-    const checks = m.querySelectorAll(
-      ".additem-search-results input[type=checkbox]"
-    );
-    checks.forEach((chk) => {
+    // Resultat‑checkboxar
+    m.querySelectorAll(".additem-search-results input[type=checkbox]").forEach(chk => {
       chk.onchange = () => {
-        const name = chk.getAttribute("data-name");
+        const name = chk.dataset.name;
         if (chk.checked) {
-          if (
-            !batchItems.some(
-              (existing) =>
-                existing.trim().toLowerCase() === name.trim().toLowerCase()
-            )
-          ) {
-            batchItems.push(name);
-          }
+          if (!batchItems.includes(name)) batchItems.push(name);
         } else {
-          batchItems = batchItems.filter(
-            (existing) =>
-              existing.trim().toLowerCase() !== name.trim().toLowerCase()
-          );
+          batchItems = batchItems.filter(x => x !== name);
         }
-        rerenderAndFocusInput();
+        render();
       };
     });
 
-    const dels = m.querySelectorAll(".btn-remove-batch-item");
-    dels.forEach((btn) => {
+    // Ta bort chip
+    m.querySelectorAll(".btn-remove-batch-item").forEach(btn => {
       btn.onclick = () => {
-        const idx = btn.getAttribute("data-idx");
-        batchItems.splice(idx, 1);
-        rerenderAndFocusInput();
+        const idx = parseInt(btn.dataset.idx, 10);
+        batchItems.splice(idx,1);
+        render();
       };
     });
 
-    const confirmBtn = m.querySelector("#confirmAddItemsBtn");
-    if (confirmBtn) {
-      confirmBtn.onclick = () => {
-        if (onDone) onDone(batchItems);
-        document.body.removeChild(m);
-      };
-    }
+    // Avbryt
+    m.querySelector("#btnCancel").onclick = () => m.remove();
+
+    // Klar
+    m.querySelector("#btnConfirm").onclick = () => {
+      onDone(batchItems);
+      m.remove();
+    };
   }
 
-  rerenderAndFocusInput();
   document.body.appendChild(m);
-
-  window.scrollModalToTop && window.scrollModalToTop();
+  render();
 };
+
 
 // Info/modal för kategori (exempel)
 window.showCategoryPicker = function (name, onSave) {
