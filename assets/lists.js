@@ -735,5 +735,41 @@ function chooseSourceList(targetIndex) {
   });
 }
 
+// ===== Lägg till varor utan kategori-begränsning =====
+window.addItemsWithCategory = function(listIndex) {
+  const list = lists[listIndex];
+  window.showAddItemsDialog({
+    kategori: null,
+    // getAllUniqueItemNames returnerar [{name,category},…]
+    allaVaror: window.getAllUniqueItemNames(lists),
+    onlyCategory: false,
+    onDone: items => {
+      items.forEach(({name, note}) => {
+        list.items.push({ name, note, done: false });
+      });
+      stampListTimestamps(list);
+      saveLists(lists);
+      renderListDetail(listIndex);
+    }
+  });
+};
+
+// ===== Lägg till varor inom en viss kategori =====
+window.addItemViaCategory = function(listIndex, kategori) {
+  const list = lists[listIndex];
+  window.showAddItemsDialog({
+    kategori,
+    allaVaror: window.getCategoryItemNames(list, kategori).map(name => ({ name, category: kategori })),
+    onlyCategory: true,
+    onDone: items => {
+      items.forEach(({name, note}) => {
+        list.items.push({ name, note, done: false, category: kategori });
+      });
+      stampListTimestamps(list);
+      saveLists(lists);
+      renderListDetail(listIndex);
+    }
+  });
+};
 
 
