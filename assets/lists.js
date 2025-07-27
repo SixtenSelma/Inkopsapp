@@ -735,13 +735,6 @@ window.addEventListener('load', () => {
   }
 });
 
-/**
- * Importerar valda varor från en annan lista.
- * Visar kategorier i samma ordning som i detaljvyn:
- * först de i standardKategorier, sedan resten alfabetiskt.
- *
- * @param {number} targetIndex – index på den lista vi är i
- */
 // ===== Importera varor från en annan lista =====
 window.importItemsFromList = async function(targetIndex) {
   // 1) Välj källa‐lista
@@ -752,7 +745,7 @@ window.importItemsFromList = async function(targetIndex) {
   // 2) Gruppera per kategori
   const grouped = {};
   srcList.items.forEach((item, globalIdx) => {
-    const cat = item.category || '🏠 Övrigt';
+    const cat = item.category || 'Övrigt';
     if (!grouped[cat]) grouped[cat] = [];
     grouped[cat].push({ item, globalIdx });
   });
@@ -761,11 +754,11 @@ window.importItemsFromList = async function(targetIndex) {
   const allCats = Object.keys(grouped).sort((a, b) => {
     const ai = standardKategorier.indexOf(a);
     const bi = standardKategorier.indexOf(b);
-    if (ai !== -1 || bi !== -1) return (ai === -1) ? 1 : (bi === -1) ? -1 : ai - bi;
+    if (ai !== -1 || bi !== -1) return ai === -1 ? 1 : bi === -1 ? -1 : ai - bi;
     return a.localeCompare(b, 'sv');
   });
 
-  // 4) Bygg modal
+  // 4) Bygg modal‐overlay
   const overlay = document.createElement('div');
   overlay.className = 'modal import-modal';
   overlay.style.backdropFilter = 'blur(4px)';
@@ -773,17 +766,18 @@ window.importItemsFromList = async function(targetIndex) {
 
   const box = document.createElement('div');
   box.className = 'modal-content';
-  box.innerHTML = `<h2>Importera varor från <em>${srcList.name}</em></h2>`;
   overlay.appendChild(box);
 
-  // 5) "Markera alla"-knapp
+  // 5) Titel och "Markera alla"
+  const header = document.createElement('h2');
+  header.textContent = `Importera varor från "${srcList.name}"`;
+  box.appendChild(header);
+
   const btnSelectAll = document.createElement('button');
-  btnSelectAll.textContent = 'Markera alla';
+  btnSelectAll.type = 'button';
   btnSelectAll.className = 'btn-secondary';
-  btnSelectAll.style.marginBottom = '8px';
-  btnSelectAll.onclick = () => {
-    box.querySelectorAll('input[type=checkbox]').forEach(chk => chk.checked = true);
-  };
+  btnSelectAll.textContent = 'Markera alla';
+  btnSelectAll.style.margin = '8px 0';
   box.appendChild(btnSelectAll);
 
   // 6) Lista med kategorier och varor
@@ -793,7 +787,7 @@ window.importItemsFromList = async function(targetIndex) {
 
   allCats.forEach(cat => {
     const entries = grouped[cat];
-    if (!entries || !entries.length) return;
+    if (!entries.length) return;
 
     // Kategori‐rubrik
     const catHead = document.createElement('div');
@@ -801,41 +795,44 @@ window.importItemsFromList = async function(targetIndex) {
     catHead.textContent = cat;
     listContainer.appendChild(catHead);
 
-    // Varor
+    // Varor under varje kategori
     entries.forEach(({ item, globalIdx }) => {
-      const row = document.createElement('div');
+      const row = document.createElement('label');
       row.className = 'import-row';
 
       const chk = document.createElement('input');
       chk.type = 'checkbox';
       chk.dataset.globalIdx = globalIdx;
+      chk.style.marginRight = '8px';
       row.appendChild(chk);
 
-      const label = document.createElement('span');
-      label.textContent = item.note
+      const span = document.createElement('span');
+      span.textContent = item.note
         ? `${item.name} (${item.note})`
         : item.name;
-      row.appendChild(label);
+      row.appendChild(span);
 
       listContainer.appendChild(row);
     });
   });
 
-  // 7) Knappar längst ned
+  // 7) Knapprad längst ned
   const actions = document.createElement('div');
   actions.className = 'modal-actions';
   box.appendChild(actions);
 
   const btnCancel = document.createElement('button');
-  btnCancel.textContent = 'Avbryt';
+  btnCancel.type = 'button';
   btnCancel.className = 'btn-secondary';
+  btnCancel.textContent = 'Avbryt';
   btnCancel.onclick = () => overlay.remove();
   actions.appendChild(btnCancel);
 
   const btnImport = document.createElement('button');
+  btnImport.type = 'button';
+  btnImport.className = '';
   btnImport.textContent = 'Importera';
   btnImport.onclick = () => {
-    // Lägg till valda varor
     listContainer.querySelectorAll('input[type=checkbox]:checked')
       .forEach(chk => {
         const gIdx = parseInt(chk.dataset.globalIdx, 10);
@@ -849,17 +846,24 @@ window.importItemsFromList = async function(targetIndex) {
             name:     srcItem.name,
             note:     srcItem.note || '',
             done:     false,
-            category: srcItem.category || '🏠 Övrigt'
+            category: srcList.hideCategories ? undefined : (srcItem.category || 'Övrigt')
           });
         }
       });
-    // Stämpla och spara
+    // Stämpla & spara
     stampListTimestamps(lists[targetIndex]);
     saveLists(lists);
     renderListDetail(targetIndex);
     overlay.remove();
   };
   actions.appendChild(btnImport);
+
+  // 8) "Markera alla"-funktion
+  btnSelectAll.onclick = () => {
+    listContainer.querySelectorAll('input[type=checkbox]').forEach(chk => {
+      chk.checked = true;
+    });
+  };
 };
 
 
