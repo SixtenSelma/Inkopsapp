@@ -37,10 +37,7 @@ function toggleItem(listIndex, itemIndex, lists, user, callback) {
 window.lists = loadLists();  // Från storage.js
 
 // Hämta globalt kategori‑minne en gång
-window.categoryMemory = (() => {
-  try { return JSON.parse(localStorage.getItem('categoryMemory')) || {}; }
-  catch { return {}; }
-})();
+window.categoryMemory = loadCategoryMemory();
 
 window.user = getUser() || prompt("Vad heter du?");
 setUser(window.user);
@@ -737,15 +734,15 @@ function chooseSourceList(targetIndex) {
   });
 }
 
-// ===== Lägg till varor utan kategori‑begränsning, med globalt minne =====
+
+
 window.addItemsWithCategory = function(listIndex) {
   const list = lists[listIndex];
-  // Om listan inte hanterar kategorier → hoppa över allt kategorilogik
   const skipCategory = list.hideCategories === true;
 
-  window.showAddItemsDialog({
+  showAddItemsDialog({
     kategori: null,
-    allaVaror: window.getAllUniqueItemNames(lists),
+    allaVaror: getAllUniqueItemNames(lists),
     onlyCategory: false,
     onDone: items => {
       (async () => {
@@ -757,25 +754,14 @@ window.addItemsWithCategory = function(listIndex) {
             const savedCat = window.categoryMemory[key];
 
             if (savedCat) {
-              // Använd globalt sparad kategori
               newItem.category = savedCat;
             } else {
-              // Fråga användaren – global pick
-              const chosenCat = await new Promise(resolve => {
-                showCategoryPicker(name, resolve);
-              });
+              const chosenCat = await new Promise(r => showCategoryPicker(name, r));
               if (chosenCat) {
                 newItem.category = chosenCat;
-                // Spara globalt
+                // använd din save‑hjälpare
                 window.categoryMemory[key] = chosenCat;
-                try {
-                  localStorage.setItem(
-                    'categoryMemory',
-                    JSON.stringify(window.categoryMemory)
-                  );
-                } catch (e) {
-                  console.warn('Kunde inte spara categoryMemory', e);
-                }
+                saveCategoryMemory(window.categoryMemory);
               }
             }
           }
@@ -790,6 +776,7 @@ window.addItemsWithCategory = function(listIndex) {
     }
   });
 };
+
 
 
 
