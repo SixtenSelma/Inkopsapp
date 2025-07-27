@@ -537,48 +537,53 @@ window.addItemsWithCategory = function(listIndex = null) {
   showAddItemsDialog({
     allaVaror,
     mallVaror,
-    kategoriVaror: [], // vi skickar aldrig kategori‑lista här
+    kategoriVaror: [],
     onlyCategory: false,
-    onDone: async added => {
+    onDone: added => {
       if (!added || !added.length) return;
 
-      added.forEach(raw => {
-        const [namePart, ...noteParts] = raw.split(',');
-        const name = namePart.trim();
-        const note = noteParts.join(',').trim();
+      // wrap i en async IIFE för att kunna awaita chooseCategory
+      (async () => {
+        for (const raw of added) {
+          const [namePart, ...noteParts] = raw.split(',');
+          const name = namePart.trim();
+          const note = noteParts.join(',').trim();
 
-        // Hoppa dubbletter
-        const exists = list.items.some(item =>
-          item.name.trim().toLowerCase() === name.toLowerCase() &&
-          (item.note || '').trim().toLowerCase() === note.toLowerCase()
-        );
-        if (exists) return;
+          // hoppa dubbletter
+          const exists = list.items.some(item =>
+            item.name.trim().toLowerCase() === name.toLowerCase() &&
+            (item.note || '').trim().toLowerCase() === note.toLowerCase()
+          );
+          if (exists) continue;
 
-        // Bestäm kategori om tillåtet
-        const category = list.hideCategories
-          ? undefined
-          : (window.categoryMemory[name] || await chooseCategory(name) || "🏠 Övrigt");
+          // bestäm kategori
+          let category;
+          if (!list.hideCategories) {
+            category = window.categoryMemory[name]
+              || await chooseCategory(name)
+              || "🏠 Övrigt";
+          }
 
-        list.items.push({
-          name,
-          note,
-          done: false,
-          ...(!list.hideCategories ? { category } : {})
-        });
-      });
+          list.items.push({
+            name,
+            note,
+            done: false,
+            ...(list.hideCategories ? {} : { category })
+          });
+        }
 
-      stampListTimestamps(list, false);
-      saveLists(lists);
-      renderListDetail(i);
+        stampListTimestamps(list, false);
+        saveLists(lists);
+        renderListDetail(i);
+      })();
     }
   });
 };
 
-// ===== Lägg till via kategori‑knapp (försvinner om hideCategories=true) =====
+// ===== Lägg till via kategori‑knapp (ingen effekt om hideCategories=true) =====
 window.addItemViaCategory = function(listIndex, category) {
   const list = lists[listIndex];
   if (list.hideCategories) {
-    // om kategorier är dolda → fallback till vanlig add
     return window.addItemsWithCategory(listIndex);
   }
 
@@ -594,12 +599,12 @@ window.addItemViaCategory = function(listIndex, category) {
     onDone: added => {
       if (!added || !added.length) return;
 
+      // här räcker en synkron loop
       added.forEach(raw => {
         const [namePart, ...noteParts] = raw.split(',');
         const name = namePart.trim();
         const note = noteParts.join(',').trim();
 
-        // Hoppa dubbletter
         const exists = list.items.some(item =>
           item.name.trim().toLowerCase() === name.toLowerCase() &&
           (item.note || '').trim().toLowerCase() === note.toLowerCase()
@@ -620,9 +625,6 @@ window.addItemViaCategory = function(listIndex, category) {
     }
   });
 };
-
-
-
 
 // ===== Ny inköpslista via modal‑dialog =====
 window.newList = function() {
