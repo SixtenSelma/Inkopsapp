@@ -51,148 +51,88 @@ window.showListSettingsDialog = function(title, currentName, currentHideCats, on
 
 // modal.js
 
-/**
- * Visar dialog för att lägga till varor, med stöd för manuellt, historik, mallar eller kategori‑läge.
- *
- * @param {Object} options
- * @param {string|null} options.kategori – Namnet på aktuell kategori (om anyCategory = true)
- * @param {string[]} options.allaVaror – Lista på alla varor för historikläge
- * @param {string[]} options.mallVaror – Lista på mall‑varor
- * @param {string[]} options.kategoriVaror – Lista på varor i aktuell kategori
- * @param {function(string[])} options.onDone – Callback med den slutliga arrayen av valda varor
- * @param {boolean} [options.onlyCategory=false] – Om true: börja alltid i kategori‑läge
- */
+// modal.js
 window.showAddItemsDialog = function({
   kategori = null,
   allaVaror = [],
-  mallVaror = [],
   kategoriVaror = [],
-  onDone,
-  onlyCategory = false
+  onlyCategory = false,
+  onDone
 }) {
+  // välj källa för autocomplete
+  const source = onlyCategory
+    ? kategoriVaror
+    : allaVaror;
+
+  // bygga modal
   const m = document.createElement("div");
   m.className = "modal";
-
-  let currentMode = onlyCategory && kategori ? "kategori" : "manual";
-  let batchItems  = [];
-  let searchText  = "";
-
-  function render() {
-    // titel
-    const titleText = "Lägg till varor";
-    // undertext för kategori
-    const subtitle = (currentMode === "kategori" && kategori)
-      ? `<p class="additem-subtitle">Kategori: <strong>${kategori}</strong></p>`
-      : "";
-
-    // preview-lista
-    const previewHTML = batchItems.length
-      ? `<ul class="preview-list">${batchItems.map((item,i) =>
-          `<li>${item}<button class="btn-remove-batch-item" data-idx="${i}" title="Ta bort">×</button></li>`
-        ).join("")}</ul>`
-      : "";
-
-    // välj källa för autocomplete
-    let source = [];
-    if (currentMode === "historik") source = allaVaror;
-    if (currentMode === "mallar")    source = mallVaror;
-    if (currentMode === "kategori")  source = kategoriVaror;
-    if (searchText && source.length) {
-      source = source.filter(n => n.toLowerCase().includes(searchText.toLowerCase()));
-    }
-    const resultList = (["historik","mallar","kategori"].includes(currentMode))
-      ? `<div class="additem-search-results">
-           ${source.length
-             ? source.map((name,idx) => `
-                 <div class="search-item-row">
-                   <input type="checkbox" id="chk${idx}" data-name="${name}" ${batchItems.includes(name)?"checked":""}/>
-                   <label for="chk${idx}">${name}</label>
-                 </div>`).join("")
-             : `<div class="empty-list-text">Inga matchande varor</div>`
-           }
-         </div>`
-      : "";
-
-    m.innerHTML = `
-      <div class="modal-content additem-modal">
-        <h2>${titleText}</h2>
-        ${subtitle}
-        <input id="addItemInput" placeholder="Skriv en vara och tryck Enter…" autocomplete="off" value="${searchText}"/>
-        <div class="additem-button-row">
-          <button type="button" id="btnManual" class="additem-mode-btn">Manuellt</button>
-          <button type="button" id="btnHistory" class="additem-mode-btn">Historik</button>
-          <button type="button" id="btnTemplates" class="additem-mode-btn">Mallar</button>
-          ${kategori ? `<button type="button" id="btnCategory" class="additem-mode-btn">Kategori</button>` : ""}
-        </div>
-        ${resultList}
-        ${previewHTML}
-        <div class="modal-actions">
-          <button type="button" class="btn-secondary" id="btnCancel">Avbryt</button>
-          <button type="button" id="btnConfirm" ${batchItems.length?"":"disabled"}>Klar</button>
-        </div>
-      </div>
-    `;
-
-    attachListeners();
-  }
-
-  function attachListeners() {
-    // inputfält
-    const input = m.querySelector("#addItemInput");
-    input.focus();
-    input.oninput = () => {
-      searchText = input.value;
-      if (currentMode !== "manual") render();
-    };
-    input.onkeydown = e => {
-      if (e.key === "Enter" && input.value.trim()) {
-        const val = input.value.trim();
-        if (!batchItems.includes(val)) batchItems.push(val);
-        input.value = "";
-        render();
-      }
-    };
-
-    // mode‑knappar
-    m.querySelector("#btnManual").onclick  = () => { currentMode = "manual";  render(); };
-    m.querySelector("#btnHistory").onclick = () => { currentMode = "historik"; render(); };
-    m.querySelector("#btnTemplates").onclick = () => { currentMode = "mallar";    render(); };
-    if (kategori) {
-      m.querySelector("#btnCategory").onclick = () => { currentMode = "kategori";  render(); };
-    }
-
-    // resultat‑checkboxar
-    m.querySelectorAll(".additem-search-results input[type=checkbox]").forEach(chk => {
-      chk.onchange = () => {
-        const name = chk.dataset.name;
-        if (chk.checked) {
-          if (!batchItems.includes(name)) batchItems.push(name);
-        } else {
-          batchItems = batchItems.filter(x => x !== name);
-        }
-        render();
-      };
-    });
-
-    // ta bort chip
-    m.querySelectorAll(".btn-remove-batch-item").forEach(btn => {
-      btn.onclick = () => {
-        const idx = parseInt(btn.dataset.idx, 10);
-        batchItems.splice(idx,1);
-        render();
-      };
-    });
-
-    // avbryt + klar
-    m.querySelector("#btnCancel").onclick  = () => m.remove();
-    m.querySelector("#btnConfirm").onclick = () => {
-      onDone(batchItems);
-      m.remove();
-    };
-  }
-
   document.body.appendChild(m);
-  render();
+
+  // rubrik + eventuell kategori­rad
+  const subtitle = kategori
+    ? `<p class="additem-subtitle">Kategori: <strong>${kategori}</strong></p>`
+    : "";
+
+  m.innerHTML = `
+    <div class="modal-content">
+      <h2>Lägg till vara</h2>
+      ${subtitle}
+      <input id="addItemInput" placeholder="Skriv varunamn…" list="add-items-suggestions" autocomplete="off"/>
+      <datalist id="add-items-suggestions">
+        ${[...new Set(source)].sort().map(s => `<option value="${s}">`).join("")}
+      </datalist>
+      <ul class="preview-list" id="addItemPreview"></ul>
+      <div class="modal-actions">
+        <button id="addItemCancel" class="btn-secondary">Avbryt</button>
+        <button id="addItemConfirm" disabled>Klar</button>
+      </div>
+    </div>
+  `;
+
+  const input   = m.querySelector("#addItemInput");
+  const preview = m.querySelector("#addItemPreview");
+  const btnOk   = m.querySelector("#addItemConfirm");
+  const btnCancel = m.querySelector("#addItemCancel");
+  let items = [];
+
+  function renderPreview() {
+    preview.innerHTML = items.map((name,i) =>
+      `<li>${name}
+         <button class="btn-remove" data-idx="${i}" title="Ta bort">×</button>
+       </li>`
+    ).join("");
+    btnOk.disabled = items.length === 0;
+    // knappar för att ta bort
+    preview.querySelectorAll(".btn-remove").forEach(btn =>
+      btn.onclick = () => {
+        items.splice(+btn.dataset.idx,1);
+        renderPreview();
+      }
+    );
+  }
+
+  // lägg till med Enter
+  input.onkeydown = e => {
+    if (e.key === "Enter" && input.value.trim()) {
+      const val = input.value.trim();
+      if (!items.includes(val)) {
+        items.push(val);
+        renderPreview();
+      }
+      input.value = "";
+      e.preventDefault();
+    }
+  };
+
+  btnCancel.onclick = () => m.remove();
+  btnOk.onclick     = () => {
+    onDone(items);
+    m.remove();
+  };
+
+  // ge fokus
+  setTimeout(() => input.focus(), 50);
 };
 
 
