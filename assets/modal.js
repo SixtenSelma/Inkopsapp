@@ -126,14 +126,14 @@ window.addItemsWithCategory = function(listIndex = null) {
 
 
 
-// ===== Lägg till via kategori‑knapp – föreslår varor i samma kategori från andra listor =====
+// ===== Lägg till via kategori‑knapp – autocomplete från andra listor i samma kategori =====
 window.addItemViaCategory = function(listIndex, category) {
   const list = lists[listIndex];
 
-  // Bygg upp autocomplete‑förslag: alla varunamn i samma kategori, men i ANDRA listor
+  // Hämta alla varunamn i samma kategori, men från ANDRA listor
   const suggestionSet = new Set();
   lists.forEach((otherList, idx) => {
-    if (idx === listIndex) return;                   // hoppa över aktuell lista
+    if (idx === listIndex) return;
     otherList.items.forEach(item => {
       if (item.category === category && item.name) {
         suggestionSet.add(item.name.trim());
@@ -143,9 +143,10 @@ window.addItemViaCategory = function(listIndex, category) {
   const kategoriVaror = Array.from(suggestionSet).sort();
 
   showAddItemsDialog({
-    kategori: category,     // visar kategori som rubrik under "Lägg till vara"
-    allaVaror: kategoriVaror,
-    onlyCategory: true,     // endast dessa förslag
+    kategori: category,      // visar ”Kategori: <namn>” i dialogen
+    allaVaror: [],           // tom lista när onlyCategory = true
+    kategoriVaror,           // här ligger våra förslag
+    onlyCategory: true,
     onDone: async added => {
       if (!added || !added.length) return;
 
@@ -155,22 +156,14 @@ window.addItemViaCategory = function(listIndex, category) {
         const note = noteParts.join(',').trim();
 
         // Hoppa dubbletter
-        const exists = list.items.some(it =>
+        if (list.items.some(it =>
           it.name.trim().toLowerCase() === name.toLowerCase() &&
           (it.note||'').trim().toLowerCase() === note.toLowerCase()
-        );
-        if (exists) continue;
+        )) continue;
 
-        // Lägg till med vald kategori
-        list.items.push({
-          name,
-          note,
-          done: false,
-          category
-        });
+        list.items.push({ name, note, done: false, category });
       }
 
-      // Spara och rendera om
       stampListTimestamps(list);
       saveLists(lists);
       renderListDetail(listIndex);
