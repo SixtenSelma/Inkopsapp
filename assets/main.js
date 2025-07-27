@@ -41,13 +41,15 @@ window.openListMenu = function(i, btn) {
   createMenu(html, btn);
 };
 
+// --- Menyer (popup) för enskild vara ---
 window.openItemMenu = function(listIndex, itemIndex, btn) {
-  // Stoppa bubbla
+  // Stoppa bubbla så klicket inte går vidare
   btn.addEventListener('click', e => e.stopPropagation());
-  // Ta bort ev. öppna menyer
+
+  // Ta bort eventuella öppna menyer
   document.querySelectorAll('.item-menu').forEach(el => el.remove());
 
-  // Bygg meny
+  // Skapa popup‑behållare
   const menu = document.createElement('div');
   menu.className = 'item-menu';
   menu.innerHTML = `
@@ -61,14 +63,14 @@ window.openItemMenu = function(listIndex, itemIndex, btn) {
     </ul>
   `;
 
-  // Positionera
+  // Placera menyn under ⋮‑knappen
   const rect = btn.getBoundingClientRect();
   document.body.appendChild(menu);
   menu.style.position = 'absolute';
   menu.style.top  = (rect.bottom + window.scrollY + 8) + 'px';
   menu.style.left = (rect.right + window.scrollX - menu.offsetWidth) + 'px';
 
-  // Klick utanför stänger
+  // Klick utanför stänger menyn
   setTimeout(() => {
     document.addEventListener('click', function handler(e) {
       if (!menu.contains(e.target) && e.target !== btn) {
@@ -78,7 +80,7 @@ window.openItemMenu = function(listIndex, itemIndex, btn) {
     });
   }, 0);
 
-  // Event‑handlers
+  // "Ändra/komplettera"
   menu.querySelector('.edit-btn').onclick = () => {
     const item = lists[listIndex].items[itemIndex];
     showEditItemDialog(
@@ -99,6 +101,7 @@ window.openItemMenu = function(listIndex, itemIndex, btn) {
     menu.remove();
   };
 
+  // "Ta bort"
   menu.querySelector('.delete-btn').onclick = () => {
     lists[listIndex].items.splice(itemIndex, 1);
     stampListTimestamps(lists[listIndex]);
@@ -107,9 +110,6 @@ window.openItemMenu = function(listIndex, itemIndex, btn) {
     menu.remove();
   };
 };
-
-};
-
 
 
 // --- Initiera första rendering ---
