@@ -138,40 +138,55 @@ window.showListSettingsDialog = function(title, currentName, currentHideCats, on
 };
 
 
-// ===== in modal.js =====
-// Redigera vara-modal: låt användaren ändra namn och komplement
-window.showEditItemDialog = function(listIndex, itemIndex, currentName, currentNote, onConfirm) {
+// Redigera vara-modal: låt användaren ändra namn, komplement och kategori
+window.showEditItemDialog = function(listIndex, itemIndex, currentName, currentNote, currentCategory, onConfirm) {
   const m = document.createElement('div');
   m.className = 'modal';
   m.innerHTML = `
     <div class="modal-content">
-      <h2>Ändra vara</h2>
-      <label>Produkt:
+      <h2>Ändra/komplettera</h2>
+      <label>Beskrivning:
         <input id="editItemName" value="${currentName.replace(/"/g, '&quot;')}" autocomplete="off" />
       </label>
-      <label style="margin-top:12px;">Komplement:
+      <label style="margin-top:12px;">Extra:
         <input id="editItemNote" value="${currentNote.replace(/"/g, '&quot;')}" />
+      </label>
+      <label style="margin-top:12px;">Kategori:
+        <select id="editItemCategory">
+          ${standardKategorier.map(cat =>
+            `<option value="${cat}"${cat===currentCategory?' selected':''}>${cat}</option>`
+          ).join('')}
+        </select>
       </label>
       <div class="modal-actions" style="margin-top:16px;">
         <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
-        <button onclick="confirmEditItem()">OK</button>
+        <button id="editItemConfirmBtn">OK</button>
       </div>
     </div>
   `;
   document.body.appendChild(m);
+
   const inpName = m.querySelector('#editItemName');
   const inpNote = m.querySelector('#editItemNote');
+  const selCat  = m.querySelector('#editItemCategory');
+  const btnOk   = m.querySelector('#editItemConfirmBtn');
+
+  // Fokusera på första fältet
   setTimeout(() => { inpName.focus(); inpName.select(); }, 100);
 
-  window.confirmEditItem = () => {
+  btnOk.onclick = () => {
     const newName = inpName.value.trim();
     const newNote = inpNote.value.trim();
-    if (!newName) { inpName.focus(); return; }
-    onConfirm(newName, newNote);
+    const newCat  = selCat.value;
+    if (!newName) {
+      inpName.focus();
+      return;
+    }
+    onConfirm(newName, newNote, newCat);
     document.body.removeChild(m);
-    delete window.confirmEditItem;
   };
 };
+
 
 
 // Info/modal för kategori (exempel)
