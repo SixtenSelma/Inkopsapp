@@ -216,7 +216,7 @@ input[type="checkbox"] {
 /* ===== Samma font på progress-text och progress-timestamp ===== */
 .list-card-footer .progress-text,
 .list-card-footer .progress-timestamp {
-  font-size: 1rem;    /* samma som din ”X / Y klara”-text */
+  font-size: 0.9rem;    /* samma som din ”X / Y klara”-text */
   font-weight: 500;   /* om din progress-text är semibold */
   color: inherit;     /* behåll respektive färg om du vill */
 }
