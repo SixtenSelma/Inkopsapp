@@ -41,30 +41,34 @@ window.openListMenu = function(i, btn) {
   createMenu(html, btn);
 };
 
-// --- Menyer (popup) för enskild vara ---
 window.openItemMenu = function(listIndex, itemIndex, btn) {
-  // Stoppa bubbla så vi inte triggar annat (hämta event-objekt rätt)
+  // Stoppa bubbla
   btn.addEventListener('click', e => e.stopPropagation());
-  
   // Ta bort ev. öppna menyer
   document.querySelectorAll('.item-menu').forEach(el => el.remove());
 
-  // Skapa meny-element
+  // Bygg meny
   const menu = document.createElement('div');
   menu.className = 'item-menu';
   menu.innerHTML = `
-    <button type="button" class="item-menu-btn edit-btn">Ändra</button>
-    <button type="button" class="item-menu-btn delete-btn" style="color:#d44;">Ta bort</button>
+    <ul class="item-menu-list">
+      <li>
+        <button type="button" class="item-menu-btn edit-btn">Ändra/komplettera</button>
+      </li>
+      <li>
+        <button type="button" class="item-menu-btn delete-btn">Ta bort</button>
+      </li>
+    </ul>
   `;
 
-  // Placera ut menyn precis under ⋮-knappen
+  // Positionera
   const rect = btn.getBoundingClientRect();
   document.body.appendChild(menu);
   menu.style.position = 'absolute';
-  menu.style.top  = (rect.bottom + window.scrollY + 4) + 'px';
+  menu.style.top  = (rect.bottom + window.scrollY + 8) + 'px';
   menu.style.left = (rect.right + window.scrollX - menu.offsetWidth) + 'px';
 
-  // Klick utanför stänger menyn
+  // Klick utanför stänger
   setTimeout(() => {
     document.addEventListener('click', function handler(e) {
       if (!menu.contains(e.target) && e.target !== btn) {
@@ -74,7 +78,7 @@ window.openItemMenu = function(listIndex, itemIndex, btn) {
     });
   }, 0);
 
-  // Handler för "Ändra"
+  // Event‑handlers
   menu.querySelector('.edit-btn').onclick = () => {
     const item = lists[listIndex].items[itemIndex];
     showEditItemDialog(
@@ -84,11 +88,9 @@ window.openItemMenu = function(listIndex, itemIndex, btn) {
       item.note || '',
       item.category || '',
       (newName, newNote, newCat) => {
-        // Uppdatera objektet
         item.name     = newName;
         item.note     = newNote;
         item.category = newCat;
-        // Stämpla, spara och rendera om
         stampListTimestamps(lists[listIndex]);
         saveLists(lists);
         renderListDetail(listIndex);
@@ -97,7 +99,6 @@ window.openItemMenu = function(listIndex, itemIndex, btn) {
     menu.remove();
   };
 
-  // Handler för "Ta bort"
   menu.querySelector('.delete-btn').onclick = () => {
     lists[listIndex].items.splice(itemIndex, 1);
     stampListTimestamps(lists[listIndex]);
@@ -105,6 +106,8 @@ window.openItemMenu = function(listIndex, itemIndex, btn) {
     renderListDetail(listIndex);
     menu.remove();
   };
+};
+
 };
 
 
