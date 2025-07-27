@@ -735,21 +735,48 @@ function chooseSourceList(targetIndex) {
   });
 }
 
-// ===== Lägg till varor utan kategori-begränsning =====
+// ===== Lägg till varor utan kategori-begränsning, med automatisk kategorimatchning och fallback-meny =====
 window.addItemsWithCategory = function(listIndex) {
   const list = lists[listIndex];
+  // Listan hanterar kategorier om hideCategories===false
+  const handlesCategories = list.hideCategories === false;
+
   window.showAddItemsDialog({
     kategori: null,
-    // getAllUniqueItemNames returnerar [{name,category},…]
     allaVaror: window.getAllUniqueItemNames(lists),
     onlyCategory: false,
     onDone: items => {
-      items.forEach(({name, note}) => {
-        list.items.push({ name, note, done: false });
-      });
-      stampListTimestamps(list);
-      saveLists(lists);
-      renderListDetail(listIndex);
+      // Direkt-invokera en async-funktion för att hantera modaler sekventiellt
+      (async () => {
+        for (const { name, note } of items) {
+          const newItem = { name, note, done: false };
+          if (handlesCategories) {
+            const key = name.trim().toLowerCase();
+            const savedCat = window.categoryMemory[key];
+            if (savedCat) {
+              // Använd sparad kategori
+              newItem.category = savedCat;
+            } else {
+              // Be användaren välja kategori via din picker-modal
+              // showCategoryPicker returnerar en Promise<kategori|string|null>
+              const chosenCat = await new Promise(resolve => {
+                showCategoryPicker(name, resolve);
+              });
+              if (chosenCat) {
+                newItem.category = chosenCat;
+                // Spara i minnet för framtiden
+                window.categoryMemory[key] = chosenCat;
+                saveCategoryMemory && saveCategoryMemory(window.categoryMemory);
+              }
+            }
+          }
+          list.items.push(newItem);
+        }
+        // När alla varor är klara → spara och rendera om
+        stampListTimestamps(list);
+        saveLists(lists);
+        renderListDetail(listIndex);
+      })();
     }
   });
 };
