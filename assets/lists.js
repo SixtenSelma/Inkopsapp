@@ -577,18 +577,24 @@ window.addItemsWithCategory = function(listIndex = null) {
   });
 };
 
-// ===== Lägg till via kategori‑knapp (filtrerad autocomplete) =====
+// ===== Lägg till via kategori‑knapp – förslag från alla andra listor =====
 window.addItemViaCategory = function(listIndex, category) {
   const list = lists[listIndex];
-  if (list.hideCategories) {
-    return window.addItemsWithCategory(listIndex);
-  }
 
-  // filtrera autocomplete‐källor enligt hideCategories
+  // Hämta alla varor i den givna kategorin i alla listor utom den aktuella
+  const kategoriVaror = lists
+    .filter((_, idx) => idx !== listIndex)
+    .flatMap(l => l.items
+      .filter(item => (item.category||"🏠 Övrigt") === category && item.name)
+      .map(item => item.name.trim())
+    )
+    .filter((v, i, arr) => arr.indexOf(v) === i)    // unika
+    .sort((a, b) => a.localeCompare(b, 'sv'));
+
+  // För autocomplete övriga källor: vi behåller tidigare logik
   const sameModeLists = lists.filter(l => !!l.hideCategories === !!list.hideCategories);
   const allaVaror     = getAllUniqueItemNames(sameModeLists);
   const mallVaror     = getTemplateItemNames(sameModeLists);
-  const kategoriVaror = getCategoryItemNames(list, category);
 
   showAddItemsDialog({
     allaVaror,
@@ -603,6 +609,7 @@ window.addItemViaCategory = function(listIndex, category) {
         const name = namePart.trim();
         const note = noteParts.join(',').trim();
 
+        // Hoppa dubbletter
         if (list.items.some(it =>
           it.name.trim().toLowerCase() === name.toLowerCase() &&
           (it.note||'').trim().toLowerCase() === note.toLowerCase()
