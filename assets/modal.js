@@ -1,6 +1,8 @@
 // modal.js – återanvändbara modaler med mobilfokus och batch add
 
 
+// modal.js – återanvändbara modaler med mobilfokus och batch add
+
 // Flytta modal upp om mobil och tangentbord
 window.scrollModalToTop = function () {
   setTimeout(() => {
@@ -11,19 +13,20 @@ window.scrollModalToTop = function () {
 // ===== Lägg till varor-dialog med namn + komplement (note) efter komma =====
 window.showAddItemsDialog = function({
   kategori = null,
-  allaVaror = [],
+  allaVaror = [],     // kan vara array av strängar eller objekt {name,category}
   onlyCategory = false,
   onDone
 }) {
-  // Förbered source: kan vara strängar eller objekt {name,category}
+  // 1) Filtrera ev. på kategori (endast om allaVaror är objekt)
   let source = allaVaror;
-  if (onlyCategory && kategori != null && source.length && typeof source[0] === 'object') {
+  if (onlyCategory && kategori !== null && source.length && typeof source[0] === "object") {
     source = source.filter(v => v.category === kategori);
   }
-  // Extrahera bara namn för autocomplete
-  const names = source.map(v => typeof v === 'string' ? v : v.name);
 
-  // Bygg modal‑DOM
+  // 2) Extrahera alltid en ren stränglista för autocomplete
+  const names = source.map(v => typeof v === "string" ? v : v.name);
+
+  // 3) Skapa modal‑HTML
   const m = document.createElement("div");
   m.className = "modal";
   m.innerHTML = `
@@ -46,36 +49,36 @@ window.showAddItemsDialog = function({
     </div>`;
   document.body.appendChild(m);
 
+  // 4) Cache element och state
   const input     = m.querySelector("#addItemInput");
   const preview   = m.querySelector("#addItemPreview");
   const btnOk     = m.querySelector("#addItemConfirm");
   const btnCancel = m.querySelector("#addItemCancel");
-  let items = []; // Array av { name, note }
+  let items = []; // kommer innehålla {name,note}
 
-  // Visa preview-listan
+  // 5) Preview-rendering
   function renderPreview() {
-    preview.innerHTML = items.map(({name,note}, idx) =>
+    preview.innerHTML = items.map(({name,note}, i) =>
       `<li>
          <strong>${name}</strong>${note?` – <em>${note}</em>`:""}
-         <button class="btn-remove" data-idx="${idx}" title="Ta bort">×</button>
+         <button class="btn-remove" data-idx="${i}" title="Ta bort">×</button>
        </li>`
     ).join("");
-    btnOk.disabled = items.length === 0;
+    btnOk.disabled = !items.length;
     preview.querySelectorAll(".btn-remove").forEach(btn =>
       btn.onclick = () => {
-        items.splice(+btn.dataset.idx,1);
+        items.splice(+btn.dataset.idx, 1);
         renderPreview();
       }
     );
   }
 
-  // Hantera Enter: dela på första kommatecknet
+  // 6) Hantera Enter: dela på första kommatecknet
   input.addEventListener("keydown", e => {
     if (e.key === "Enter" && input.value.trim()) {
-      const val = input.value.trim();
-      let [name, ...rest] = val.split(",");
+      const [namePart, ...rest] = input.value.trim().split(",");
+      const name = namePart.trim();
       const note = rest.join(",").trim();
-      name = name.trim();
       if (name && !items.some(it => it.name===name && it.note===note)) {
         items.push({ name, note });
         renderPreview();
@@ -85,17 +88,15 @@ window.showAddItemsDialog = function({
     }
   });
 
-  // Knapphantering
+  // 7) Knapphantering
   btnCancel.onclick = () => m.remove();
-  btnOk.onclick     = () => {
-    onDone(items);
-    m.remove();
-  };
+  btnOk.onclick     = () => { onDone(items); m.remove(); };
 
-  // Mobil-scroll + fokus
+  // 8) Mobil-scroll + fokus
   window.scrollModalToTop();
   setTimeout(() => input.focus(), 50);
 };
+
 
 window.showListSettingsDialog = function(title, currentName, currentHideCats, onConfirm, suggestions = []) {
   delete window.confirmListSettings;
