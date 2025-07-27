@@ -375,28 +375,37 @@ window.renderListDetail = function(i) {
   let compressedMode = list.hideCategories || localStorage.getItem("compressedMode") === "true";
   window.location.hash = encodeURIComponent(list.name);
 
-  // ===== Top‑bar HTML =====
-  function topBarHtml() {
-    return `
-      <div class="top-bar">
-        <span class="back-arrow"
-              onclick="window.location.hash=''; renderAllLists()"
-              title="Tillbaka">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
-               viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2.5"
-               stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
-        </span>
-        <h1 class="back-title">${list.name}</h1>
-        <div class="detail-buttons">
-          <button id="btnHideDone" class="icon-button" title="Visa/Göm klara">
-            ${hideDone ? '☑' : '☐'}
-          </button>
-          ${!list.hideCategories ? `<button id="btnToggleCats" class="icon-button" title="Komprimerat läge">≡</button>` : ''}
-        </div>
-      </div>`;
-  }
+// ===== Top‑bar HTML =====
+function topBarHtml() {
+  return `
+    <div class="top-bar">
+      <span class="back-arrow"
+            onclick="window.location.hash=''; renderAllLists()"
+            title="Tillbaka">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
+             viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </span>
+      <h1 class="back-title">${list.name}</h1>
+      <div class="detail-buttons">
+        <button id="btnHideDone" class="icon-button" title="Visa/Göm klara">
+          ${hideDone ? '☑' : '☐'}
+        </button>
+        ${!list.hideCategories 
+          ? `<button id="btnToggleCats" class="icon-button" title="Komprimerat läge">≡</button>`
+          : ''
+        }
+        <!-- Import‑knapp -->
+        <button class="icon-button import-button" title="Importera från lista"
+                onclick="importItemsFromList(${i})">
+          ⭳
+        </button>
+      </div>
+    </div>`;
+}
+
 
   // ===== Innehåll för komprimerat läge =====
   function compressedHtml() {
