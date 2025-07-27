@@ -736,7 +736,6 @@ function chooseSourceList(targetIndex) {
 }
 
 
-
 window.addItemsWithCategory = function(listIndex) {
   const list = lists[listIndex];
   const skipCategory = list.hideCategories === true;
@@ -749,10 +748,11 @@ window.addItemsWithCategory = function(listIndex) {
       (async () => {
         for (const { name, note } of items) {
           const newItem = { name, note, done: false };
-
           if (!skipCategory) {
-            const key = name.trim().toLowerCase();
+            // normalisera key
+            const key = name.trim().toLowerCase().normalize('NFC');
             const savedCat = window.categoryMemory[key];
+            console.log("kolla memory:", key, savedCat);
 
             if (savedCat) {
               newItem.category = savedCat;
@@ -760,13 +760,12 @@ window.addItemsWithCategory = function(listIndex) {
               const chosenCat = await new Promise(r => showCategoryPicker(name, r));
               if (chosenCat) {
                 newItem.category = chosenCat;
-                // använd din save‑hjälpare
+                // spara omedelbart för att undvika race‑conditions
                 window.categoryMemory[key] = chosenCat;
-                saveCategoryMemory(window.categoryMemory);
+                window.saveCategoryMemory(window.categoryMemory);
               }
             }
           }
-
           list.items.push(newItem);
         }
 
@@ -777,8 +776,6 @@ window.addItemsWithCategory = function(listIndex) {
     }
   });
 };
-
-
 
 
 
