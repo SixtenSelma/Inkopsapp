@@ -360,46 +360,6 @@ window.viewListByName = function(name) {
   }
 };
 
-// ===== Lägg till varor via kategori-knapp =====
-window.addItemViaCategory = function(listIndex, category) {
-  const allaVaror     = getAllUniqueItemNames(lists);
-  const mallVaror     = getTemplateItemNames(lists);
-  const kategoriVaror = getCategoryItemNames(lists[listIndex], category);
-
-  showAddItemsDialog({
-    allaVaror,
-    mallVaror,
-    kategoriVaror,
-    onlyCategory: true,    // <–– här talar vi om att endast kategori‑varor ska föreslås
-    onDone: added => {
-      if (!added || !added.length) return;
-
-      added.forEach(raw => {
-        const [namePart, ...noteParts] = raw.split(',');
-        const name = namePart.trim();
-        const note = noteParts.join(',').trim();
-
-        // Hoppa över dubbletter
-        const exists = lists[listIndex].items.some(item =>
-          item.name.trim().toLowerCase() === name.toLowerCase() &&
-          (item.note||'').trim().toLowerCase() === note.toLowerCase()
-        );
-        if (exists) return;
-
-        // Lägg till posten
-        lists[listIndex].items.push({
-          name,
-          note,
-          done: false,
-          category
-        });
-      });
-      stampListTimestamps(lists[listIndex]);
-      saveLists(lists);
-      renderListDetail(listIndex);
-    }
-  });
-};
 
 // ===== Öppna meny via namn =====
 window.openListMenuByName = function(name, btn) {
@@ -558,10 +518,7 @@ window.renderListDetail = function(i) {
 };
 
 
-
-
-// ===== Lägg till varor via plusknapp =====
-// ===== Lägg till via flytande plus-knapp =====
+// ===== Lägg till varor via flytande ➕ (agerar på hideCategories) =====
 window.addItemsWithCategory = function(listIndex = null) {
   let i = listIndex;
   if (i === null) {
@@ -574,56 +531,103 @@ window.addItemsWithCategory = function(listIndex = null) {
     if (isNaN(i) || i < 0 || i >= lists.length) return;
   }
 
+  const list = lists[i];
   const allaVaror = getAllUniqueItemNames(lists);
   const mallVaror = getTemplateItemNames(lists);
 
+  // Bestäm källor för autocomplete
+  const sourceAlla   = allaVaror;
+  const sourceMallar = mallVaror;
+  // Ingen kategori‑lista om hideCategories är true
+  const sourceKategorier = list.hideCategories ? [] : getCategoryItemNames(list, null);
+
   showAddItemsDialog({
-    allaVaror,
-    mallVaror,
-    kategoriVaror: [],
+    allaVaror: sourceAlla,
+    mallVaror: sourceMallar,
+    kategoriVaror: sourceKategorier,
+    onlyCategory: false,
     onDone: async added => {
       if (!added || !added.length) return;
 
-      for (const raw of added) {
+      added.forEach(raw => {
         const [namePart, ...noteParts] = raw.split(',');
         const name = namePart.trim();
         const note = noteParts.join(',').trim();
 
-        // Kolla om samma namn+note redan finns
+        // Hoppa dubbletter
         const exists = lists[i].items.some(item =>
           item.name.trim().toLowerCase() === name.toLowerCase() &&
           (item.note||'').trim().toLowerCase() === note.toLowerCase()
         );
-        if (exists) continue;
+        if (exists) return;
 
-        // Hämta eller fråga kategori
-        let cat = window.categoryMemory[name];
-        if (!cat) {
-          cat = await chooseCategory(name)
-                 || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)";
-          window.categoryMemory[name] = cat;
-          try {
-            localStorage.setItem(
-              "categoryMemory",
-              JSON.stringify(window.categoryMemory)
-            );
-          } catch {}
-        }
+        // Bestäm kategori: only if categories allowed
+        const category = list.hideCategories
+          ? undefined
+          : (window.categoryMemory[name] || await chooseCategory(name) || "🏠 Övrigt");
 
-        // Lägg till med namn, note och category
+        // Spara varan utan eller med kategori
         lists[i].items.push({
           name,
           note,
           done: false,
-          category: cat
+          ...(list.hideCategories ? {} : { category })
         });
-      }
+      });
+
+      // Stämpla om listan och spara
       stampListTimestamps(lists[i]);
       saveLists(lists);
       renderListDetail(i);
     }
   });
 };
+
+// ===== Lägg till via kategori‑knapp – döljs automatiskt om hideCategories =====
+window.addItemViaCategory = function(listIndex, category) {
+  const list = lists[listIndex];
+  if (list.hideCategories) {
+    // fallback till vanlig addItemsWithCategory
+    return window.addItemsWithCategory(listIndex);
+  }
+  const allaVaror     = getAllUniqueItemNames(lists);
+  const mallVaror     = getTemplateItemNames(lists);
+  const kategoriVaror = getCategoryItemNames(lists[listIndex], category);
+
+  showAddItemsDialog({
+    allaVaror,
+    mallVaror,
+    kategoriVaror,
+    onlyCategory: true,
+    onDone: added => {
+      if (!added || !added.length) return;
+
+      added.forEach(raw => {
+        const [namePart, ...noteParts] = raw.split(',');
+        const name = namePart.trim();
+        const note = noteParts.join(',').trim();
+
+        const exists = lists[listIndex].items.some(item =>
+          item.name.trim().toLowerCase() === name.toLowerCase() &&
+          (item.note||'').trim().toLowerCase() === note.toLowerCase()
+        );
+        if (exists) return;
+
+        lists[listIndex].items.push({
+          name,
+          note,
+          done: false,
+          category
+        });
+      });
+
+      stampListTimestamps(lists[listIndex]);
+      saveLists(lists);
+      renderListDetail(listIndex);
+    }
+  });
+};
+
 
 
 
