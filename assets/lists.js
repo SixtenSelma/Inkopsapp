@@ -740,7 +740,7 @@ function chooseSourceList(targetIndex) {
 window.addItemsWithCategory = function(listIndex) {
   const list = lists[listIndex];
   const skipCategory = list.hideCategories === true;
-console.log("→ söker kategori‑minne för:", key, window.categoryMemory[key]);
+
   showAddItemsDialog({
     kategori: null,
     allaVaror: getAllUniqueItemNames(lists),
