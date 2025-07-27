@@ -126,36 +126,58 @@ window.addItemsWithCategory = function(listIndex = null) {
 
 
 
-// ===== Lägg till via kategori‑knapp – använder alla listors historik för autocomplete =====
+// ===== Lägg till via kategori‑knapp – föreslår varor i samma kategori från andra listor =====
 window.addItemViaCategory = function(listIndex, category) {
   const list = lists[listIndex];
-  const allNames = getAllUniqueItemNames(lists);
-  const categoryNames = getCategoryItemNames(list, category);
+
+  // Bygg upp autocomplete‑förslag: alla varunamn i samma kategori, men i ANDRA listor
+  const suggestionSet = new Set();
+  lists.forEach((otherList, idx) => {
+    if (idx === listIndex) return;                   // hoppa över aktuell lista
+    otherList.items.forEach(item => {
+      if (item.category === category && item.name) {
+        suggestionSet.add(item.name.trim());
+      }
+    });
+  });
+  const kategoriVaror = Array.from(suggestionSet).sort();
 
   showAddItemsDialog({
-    kategori: category,
-    allaVaror: allNames,
-    onlyCategory: true,
-    kategoriVaror: categoryNames,
-    onDone: added => {
-      if (!added.length) return;
-      added.forEach(raw => {
+    kategori: category,     // visar kategori som rubrik under "Lägg till vara"
+    allaVaror: kategoriVaror,
+    onlyCategory: true,     // endast dessa förslag
+    onDone: async added => {
+      if (!added || !added.length) return;
+
+      for (const raw of added) {
         const [namePart, ...noteParts] = raw.split(',');
         const name = namePart.trim();
         const note = noteParts.join(',').trim();
-        // undvik dubbletter
-        if (lists[listIndex].items.some(it =>
+
+        // Hoppa dubbletter
+        const exists = list.items.some(it =>
           it.name.trim().toLowerCase() === name.toLowerCase() &&
           (it.note||'').trim().toLowerCase() === note.toLowerCase()
-        )) return;
-        lists[listIndex].items.push({ name, note, done: false, category });
-      });
-      stampListTimestamps(lists[listIndex]);
+        );
+        if (exists) continue;
+
+        // Lägg till med vald kategori
+        list.items.push({
+          name,
+          note,
+          done: false,
+          category
+        });
+      }
+
+      // Spara och rendera om
+      stampListTimestamps(list);
       saveLists(lists);
       renderListDetail(listIndex);
     }
   });
 };
+
 
 
 // modal.js – enkel “Lägg till vara”‑modal
