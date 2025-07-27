@@ -48,130 +48,6 @@ window.showListSettingsDialog = function(title, currentName, currentHideCats, on
   };
 };
 
-// ===== Lägg till varor via botten‑➕ =====
-window.addItemsWithCategory = function(listIndex = null) {
-  let i = listIndex;
-  if (i === null) {
-    if (!lists.length) return;
-    const promptTxt = "Vilken lista vill du lägga till i?\n" +
-      lists.map((l, idx) => `${idx+1}: ${l.name}`).join("\n");
-    const val = prompt(promptTxt);
-    if (!val) return;
-    i = parseInt(val, 10) - 1;
-    if (isNaN(i) || i < 0 || i >= lists.length) return;
-  }
-
-  const list = lists[i];
-  const allNames = getAllUniqueItemNames(lists);
-
-  showAddItemsDialog({
-    kategori: null,
-    allaVaror: allNames,
-    onDone: async added => {
-      if (!added.length) return;
-
-      for (const raw of added) {
-        const [namePart, ...noteParts] = raw.split(',');
-        const name = namePart.trim();
-        const note = noteParts.join(',').trim();
-
-        // Hoppa över dubbletter
-        if (lists[i].items.some(it =>
-          it.name.trim().toLowerCase() === name.toLowerCase() &&
-          (it.note||'').trim().toLowerCase() === note.toLowerCase()
-        )) continue;
-
-        let category;
-        if (!list.hideCategories) {
-          // 1) Kolla categoryMemory
-          if (window.categoryMemory[name]) {
-            category = window.categoryMemory[name];
-          } else {
-            // 2) Sök i andra listor efter tidigare inslagen kategori
-            let foundCat;
-            for (const other of lists) {
-              if (other === list) continue;
-              const it = other.items.find(x => x.name.trim().toLowerCase() === name.toLowerCase() && x.category);
-              if (it) { foundCat = it.category; break; }
-            }
-            if (foundCat) {
-              category = foundCat;
-            } else {
-              // 3) Fråga användaren
-              category = await chooseCategory(name) || "Övrigt";
-            }
-            // Spara för framtida autofyll
-            window.categoryMemory[name] = category;
-            try { localStorage.setItem("categoryMemory", JSON.stringify(window.categoryMemory)); }
-            catch {}
-          }
-        }
-
-        // Lägg till posten
-        lists[i].items.push({
-          name,
-          note,
-          done: false,
-          ...(list.hideCategories ? {} : { category })
-        });
-      }
-
-      // Spara & rendera om
-      stampListTimestamps(lists[i]);
-      saveLists(lists);
-      renderListDetail(i);
-    }
-  });
-};
-
-
-
-// ===== Lägg till via kategori‑knapp – autocomplete från andra listor i samma kategori =====
-window.addItemViaCategory = function(listIndex, category) {
-  const list = lists[listIndex];
-
-  // Hämta alla varunamn i samma kategori, men från ANDRA listor
-  const suggestionSet = new Set();
-  lists.forEach((otherList, idx) => {
-    if (idx === listIndex) return;
-    otherList.items.forEach(item => {
-      if (item.category === category && item.name) {
-        suggestionSet.add(item.name.trim());
-      }
-    });
-  });
-  const kategoriVaror = Array.from(suggestionSet).sort();
-
-  showAddItemsDialog({
-    kategori: category,      // visar ”Kategori: <namn>” i dialogen
-    allaVaror: [],           // tom lista när onlyCategory = true
-    kategoriVaror,           // här ligger våra förslag
-    onlyCategory: true,
-    onDone: async added => {
-      if (!added || !added.length) return;
-
-      for (const raw of added) {
-        const [namePart, ...noteParts] = raw.split(',');
-        const name = namePart.trim();
-        const note = noteParts.join(',').trim();
-
-        // Hoppa dubbletter
-        if (list.items.some(it =>
-          it.name.trim().toLowerCase() === name.toLowerCase() &&
-          (it.note||'').trim().toLowerCase() === note.toLowerCase()
-        )) continue;
-
-        list.items.push({ name, note, done: false, category });
-      }
-
-      stampListTimestamps(list);
-      saveLists(lists);
-      renderListDetail(listIndex);
-    }
-  });
-};
-
-
 
 // ===== in modal.js =====
 // Redigera vara-modal: låt användaren ändra namn och komplement
@@ -206,6 +82,90 @@ window.showEditItemDialog = function(listIndex, itemIndex, currentName, currentN
     document.body.removeChild(m);
     delete window.confirmEditItem;
   };
+};
+
+// Flytta modal upp om mobil och tangentbord
+window.scrollModalToTop = function () {
+  setTimeout(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, 100);
+};
+
+window.showAddItemsDialog = function({
+  kategori = null,
+  allaVaror = [],
+  onlyCategory = false,
+  onDone
+}) {
+  // Välj källa för autocomplete
+  const source = onlyCategory
+    ? allaVaror.filter(v => kategori == null || v.category === kategori)
+    : allaVaror;
+
+  // Bygg modal
+  const m = document.createElement("div");
+  m.className = "modal";
+  m.innerHTML = `
+    <div class="modal-content">
+      <h2>Lägg till vara</h2>
+      ${kategori ? `<p class="additem-subtitle">Kategori: <strong>${kategori}</strong></p>` : ""}
+      <input id="addItemInput" placeholder="Skriv varunamn…" list="add-items-suggestions" autocomplete="off"/>
+      <datalist id="add-items-suggestions">
+        ${[...new Set(source)].sort().map(s => `<option value="${s}">`).join("")}
+      </datalist>
+      <ul class="preview-list" id="addItemPreview"></ul>
+      <div class="modal-actions">
+        <button id="addItemCancel" class="btn-secondary">Avbryt</button>
+        <button id="addItemConfirm" disabled>Klar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+
+  // Scrolla upp
+  window.scrollModalToTop();
+
+  const input   = m.querySelector("#addItemInput");
+  const preview = m.querySelector("#addItemPreview");
+  const btnOk   = m.querySelector("#addItemConfirm");
+  const btnCancel = m.querySelector("#addItemCancel");
+  let items = [];
+
+  function renderPreview() {
+    preview.innerHTML = items.map((name,i) =>
+      `<li>${name}
+         <button class="btn-remove" data-idx="${i}" title="Ta bort">×</button>
+       </li>`
+    ).join("");
+    btnOk.disabled = items.length === 0;
+    preview.querySelectorAll(".btn-remove").forEach(btn =>
+      btn.onclick = () => {
+        items.splice(+btn.dataset.idx,1);
+        renderPreview();
+      }
+    );
+  }
+
+  // Enter lägger till
+  input.onkeydown = e => {
+    if (e.key === "Enter" && input.value.trim()) {
+      const val = input.value.trim();
+      if (!items.includes(val)) {
+        items.push(val);
+        renderPreview();
+      }
+      input.value = "";
+      e.preventDefault();
+    }
+  };
+
+  btnCancel.onclick = () => m.remove();
+  btnOk.onclick     = () => {
+    onDone(items);
+    m.remove();
+  };
+
+  // Fokus på input
+  setTimeout(() => input.focus(), 50);
 };
 
 
