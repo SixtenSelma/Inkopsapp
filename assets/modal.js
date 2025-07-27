@@ -54,15 +54,25 @@ window.showRenameDialog = function (title, currentName, onConfirm, suggestions =
   };
 };
 
-// Ny lista-modal
+// Ny lista-modal med 'Dölj kategorier'
 window.showNewListModal = function (onConfirm) {
+  // Ta bort tidigare confirm-funktion om den finns
+  delete window.confirmNewList;
+
   const m = document.createElement("div");
   m.className = "modal";
   m.innerHTML = `
     <div class="modal-content">
       <h2>Skapa ny lista</h2>
-      <input id="modalNewListInput" placeholder="Namn på lista…" autocomplete="off" />
-      <div class="modal-actions">
+      <label style="display:block; margin-top:8px;">
+        Namn på lista:
+        <input id="modalNewListInput" placeholder="Namn på lista…" autocomplete="off" />
+      </label>
+      <label style="display:flex; align-items:center; margin-top:12px;">
+        <input type="checkbox" id="modalHideCatsCheckbox" />
+        <span style="margin-left:8px;">Dölj kategorier i detaljvy</span>
+      </label>
+      <div class="modal-actions" style="margin-top:16px;">
         <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
         <button onclick="confirmNewList()">OK</button>
       </div>
@@ -78,17 +88,24 @@ window.showNewListModal = function (onConfirm) {
   }, 100);
 
   input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") confirmNewList();
+    if (e.key === "Enter") window.confirmNewList();
   });
 
+  // Globalt confirm‐skript
   window.confirmNewList = () => {
-    const val = input.value.trim();
-    if (val) {
-      if (onConfirm) onConfirm(val);
-      document.body.removeChild(m);
+    const name = input.value.trim();
+    if (!name) {
+      input.focus();
+      return;
     }
+    const hideCats = document.getElementById("modalHideCatsCheckbox").checked;
+    // Skicka tillbaka båda värdena
+    onConfirm(name, hideCats);
+    document.body.removeChild(m);
+    delete window.confirmNewList;
   };
 };
+
 
 // NY: Batch add med stöd för historik/mallar/kategori och rätt autofokus på iOS
 window.showAddItemsDialog = function ({
