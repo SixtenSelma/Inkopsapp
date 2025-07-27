@@ -34,15 +34,36 @@ function toggleItem(listIndex, itemIndex, lists, user, callback) {
 }
 
 // ===== Initiera data =====
-window.lists = loadLists();  // Från storage.js
+window.lists = loadLists();                   // Läs in alla listor
+window.categoryMemory = loadCategoryMemory();  // Läs in befintligt kategori‑minne
 
-// Hämta globalt kategori‑minne en gång
-window.categoryMemory = loadCategoryMemory();
+// Hjälp‑funktion för att få helt konsekventa keys
+function normalizeKey(str) {
+  return str.trim()
+            .toLowerCase()
+            .normalize();      // NFC‑normalisering för åäö m.m.
+}
 
+// Seeda minnet med alla redan sparade kategorier
+window.lists.forEach(list => {
+  list.items.forEach(item => {
+    if (item.category) {
+      const k = normalizeKey(item.name);
+      if (!window.categoryMemory[k]) {
+        window.categoryMemory[k] = item.category;
+      }
+    }
+  });
+});
+// Spara det seedade minnet
+window.saveCategoryMemory(window.categoryMemory);
+
+// Sätt användare
 window.user = getUser() || prompt("Vad heter du?");
 setUser(window.user);
 
 const app = document.getElementById("app");
+
 // ===== Hjälpfunktioner =====
 
 // Formatera ISO-datum till dd/MM hh:mm
@@ -735,6 +756,12 @@ function chooseSourceList(targetIndex) {
   });
 }
 
+function normalizeKey(str) {
+  return str
+    .trim()           // ta bort extra mellanslag
+    .toLowerCase()    // gemener
+    .normalize();     // Unicode‑normalisering (åäö etc)
+}
 
 // ===== Lägg till varor med kategori-minne =====
 window.addItemsWithCategory = function(listIndex) {
@@ -751,21 +778,22 @@ window.addItemsWithCategory = function(listIndex) {
           const newItem = { name, note, done: false };
 
           if (!skipCategory) {
-            // 1) Normalisera key–sätt
-            const key = name.trim().toLowerCase().normalize();
-            console.log("[DEBUG] Söker minne för:", key, window.categoryMemory);
+            // 1) Skapa lookup‑key
+            const key = normalizeKey(name);
 
+            // 2) Slå upp sparad kategori
             const savedCat = window.categoryMemory[key];
             if (savedCat) {
-              console.log("[DEBUG] Hittade sparad kategori:", savedCat);
+              // Använd från minnet
               newItem.category = savedCat;
+
             } else {
-              // 2) Be användaren välja och spara omedelbart
+              // Be användaren välja och spara direkt
               const chosenCat = await new Promise(r => showCategoryPicker(name, r));
               if (chosenCat) {
                 newItem.category = chosenCat;
+                // Spara i både minne och localStorage
                 window.categoryMemory[key] = chosenCat;
-                console.log("[DEBUG] Sparar ny kategori i memory:", key, "→", chosenCat);
                 window.saveCategoryMemory(window.categoryMemory);
               }
             }
@@ -774,6 +802,7 @@ window.addItemsWithCategory = function(listIndex) {
           list.items.push(newItem);
         }
 
+        // Stämpla, spara och rendera om
         stampListTimestamps(list);
         saveLists(lists);
         renderListDetail(listIndex);
