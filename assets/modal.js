@@ -1,5 +1,6 @@
 // modal.js – återanvändbara modaler med mobilfokus och batch add
 
+
 // Flytta modal upp om mobil och tangentbord
 window.scrollModalToTop = function () {
   setTimeout(() => {
@@ -14,10 +15,13 @@ window.showAddItemsDialog = function({
   onlyCategory = false,
   onDone
 }) {
-  // Välj källa för autocomplete
-  const source = onlyCategory
-    ? allaVaror.filter(v => kategori == null || v.category === kategori)
-    : allaVaror;
+  // Förbered source: kan vara strängar eller objekt {name,category}
+  let source = allaVaror;
+  if (onlyCategory && kategori != null && source.length && typeof source[0] === 'object') {
+    source = source.filter(v => v.category === kategori);
+  }
+  // Extrahera bara namn för autocomplete
+  const names = source.map(v => typeof v === 'string' ? v : v.name);
 
   // Bygg modal‑DOM
   const m = document.createElement("div");
@@ -31,8 +35,8 @@ window.showAddItemsDialog = function({
              list="add-items-suggestions"
              autocomplete="off" />
       <datalist id="add-items-suggestions">
-        ${[...new Set(source)].sort()
-            .map(s => `<option value="${s}">`).join("")}
+        ${[...new Set(names)].sort()
+            .map(n => `<option value="${n}">`).join("")}
       </datalist>
       <ul class="preview-list" id="addItemPreview"></ul>
       <div class="modal-actions">
@@ -42,14 +46,13 @@ window.showAddItemsDialog = function({
     </div>`;
   document.body.appendChild(m);
 
-  // Hämta element och initiera state
   const input     = m.querySelector("#addItemInput");
   const preview   = m.querySelector("#addItemPreview");
   const btnOk     = m.querySelector("#addItemConfirm");
   const btnCancel = m.querySelector("#addItemCancel");
   let items = []; // Array av { name, note }
 
-  // Funktion för att visa preview-listan
+  // Visa preview-listan
   function renderPreview() {
     preview.innerHTML = items.map(({name,note}, idx) =>
       `<li>
@@ -66,14 +69,13 @@ window.showAddItemsDialog = function({
     );
   }
 
-  // Dela på Enter: allt före första kommatecknet är namn, resten är note
+  // Hantera Enter: dela på första kommatecknet
   input.addEventListener("keydown", e => {
     if (e.key === "Enter" && input.value.trim()) {
       const val = input.value.trim();
       let [name, ...rest] = val.split(",");
       const note = rest.join(",").trim();
       name = name.trim();
-      // Undvik dubbletter
       if (name && !items.some(it => it.name===name && it.note===note)) {
         items.push({ name, note });
         renderPreview();
@@ -90,12 +92,10 @@ window.showAddItemsDialog = function({
     m.remove();
   };
 
-  // Lägg modal överst på sidan (mobil)
+  // Mobil-scroll + fokus
   window.scrollModalToTop();
-  // Fokusera input
   setTimeout(() => input.focus(), 50);
 };
-
 
 window.showListSettingsDialog = function(title, currentName, currentHideCats, onConfirm, suggestions = []) {
   delete window.confirmListSettings;
