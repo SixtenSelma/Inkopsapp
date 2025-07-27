@@ -812,14 +812,27 @@ window.addItemsWithCategory = function(listIndex) {
 };
 
 
-// ===== Lägg till varor inom en viss kategori (sparar också globalt minne) =====
+// ===== Lägg till varor inom en viss kategori (med auto‑complete från alla listor) =====
 window.addItemViaCategory = function(listIndex, kategori) {
   const list = lists[listIndex];
 
-  window.showAddItemsDialog({
+  // Bygg en uppsättning av alla varunamn i just den här kategorin från alla listor
+  const globalNames = new Set();
+  lists.forEach(l => {
+    l.items.forEach(item => {
+      if (item.category === kategori && item.name) {
+        globalNames.add(item.name.trim());
+      }
+    });
+  });
+  // Gör om till sorterad array av objekt { name, category }
+  const allaVaror = Array.from(globalNames)
+    .sort((a, b) => a.localeCompare(b, 'sv'))
+    .map(name => ({ name, category: kategori }));
+
+  showAddItemsDialog({
     kategori,
-    // Om dina getCategoryItemNames returnerar strängar:
-    allaVaror: window.getCategoryItemNames(list, kategori).map(name => ({ name, category: kategori })),
+    allaVaror,       // förslag från alla listor
     onlyCategory: true,
     onDone: items => {
       items.forEach(({ name, note }) => {
@@ -827,18 +840,19 @@ window.addItemViaCategory = function(listIndex, kategori) {
         const newItem = { name, note, done: false, category: kategori };
         list.items.push(newItem);
 
-        // Spara globalt minne för just det här namnet
-        const key = name.trim().toLowerCase();
+        // Spara globalt minne också
+        const key = name.trim().toLowerCase().normalize();
         window.categoryMemory[key] = kategori;
       });
 
-      // Persist till localStorage en gång efter loopen
+      // Persist till localStorage
       try {
         saveCategoryMemory(window.categoryMemory);
       } catch (e) {
         console.warn("Kunde inte spara categoryMemory:", e);
       }
 
+      // Spara & rendera om
       stampListTimestamps(list);
       saveLists(lists);
       renderListDetail(listIndex);
