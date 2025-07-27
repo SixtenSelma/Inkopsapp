@@ -96,51 +96,6 @@ window.showAddItemsDialog = function({
   setTimeout(() => input.focus(), 50);
 };
 
-// ===== Lägg till varor utan kategori-begränsning =====
-window.addItemsWithCategory = function(listIndex) {
-  const list = lists[listIndex];
-  window.showAddItemsDialog({
-    kategori: null,
-    allaVaror: window.getAllUniqueItemNames(lists),
-    onlyCategory: false,
-    onDone: items => {
-      items.forEach(({name, note}) => {
-        list.items.push({
-          name,
-          note,
-          done: false
-        });
-      });
-      stampListTimestamps(list);
-      saveLists(lists);
-      renderListDetail(listIndex);
-    }
-  });
-};
-
-// ===== Lägg till varor inom en viss kategori =====
-window.addItemViaCategory = function(listIndex, kategori) {
-  const list = lists[listIndex];
-  window.showAddItemsDialog({
-    kategori,
-    allaVaror: window.getCategoryItemNames(list, kategori),
-    onlyCategory: true,
-    onDone: items => {
-      items.forEach(({name, note}) => {
-        list.items.push({
-          name,
-          note,
-          done: false,
-          category: kategori
-        });
-      });
-      stampListTimestamps(list);
-      saveLists(lists);
-      renderListDetail(listIndex);
-    }
-  });
-};
-
 
 window.showListSettingsDialog = function(title, currentName, currentHideCats, onConfirm, suggestions = []) {
   delete window.confirmListSettings;
