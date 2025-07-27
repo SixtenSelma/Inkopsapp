@@ -43,59 +43,70 @@ window.openListMenu = function(i, btn) {
 
 // --- Menyer (popup) för enskild vara ---
 window.openItemMenu = function(listIndex, itemIndex, btn) {
-  // Stoppa bubbla så vi inte triggar annat
-  event.stopPropagation();
-
+  // Stoppa bubbla så vi inte triggar annat (hämta event-objekt rätt)
+  btn.addEventListener('click', e => e.stopPropagation());
+  
   // Ta bort ev. öppna menyer
   document.querySelectorAll('.item-menu').forEach(el => el.remove());
-
-  // Hämta knappelementet vi klickade på
-  const container = btn.parentElement;
 
   // Skapa meny-element
   const menu = document.createElement('div');
   menu.className = 'item-menu';
   menu.innerHTML = `
-    <button onclick="(function(){
-      // Ändra → öppna kombinerad namn/komplement-modal
-      showEditItemDialog(
-        ${listIndex},
-        ${itemIndex},
-        \`${lists[listIndex].items[itemIndex].name.replace(/`/g,'\\`')}\`,
-        \`${(lists[listIndex].items[itemIndex].note||'').replace(/`/g,'\\`')}\`,
-        (newName, newNote) => {
-          const item = lists[${listIndex}].items[${itemIndex}];
-          item.name = newName;
-          item.note = newNote;
-          stampListTimestamps(lists[${listIndex}]);
-          saveLists(lists);
-          renderListDetail(${listIndex});
-        }
-      );
-    })()">Ändra</button>
-    <button onclick="(function(){
-      // Ta bort varan direkt utan bekräftelse
-      lists[${listIndex}].items.splice(${itemIndex}, 1);
-      stampListTimestamps(lists[${listIndex}]);
-      saveLists(lists);
-      renderListDetail(${listIndex});
-    })()" style="color:#d44;">Ta bort</button>
+    <button type="button" class="item-menu-btn edit-btn">Ändra</button>
+    <button type="button" class="item-menu-btn delete-btn" style="color:#d44;">Ta bort</button>
   `;
 
   // Placera ut menyn precis under ⋮-knappen
-  container.appendChild(menu);
   const rect = btn.getBoundingClientRect();
+  document.body.appendChild(menu);
+  menu.style.position = 'absolute';
   menu.style.top  = (rect.bottom + window.scrollY + 4) + 'px';
   menu.style.left = (rect.right + window.scrollX - menu.offsetWidth) + 'px';
 
   // Klick utanför stänger menyn
-  document.addEventListener('click', function handler(e) {
-    if (!menu.contains(e.target) && e.target !== btn) {
-      menu.remove();
-      document.removeEventListener('click', handler);
-    }
-  });
+  setTimeout(() => {
+    document.addEventListener('click', function handler(e) {
+      if (!menu.contains(e.target) && e.target !== btn) {
+        menu.remove();
+        document.removeEventListener('click', handler);
+      }
+    });
+  }, 0);
+
+  // Handler för "Ändra"
+  menu.querySelector('.edit-btn').onclick = () => {
+    const item = lists[listIndex].items[itemIndex];
+    showEditItemDialog(
+      listIndex,
+      itemIndex,
+      item.name,
+      item.note || '',
+      item.category || '',
+      (newName, newNote, newCat) => {
+        // Uppdatera objektet
+        item.name     = newName;
+        item.note     = newNote;
+        item.category = newCat;
+        // Stämpla, spara och rendera om
+        stampListTimestamps(lists[listIndex]);
+        saveLists(lists);
+        renderListDetail(listIndex);
+      }
+    );
+    menu.remove();
+  };
+
+  // Handler för "Ta bort"
+  menu.querySelector('.delete-btn').onclick = () => {
+    lists[listIndex].items.splice(itemIndex, 1);
+    stampListTimestamps(lists[listIndex]);
+    saveLists(lists);
+    renderListDetail(listIndex);
+    menu.remove();
+  };
 };
+
 
 
 // --- Initiera första rendering ---
