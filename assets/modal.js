@@ -173,74 +173,86 @@ window.addItemViaCategory = function(listIndex, category) {
 
 
 
-// modal.js – enkel “Lägg till vara”‑modal
-window.showAddItemsDialog = function({
-  kategori = null,
-  allaVaror = [],
-  onlyCategory = false,
-  kategoriVaror = [],
-  onDone
-}) {
-  const source = onlyCategory ? kategoriVaror : allaVaror;
-
-  const m = document.createElement("div");
-  m.className = "modal";
+// ===== in modal.js =====
+// Redigera vara-modal: låt användaren ändra namn och komplement
+window.showEditItemDialog = function(listIndex, itemIndex, currentName, currentNote, onConfirm) {
+  const m = document.createElement('div');
+  m.className = 'modal';
   m.innerHTML = `
     <div class="modal-content">
-      <h2>Lägg till vara</h2>
-      ${kategori ? `<p class="additem-subtitle">Kategori: <strong>${kategori}</strong></p>` : ""}
-      <input id="addItemInput" placeholder="Skriv varunamn…" list="add-items-dl" autocomplete="off"/>
-      <datalist id="add-items-dl">
-        ${[...new Set(source)].sort().map(s => `<option value="${s}">`).join("")}
-      </datalist>
-      <ul id="addItemPreview" class="preview-list"></ul>
-      <div class="modal-actions">
-        <button id="addItemCancel" class="btn-secondary">Avbryt</button>
-        <button id="addItemConfirm" disabled>Klar</button>
+      <h2>Ändra vara</h2>
+      <label>Produkt:
+        <input id="editItemName" value="${currentName.replace(/"/g, '&quot;')}" autocomplete="off" />
+      </label>
+      <label style="margin-top:12px;">Komplement:
+        <input id="editItemNote" value="${currentNote.replace(/"/g, '&quot;')}" />
+      </label>
+      <div class="modal-actions" style="margin-top:16px;">
+        <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
+        <button onclick="confirmEditItem()">OK</button>
       </div>
-    </div>`;
+    </div>
+  `;
   document.body.appendChild(m);
+  const inpName = m.querySelector('#editItemName');
+  const inpNote = m.querySelector('#editItemNote');
+  setTimeout(() => { inpName.focus(); inpName.select(); }, 100);
 
-  const input   = m.querySelector("#addItemInput");
-  const preview = m.querySelector("#addItemPreview");
-  const btnOk   = m.querySelector("#addItemConfirm");
-  const btnCancel = m.querySelector("#addItemCancel");
-  let items = [];
-
-  function renderPreview() {
-    preview.innerHTML = items.map((name,i) =>
-      `<li>${name} <button class="btn-remove" data-idx="${i}" title="Ta bort">×</button></li>`
-    ).join("");
-    btnOk.disabled = items.length === 0;
-    preview.querySelectorAll(".btn-remove").forEach(btn =>
-      btn.onclick = () => {
-        items.splice(+btn.dataset.idx,1);
-        renderPreview();
-      }
-    );
-  }
-
-  input.onkeydown = e => {
-    if (e.key === "Enter" && input.value.trim()) {
-      const val = input.value.trim();
-      if (!items.includes(val)) {
-        items.push(val);
-        renderPreview();
-      }
-      input.value = "";
-      e.preventDefault();
-    }
+  window.confirmEditItem = () => {
+    const newName = inpName.value.trim();
+    const newNote = inpNote.value.trim();
+    if (!newName) { inpName.focus(); return; }
+    onConfirm(newName, newNote);
+    document.body.removeChild(m);
+    delete window.confirmEditItem;
   };
-
-  btnCancel.onclick = () => m.remove();
-  btnOk.onclick     = () => {
-    onDone(items);
-    m.remove();
-  };
-
-  setTimeout(() => input.focus(), 50);
 };
 
+// ===== in lists.js =====
+// Uppdaterad openItemMenu så det bara finns "Ändra" och "Ta bort"
+function openItemMenu(listIndex, itemIndex, btn) {
+  event.stopPropagation();
+  document.querySelectorAll('.item-menu').forEach(el => el.remove());
+
+  const item = lists[listIndex].items[itemIndex];
+  const menu = document.createElement('div');
+  menu.className = 'item-menu';
+  menu.innerHTML = `
+    <button onclick="(function(){
+      showEditItemDialog(${listIndex}, ${itemIndex},
+        \`${item.name.replace(/`/g, '\\`')}\`,
+        \`${(item.note||'').replace(/`/g, '\\`')}\`,
+        (newName, newNote) => {
+          item.name = newName;
+          item.note = newNote;
+          stampListTimestamps(lists[${listIndex}]);
+          saveLists(lists);
+          renderListDetail(${listIndex});
+        }
+      );
+    })()">Ändra</button>
+    <button onclick="(function(){
+      if (confirm('Ta bort varan permanent?')) {
+        lists[${listIndex}].items.splice(${itemIndex},1);
+        stampListTimestamps(lists[${listIndex}]);
+        saveLists(lists);
+        renderListDetail(${listIndex});
+      }
+    })()">Ta bort</button>
+  `;
+
+  btn.parentElement.appendChild(menu);
+  const rect = btn.getBoundingClientRect();
+  menu.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+  menu.style.left = (rect.right + window.scrollX - menu.offsetWidth) + 'px';
+
+  document.addEventListener('click', function onDocClick(e) {
+    if (!menu.contains(e.target) && e.target !== btn) {
+      menu.remove();
+      document.removeEventListener('click', onDocClick);
+    }
+  });
+}
 
 
 // Info/modal för kategori (exempel)
