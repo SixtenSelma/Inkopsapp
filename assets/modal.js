@@ -1,8 +1,5 @@
 // modal.js – återanvändbara modaler med mobilfokus och batch add
 
-
-// modal.js – återanvändbara modaler med mobilfokus och batch add
-
 // Flytta modal upp om mobil och tangentbord
 window.scrollModalToTop = function () {
   setTimeout(() => {
@@ -13,20 +10,20 @@ window.scrollModalToTop = function () {
 // ===== Lägg till varor-dialog med namn + komplement (note) efter komma =====
 window.showAddItemsDialog = function({
   kategori = null,
-  allaVaror = [],     // kan vara array av strängar eller objekt {name,category}
+  allaVaror = [],     // array av strängar eller objekt {name,category}
   onlyCategory = false,
   onDone
 }) {
-  // 1) Filtrera ev. på kategori (endast om allaVaror är objekt)
+  // 1) Filtrera på kategori om det är objekt och onlyCategory
   let source = allaVaror;
   if (onlyCategory && kategori !== null && source.length && typeof source[0] === "object") {
     source = source.filter(v => v.category === kategori);
   }
 
-  // 2) Extrahera alltid en ren stränglista för autocomplete
+  // 2) Extrahera alltid ut bara namn (strängar)
   const names = source.map(v => typeof v === "string" ? v : v.name);
 
-  // 3) Skapa modal‑HTML
+  // 3) Bygg modal‑DOM
   const m = document.createElement("div");
   m.className = "modal";
   m.innerHTML = `
@@ -49,25 +46,25 @@ window.showAddItemsDialog = function({
     </div>`;
   document.body.appendChild(m);
 
-  // 4) Cache element och state
+  // 4) Hämta element och initiera state
   const input     = m.querySelector("#addItemInput");
   const preview   = m.querySelector("#addItemPreview");
   const btnOk     = m.querySelector("#addItemConfirm");
   const btnCancel = m.querySelector("#addItemCancel");
-  let items = []; // kommer innehålla {name,note}
+  let items = []; // kommer innehålla { name, note }
 
-  // 5) Preview-rendering
+  // 5) Funktion för att visa preview-listan
   function renderPreview() {
-    preview.innerHTML = items.map(({name,note}, i) =>
+    preview.innerHTML = items.map(({name,note}, idx) =>
       `<li>
          <strong>${name}</strong>${note?` – <em>${note}</em>`:""}
-         <button class="btn-remove" data-idx="${i}" title="Ta bort">×</button>
+         <button class="btn-remove" data-idx="${idx}" title="Ta bort">×</button>
        </li>`
     ).join("");
-    btnOk.disabled = !items.length;
+    btnOk.disabled = items.length === 0;
     preview.querySelectorAll(".btn-remove").forEach(btn =>
       btn.onclick = () => {
-        items.splice(+btn.dataset.idx, 1);
+        items.splice(+btn.dataset.idx,1);
         renderPreview();
       }
     );
@@ -96,6 +93,7 @@ window.showAddItemsDialog = function({
   window.scrollModalToTop();
   setTimeout(() => input.focus(), 50);
 };
+
 
 
 window.showListSettingsDialog = function(title, currentName, currentHideCats, onConfirm, suggestions = []) {
