@@ -19,7 +19,7 @@ window.showAddItemsDialog = function({
     ? allaVaror.filter(v => kategori == null || v.category === kategori)
     : allaVaror;
 
-  // Bygg modal
+  // Bygg modal‑DOM
   const m = document.createElement("div");
   m.className = "modal";
   m.innerHTML = `
@@ -27,9 +27,9 @@ window.showAddItemsDialog = function({
       <h2>Lägg till vara</h2>
       ${kategori ? `<p class="additem-subtitle">Kategori: <strong>${kategori}</strong></p>` : ""}
       <input id="addItemInput"
-             placeholder="Skriv varunamn… (\"varan, komplement\")"
+             placeholder="varan, komplement"
              list="add-items-suggestions"
-             autocomplete="off"/>
+             autocomplete="off" />
       <datalist id="add-items-suggestions">
         ${[...new Set(source)].sort()
             .map(s => `<option value="${s}">`).join("")}
@@ -42,13 +42,38 @@ window.showAddItemsDialog = function({
     </div>`;
   document.body.appendChild(m);
 
-  // Hantera Enter: dela vid första kommatecknet
-  input.onkeydown = e => {
+  // Hämta element och initiera state
+  const input     = m.querySelector("#addItemInput");
+  const preview   = m.querySelector("#addItemPreview");
+  const btnOk     = m.querySelector("#addItemConfirm");
+  const btnCancel = m.querySelector("#addItemCancel");
+  let items = []; // Array av { name, note }
+
+  // Funktion för att visa preview-listan
+  function renderPreview() {
+    preview.innerHTML = items.map(({name,note}, idx) =>
+      `<li>
+         <strong>${name}</strong>${note?` – <em>${note}</em>`:""}
+         <button class="btn-remove" data-idx="${idx}" title="Ta bort">×</button>
+       </li>`
+    ).join("");
+    btnOk.disabled = items.length === 0;
+    preview.querySelectorAll(".btn-remove").forEach(btn =>
+      btn.onclick = () => {
+        items.splice(+btn.dataset.idx,1);
+        renderPreview();
+      }
+    );
+  }
+
+  // Dela på Enter: allt före första kommatecknet är namn, resten är note
+  input.addEventListener("keydown", e => {
     if (e.key === "Enter" && input.value.trim()) {
       const val = input.value.trim();
       let [name, ...rest] = val.split(",");
-      name = name.trim();
       const note = rest.join(",").trim();
+      name = name.trim();
+      // Undvik dubbletter
       if (name && !items.some(it => it.name===name && it.note===note)) {
         items.push({ name, note });
         renderPreview();
@@ -56,15 +81,18 @@ window.showAddItemsDialog = function({
       input.value = "";
       e.preventDefault();
     }
-  };
+  });
 
+  // Knapphantering
   btnCancel.onclick = () => m.remove();
   btnOk.onclick     = () => {
     onDone(items);
     m.remove();
   };
 
-  // Sätt fokus på input
+  // Lägg modal överst på sidan (mobil)
+  window.scrollModalToTop();
+  // Fokusera input
   setTimeout(() => input.focus(), 50);
 };
 
