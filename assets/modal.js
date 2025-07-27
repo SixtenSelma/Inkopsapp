@@ -49,6 +49,8 @@ window.showListSettingsDialog = function(title, currentName, currentHideCats, on
 };
 
 
+// modal.js
+
 /**
  * Visar dialog för att lägga till varor, med stöd för manuellt, historik, mallar eller kategori‑läge.
  *
@@ -71,34 +73,33 @@ window.showAddItemsDialog = function({
   const m = document.createElement("div");
   m.className = "modal";
 
-  // Vilka lägen finns: manual, historik, mallar, kategori
   let currentMode = onlyCategory && kategori ? "kategori" : "manual";
-  let batchItems   = [];
-  let searchText   = "";
+  let batchItems  = [];
+  let searchText  = "";
 
   function render() {
-    // Dynamisk titel
-    const titleText = currentMode === "kategori" && kategori
-      ? `Lägg till varor i kategori "${kategori}"`
-      : "Lägg till varor";
-
-    // Preview‐lista (chips)
-    const previewHTML = batchItems.length
-      ? `<ul class="preview-list">${batchItems.map((item,i) =>
-           `<li>${item}<button class="btn-remove-batch-item" data-idx="${i}" title="Ta bort">×</button></li>`
-         ).join("")}</ul>`
+    // titel
+    const titleText = "Lägg till varor";
+    // undertext för kategori
+    const subtitle = (currentMode === "kategori" && kategori)
+      ? `<p class="additem-subtitle">Kategori: <strong>${kategori}</strong></p>`
       : "";
 
-    // Välj källa för autocomplete
+    // preview-lista
+    const previewHTML = batchItems.length
+      ? `<ul class="preview-list">${batchItems.map((item,i) =>
+          `<li>${item}<button class="btn-remove-batch-item" data-idx="${i}" title="Ta bort">×</button></li>`
+        ).join("")}</ul>`
+      : "";
+
+    // välj källa för autocomplete
     let source = [];
     if (currentMode === "historik") source = allaVaror;
     if (currentMode === "mallar")    source = mallVaror;
     if (currentMode === "kategori")  source = kategoriVaror;
-    // Filtrera om söktext
     if (searchText && source.length) {
       source = source.filter(n => n.toLowerCase().includes(searchText.toLowerCase()));
     }
-
     const resultList = (["historik","mallar","kategori"].includes(currentMode))
       ? `<div class="additem-search-results">
            ${source.length
@@ -115,6 +116,7 @@ window.showAddItemsDialog = function({
     m.innerHTML = `
       <div class="modal-content additem-modal">
         <h2>${titleText}</h2>
+        ${subtitle}
         <input id="addItemInput" placeholder="Skriv en vara och tryck Enter…" autocomplete="off" value="${searchText}"/>
         <div class="additem-button-row">
           <button type="button" id="btnManual" class="additem-mode-btn">Manuellt</button>
@@ -131,11 +133,11 @@ window.showAddItemsDialog = function({
       </div>
     `;
 
-    setupListeners();
+    attachListeners();
   }
 
-  function setupListeners() {
-    // Input
+  function attachListeners() {
+    // inputfält
     const input = m.querySelector("#addItemInput");
     input.focus();
     input.oninput = () => {
@@ -151,15 +153,15 @@ window.showAddItemsDialog = function({
       }
     };
 
-    // Mode‑knappar
-    m.querySelector("#btnManual").onclick  = () => { currentMode = "manual"; render(); };
+    // mode‑knappar
+    m.querySelector("#btnManual").onclick  = () => { currentMode = "manual";  render(); };
     m.querySelector("#btnHistory").onclick = () => { currentMode = "historik"; render(); };
-    m.querySelector("#btnTemplates").onclick = () => { currentMode = "mallar"; render(); };
+    m.querySelector("#btnTemplates").onclick = () => { currentMode = "mallar";    render(); };
     if (kategori) {
-      m.querySelector("#btnCategory").onclick = () => { currentMode = "kategori"; render(); };
+      m.querySelector("#btnCategory").onclick = () => { currentMode = "kategori";  render(); };
     }
 
-    // Resultat‑checkboxar
+    // resultat‑checkboxar
     m.querySelectorAll(".additem-search-results input[type=checkbox]").forEach(chk => {
       chk.onchange = () => {
         const name = chk.dataset.name;
@@ -172,7 +174,7 @@ window.showAddItemsDialog = function({
       };
     });
 
-    // Ta bort chip
+    // ta bort chip
     m.querySelectorAll(".btn-remove-batch-item").forEach(btn => {
       btn.onclick = () => {
         const idx = parseInt(btn.dataset.idx, 10);
@@ -181,10 +183,8 @@ window.showAddItemsDialog = function({
       };
     });
 
-    // Avbryt
-    m.querySelector("#btnCancel").onclick = () => m.remove();
-
-    // Klar
+    // avbryt + klar
+    m.querySelector("#btnCancel").onclick  = () => m.remove();
     m.querySelector("#btnConfirm").onclick = () => {
       onDone(batchItems);
       m.remove();
@@ -194,6 +194,7 @@ window.showAddItemsDialog = function({
   document.body.appendChild(m);
   render();
 };
+
 
 
 // Info/modal för kategori (exempel)
