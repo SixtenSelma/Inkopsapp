@@ -5,7 +5,7 @@ window.standardKategorier = [
   "🥦 Frukt & Grönt",
   "🍞 Bröd & Bageri",
   "🧀 Mejeri",
-  "🍗 Kött, Fisk, Fågel & Chark",
+  "🍗 Chark(Kött, Fisk, Fågel)",
   "❄️ Frysvaror",
   "🍝 Skafferi / Torrvaror",
   "🥤 Dryck",
@@ -14,7 +14,7 @@ window.standardKategorier = [
   "🧽 Städ & Tvätt",
   "👶 Barn & Baby",
   "🐾 Djur",
-  "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)"
+  "🏠 Övrigt"
 ];
 
 // Visa popup för att välja kategori – används vid komplettering av vara och ibland batch add
