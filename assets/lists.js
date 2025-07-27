@@ -653,14 +653,21 @@ window.addItemsWithCategory = function(listIndex = null) {
 // Ny lista
 // ----- Byt namn på lista -----
 window.renameList = function(i) {
-  showRenameDialog('Byt namn på lista', lists[i].name, newName => {
-    lists[i].name = newName.trim();
-    // NYTT: stämpla som uppdaterad
-    stampListTimestamps(lists[i]);
-    saveLists(lists);
-    renderAllLists();
-    closeAnyMenu && closeAnyMenu();
-  });
+  const list = lists[i];
+  window.showListSettingsDialog(
+    'Ändra lista',             // titel
+    list.name,                 // nuvarande namn
+    list.hideCategories || false,
+    (newName, hideCats) => {   // callback
+      list.name           = newName.trim();
+      list.hideCategories = hideCats;
+      stampListTimestamps(list);
+      saveLists(lists);
+      renderAllLists();
+      closeAnyMenu && closeAnyMenu();
+    }
+    // Du kan skicka med suggestions‑array här också om du vill
+  );
 };
 
 // ----- Arkivera lista -----
