@@ -267,6 +267,8 @@ window.renderListDetail = function(i) {
   let compressedMode = list.hideCategories || localStorage.getItem("compressedMode") === "true";
   window.location.hash = encodeURIComponent(list.name);
 
+console.log("🔍 Initial categoryMemory:", window.categoryMemory);
+  
 // ===== Top‑bar HTML =====
 function topBarHtml() {
   return `
