@@ -7,6 +7,113 @@ window.scrollModalToTop = function () {
   }, 100);
 };
 
+// ===== Lägg till varor-dialog med namn + komplement (note) efter komma =====
+window.showAddItemsDialog = function({
+  kategori = null,
+  allaVaror = [],
+  onlyCategory = false,
+  onDone
+}) {
+  // Välj källa för autocomplete
+  const source = onlyCategory
+    ? allaVaror.filter(v => kategori == null || v.category === kategori)
+    : allaVaror;
+
+  // Bygg modal
+  const m = document.createElement("div");
+  m.className = "modal";
+  m.innerHTML = `
+    <div class="modal-content">
+      <h2>Lägg till vara</h2>
+      ${kategori ? `<p class="additem-subtitle">Kategori: <strong>${kategori}</strong></p>` : ""}
+      <input id="addItemInput"
+             placeholder="Skriv varunamn… (\"varan, komplement\")"
+             list="add-items-suggestions"
+             autocomplete="off"/>
+      <datalist id="add-items-suggestions">
+        ${[...new Set(source)].sort()
+            .map(s => `<option value="${s}">`).join("")}
+      </datalist>
+      <ul class="preview-list" id="addItemPreview"></ul>
+      <div class="modal-actions">
+        <button id="addItemCancel" class="btn-secondary">Avbryt</button>
+        <button id="addItemConfirm" disabled>Klar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+
+  // Hantera Enter: dela vid första kommatecknet
+  input.onkeydown = e => {
+    if (e.key === "Enter" && input.value.trim()) {
+      const val = input.value.trim();
+      let [name, ...rest] = val.split(",");
+      name = name.trim();
+      const note = rest.join(",").trim();
+      if (name && !items.some(it => it.name===name && it.note===note)) {
+        items.push({ name, note });
+        renderPreview();
+      }
+      input.value = "";
+      e.preventDefault();
+    }
+  };
+
+  btnCancel.onclick = () => m.remove();
+  btnOk.onclick     = () => {
+    onDone(items);
+    m.remove();
+  };
+
+  // Sätt fokus på input
+  setTimeout(() => input.focus(), 50);
+};
+
+// ===== Lägg till varor utan kategori-begränsning =====
+window.addItemsWithCategory = function(listIndex) {
+  const list = lists[listIndex];
+  window.showAddItemsDialog({
+    kategori: null,
+    allaVaror: window.getAllUniqueItemNames(lists),
+    onlyCategory: false,
+    onDone: items => {
+      items.forEach(({name, note}) => {
+        list.items.push({
+          name,
+          note,
+          done: false
+        });
+      });
+      stampListTimestamps(list);
+      saveLists(lists);
+      renderListDetail(listIndex);
+    }
+  });
+};
+
+// ===== Lägg till varor inom en viss kategori =====
+window.addItemViaCategory = function(listIndex, kategori) {
+  const list = lists[listIndex];
+  window.showAddItemsDialog({
+    kategori,
+    allaVaror: window.getCategoryItemNames(list, kategori),
+    onlyCategory: true,
+    onDone: items => {
+      items.forEach(({name, note}) => {
+        list.items.push({
+          name,
+          note,
+          done: false,
+          category: kategori
+        });
+      });
+      stampListTimestamps(list);
+      saveLists(lists);
+      renderListDetail(listIndex);
+    }
+  });
+};
+
+
 window.showListSettingsDialog = function(title, currentName, currentHideCats, onConfirm, suggestions = []) {
   delete window.confirmListSettings;
   const m = document.createElement('div');
@@ -84,128 +191,6 @@ window.showEditItemDialog = function(listIndex, itemIndex, currentName, currentN
   };
 };
 
-// Flytta modal upp om mobil och tangentbord
-window.scrollModalToTop = function () {
-  setTimeout(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, 100);
-};
-
-// Öppna "lägg till varor"-modal utan kategoribegränsning
-window.addItemsWithCategory = function(listIndex) {
-  const list = lists[listIndex];
-  window.showAddItemsDialog({
-    kategori: null,
-    allaVaror: window.getAllUniqueItemNames(lists),
-    onlyCategory: false,
-    onDone: items => {
-      items.forEach(name => {
-        list.items.push({ name, note: '', done: false });
-      });
-      stampListTimestamps(list);
-      saveLists(lists);
-      renderListDetail(listIndex);
-    }
-  });
-};
-
-// Öppna "lägg till varor"-modal begränsad till en viss kategori
-window.addItemViaCategory = function(listIndex, kategori) {
-  const list = lists[listIndex];
-  window.showAddItemsDialog({
-    kategori,
-    allaVaror: window.getCategoryItemNames(list, kategori),
-    onlyCategory: true,
-    onDone: items => {
-      items.forEach(name => {
-        list.items.push({ name, note: '', done: false, category: kategori });
-      });
-      stampListTimestamps(list);
-      saveLists(lists);
-      renderListDetail(listIndex);
-    }
-  });
-};
-
-window.showAddItemsDialog = function({
-  kategori = null,
-  allaVaror = [],
-  onlyCategory = false,
-  onDone
-}) {
-  // Välj källa för autocomplete
-  const source = onlyCategory
-    ? allaVaror.filter(v => kategori == null || v.category === kategori)
-    : allaVaror;
-
-  // Bygg modal
-  const m = document.createElement("div");
-  m.className = "modal";
-  m.innerHTML = `
-    <div class="modal-content">
-      <h2>Lägg till vara</h2>
-      ${kategori ? `<p class="additem-subtitle">Kategori: <strong>${kategori}</strong></p>` : ""}
-      <input id="addItemInput" placeholder="Skriv varunamn… (\"varan, komplement\")" list="add-items-suggestions" autocomplete="off"/>
-      <datalist id="add-items-suggestions">
-        ${[...new Set(source)].sort().map(s => `<option value="${s}">`).join("")}
-      </datalist>
-      <ul class="preview-list" id="addItemPreview"></ul>
-      <div class="modal-actions">
-        <button id="addItemCancel" class="btn-secondary">Avbryt</button>
-        <button id="addItemConfirm" disabled>Klar</button>
-      </div>
-    </div>`;
-  document.body.appendChild(m);
-
-  window.scrollModalToTop();
-
-  const input     = m.querySelector("#addItemInput");
-  const preview   = m.querySelector("#addItemPreview");
-  const btnOk     = m.querySelector("#addItemConfirm");
-  const btnCancel = m.querySelector("#addItemCancel");
-  let items = []; // ska bli [{ name, note }, ...]
-
-  function renderPreview() {
-    preview.innerHTML = items.map(({name,note},i) =>
-      `<li>${name}${note?` – <em>${note}</em>`:""}
-         <button class="btn-remove" data-idx="${i}" title="Ta bort">×</button>
-       </li>`
-    ).join("");
-    btnOk.disabled = items.length === 0;
-    preview.querySelectorAll(".btn-remove").forEach(btn =>
-      btn.onclick = () => {
-        items.splice(+btn.dataset.idx,1);
-        renderPreview();
-      }
-    );
-  }
-
-  // Lägg till på Enter: dela vid komma
-  input.onkeydown = e => {
-    if (e.key === "Enter" && input.value.trim()) {
-      const val = input.value.trim();
-      let [name, ...rest] = val.split(",");
-      name = name.trim();
-      const note = rest.join(",").trim();
-      // Undvik dubletter (samma name+note)
-      if (name && !items.some(it => it.name===name && it.note===note)) {
-        items.push({ name, note });
-        renderPreview();
-      }
-      input.value = "";
-      e.preventDefault();
-    }
-  };
-
-  btnCancel.onclick = () => m.remove();
-  btnOk.onclick     = () => {
-    onDone(items);
-    m.remove();
-  };
-
-  setTimeout(() => input.focus(), 50);
-};
-
 
 // Info/modal för kategori (exempel)
 window.showCategoryPicker = function (name, onSave) {
@@ -230,7 +215,6 @@ window.showCategoryPicker = function (name, onSave) {
   const select = document.getElementById("categorySelectPopup");
   setTimeout(() => {
     select.focus();
-    window.scrollModalToTop && window.scrollModalToTop();
   }, 100);
   window.pickCategoryOK = () => {
     const value = select.value;
