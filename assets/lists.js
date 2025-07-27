@@ -736,6 +736,7 @@ function chooseSourceList(targetIndex) {
 }
 
 
+// ===== Lägg till varor med kategori-minne =====
 window.addItemsWithCategory = function(listIndex) {
   const list = lists[listIndex];
   const skipCategory = list.hideCategories === true;
@@ -748,24 +749,28 @@ window.addItemsWithCategory = function(listIndex) {
       (async () => {
         for (const { name, note } of items) {
           const newItem = { name, note, done: false };
-          if (!skipCategory) {
-            // normalisera key
-            const key = name.trim().toLowerCase().normalize('NFC');
-            const savedCat = window.categoryMemory[key];
-            console.log("kolla memory:", key, savedCat);
 
+          if (!skipCategory) {
+            // 1) Normalisera key–sätt
+            const key = name.trim().toLowerCase().normalize();
+            console.log("[DEBUG] Söker minne för:", key, window.categoryMemory);
+
+            const savedCat = window.categoryMemory[key];
             if (savedCat) {
+              console.log("[DEBUG] Hittade sparad kategori:", savedCat);
               newItem.category = savedCat;
             } else {
+              // 2) Be användaren välja och spara omedelbart
               const chosenCat = await new Promise(r => showCategoryPicker(name, r));
               if (chosenCat) {
                 newItem.category = chosenCat;
-                // spara omedelbart för att undvika race‑conditions
                 window.categoryMemory[key] = chosenCat;
+                console.log("[DEBUG] Sparar ny kategori i memory:", key, "→", chosenCat);
                 window.saveCategoryMemory(window.categoryMemory);
               }
             }
           }
+
           list.items.push(newItem);
         }
 
@@ -776,7 +781,6 @@ window.addItemsWithCategory = function(listIndex) {
     }
   });
 };
-
 
 
 // ===== Lägg till varor inom en viss kategori (sparar också globalt minne) =====
