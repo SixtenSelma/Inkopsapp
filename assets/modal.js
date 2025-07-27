@@ -48,7 +48,6 @@ window.showListSettingsDialog = function(title, currentName, currentHideCats, on
   };
 };
 
-
 // ===== Lägg till varor via flytande ➕ (agerar på hideCategories) =====
 window.addItemsWithCategory = function(listIndex = null) {
   let i = listIndex;
@@ -63,34 +62,35 @@ window.addItemsWithCategory = function(listIndex = null) {
   }
 
   const list = lists[i];
-  const allaVaror = getAllUniqueItemNames(lists);
-  const kategoriVaror = list.hideCategories
-    ? []
-    : getCategoryItemNames(list, null);
 
+  // Om kategorier är på → be användaren först välja kategori
+  if (!list.hideCategories) {
+    chooseCategory("Ny vara")
+      .then(cat => {
+        if (!cat) return;
+        // När kategori är vald kör vi addItemViaCategory
+        addItemViaCategory(i, cat);
+      });
+    return;
+  }
+
+  // Om list.hideCategories === true → direkt fritt autocomplete
+  const allNames = getAllUniqueItemNames(lists);
   showAddItemsDialog({
     kategori: null,
-    allaVaror,
-    kategoriVaror,
-    onlyCategory: false,
+    allaVaror: allNames,
     onDone: added => {
-      if (!added || !added.length) return;
+      if (!added.length) return;
       added.forEach(raw => {
         const [namePart, ...noteParts] = raw.split(',');
         const name = namePart.trim();
         const note = noteParts.join(',').trim();
-        // undvik dubblett
+        // undvik dubbletter
         if (lists[i].items.some(it =>
           it.name.trim().toLowerCase() === name.toLowerCase() &&
           (it.note||'').trim().toLowerCase() === note.toLowerCase()
         )) return;
-        // lägg till
-        lists[i].items.push({
-          name,
-          note,
-          done: false,
-          ...(list.hideCategories ? {} : { category: null })
-        });
+        lists[i].items.push({ name, note, done: false });
       });
       stampListTimestamps(lists[i]);
       saveLists(lists);
@@ -99,39 +99,29 @@ window.addItemsWithCategory = function(listIndex = null) {
   });
 };
 
-// ===== Lägg till via kategori‑knapp – visar källa från alla listor =====
+// ===== Lägg till via kategori‑knapp – använder alla listors historik för autocomplete =====
 window.addItemViaCategory = function(listIndex, category) {
   const list = lists[listIndex];
-  if (list.hideCategories) {
-    // fallback till flytande ➕
-    return window.addItemsWithCategory(listIndex);
-  }
-
-  // vi vill autocomplete mot alla andra listors varor
-  const allaVaror = getAllUniqueItemNames(lists);
-  const kategoriVaror = getCategoryItemNames(lists[listIndex], category);
+  const allNames = getAllUniqueItemNames(lists);
+  const categoryNames = getCategoryItemNames(list, category);
 
   showAddItemsDialog({
-    kategori,
-    allaVaror,
-    kategoriVaror,
+    kategori: category,
+    allaVaror: allNames,
     onlyCategory: true,
+    kategoriVaror: categoryNames,
     onDone: added => {
-      if (!added || !added.length) return;
+      if (!added.length) return;
       added.forEach(raw => {
         const [namePart, ...noteParts] = raw.split(',');
         const name = namePart.trim();
         const note = noteParts.join(',').trim();
+        // undvik dubbletter
         if (lists[listIndex].items.some(it =>
           it.name.trim().toLowerCase() === name.toLowerCase() &&
           (it.note||'').trim().toLowerCase() === note.toLowerCase()
         )) return;
-        lists[listIndex].items.push({
-          name,
-          note,
-          done: false,
-          category
-        });
+        lists[listIndex].items.push({ name, note, done: false, category });
       });
       stampListTimestamps(lists[listIndex]);
       saveLists(lists);
@@ -141,44 +131,33 @@ window.addItemViaCategory = function(listIndex, category) {
 };
 
 
-// modal.js
+// modal.js – enkel “Lägg till vara”‑modal
 window.showAddItemsDialog = function({
   kategori = null,
   allaVaror = [],
-  kategoriVaror = [],
   onlyCategory = false,
+  kategoriVaror = [],
   onDone
 }) {
-  // välj källa för autocomplete
-  const source = onlyCategory
-    ? kategoriVaror
-    : allaVaror;
+  const source = onlyCategory ? kategoriVaror : allaVaror;
 
-  // bygga modal
   const m = document.createElement("div");
   m.className = "modal";
-  document.body.appendChild(m);
-
-  // rubrik + eventuell kategori­rad
-  const subtitle = kategori
-    ? `<p class="additem-subtitle">Kategori: <strong>${kategori}</strong></p>`
-    : "";
-
   m.innerHTML = `
     <div class="modal-content">
       <h2>Lägg till vara</h2>
-      ${subtitle}
-      <input id="addItemInput" placeholder="Skriv varunamn…" list="add-items-suggestions" autocomplete="off"/>
-      <datalist id="add-items-suggestions">
+      ${kategori ? `<p class="additem-subtitle">Kategori: <strong>${kategori}</strong></p>` : ""}
+      <input id="addItemInput" placeholder="Skriv varunamn…" list="add-items-dl" autocomplete="off"/>
+      <datalist id="add-items-dl">
         ${[...new Set(source)].sort().map(s => `<option value="${s}">`).join("")}
       </datalist>
-      <ul class="preview-list" id="addItemPreview"></ul>
+      <ul id="addItemPreview" class="preview-list"></ul>
       <div class="modal-actions">
         <button id="addItemCancel" class="btn-secondary">Avbryt</button>
         <button id="addItemConfirm" disabled>Klar</button>
       </div>
-    </div>
-  `;
+    </div>`;
+  document.body.appendChild(m);
 
   const input   = m.querySelector("#addItemInput");
   const preview = m.querySelector("#addItemPreview");
@@ -188,12 +167,9 @@ window.showAddItemsDialog = function({
 
   function renderPreview() {
     preview.innerHTML = items.map((name,i) =>
-      `<li>${name}
-         <button class="btn-remove" data-idx="${i}" title="Ta bort">×</button>
-       </li>`
+      `<li>${name} <button class="btn-remove" data-idx="${i}" title="Ta bort">×</button></li>`
     ).join("");
     btnOk.disabled = items.length === 0;
-    // knappar för att ta bort
     preview.querySelectorAll(".btn-remove").forEach(btn =>
       btn.onclick = () => {
         items.splice(+btn.dataset.idx,1);
@@ -202,7 +178,6 @@ window.showAddItemsDialog = function({
     );
   }
 
-  // lägg till med Enter
   input.onkeydown = e => {
     if (e.key === "Enter" && input.value.trim()) {
       const val = input.value.trim();
@@ -221,7 +196,6 @@ window.showAddItemsDialog = function({
     m.remove();
   };
 
-  // ge fokus
   setTimeout(() => input.focus(), 50);
 };
 
