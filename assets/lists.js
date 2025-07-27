@@ -735,7 +735,6 @@ function chooseSourceList(targetIndex) {
   });
 }
 
-// ===== Lägg till varor utan kategori-begränsning, med automatisk kategorimatchning och fallback-meny =====
 window.addItemsWithCategory = function(listIndex) {
   const list = lists[listIndex];
   const handlesCategories = list.hideCategories === false;
@@ -746,11 +745,19 @@ window.addItemsWithCategory = function(listIndex) {
     onlyCategory: false,
     onDone: items => {
       (async () => {
+        // Ladda categoryMemory på nytt från localStorage
+        let categoryMemory = {};
+        try {
+          categoryMemory = JSON.parse(localStorage.getItem('categoryMemory')) || {};
+        } catch (e) {}
+
         for (const { name, note } of items) {
           const newItem = { name, note, done: false };
+
           if (handlesCategories) {
             const key = name.trim().toLowerCase();
-            const savedCat = window.categoryMemory[key];
+            const savedCat = categoryMemory[key];
+
             if (savedCat) {
               // Använd redan sparad kategori
               newItem.category = savedCat;
@@ -761,14 +768,20 @@ window.addItemsWithCategory = function(listIndex) {
               });
               if (chosenCat) {
                 newItem.category = chosenCat;
-                // Spara i minnet och persist till localStorage
-                window.categoryMemory[key] = chosenCat;
-                window.saveCategoryMemory(window.categoryMemory);
+                // Spara direkt i localStorage
+                categoryMemory[key] = chosenCat;
+                try {
+                  localStorage.setItem('categoryMemory', JSON.stringify(categoryMemory));
+                } catch (e) {
+                  console.warn('Misslyckades spara categoryMemory', e);
+                }
               }
             }
           }
+
           list.items.push(newItem);
         }
+
         stampListTimestamps(list);
         saveLists(lists);
         renderListDetail(listIndex);
@@ -776,6 +789,7 @@ window.addItemsWithCategory = function(listIndex) {
     }
   });
 };
+
 
 
 // ===== Lägg till varor inom en viss kategori =====
