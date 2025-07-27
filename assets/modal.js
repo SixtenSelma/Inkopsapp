@@ -208,52 +208,6 @@ window.showEditItemDialog = function(listIndex, itemIndex, currentName, currentN
   };
 };
 
-// ===== in lists.js =====
-// Uppdaterad openItemMenu så det bara finns "Ändra" och "Ta bort"
-function openItemMenu(listIndex, itemIndex, btn) {
-  event.stopPropagation();
-  document.querySelectorAll('.item-menu').forEach(el => el.remove());
-
-  const item = lists[listIndex].items[itemIndex];
-  const menu = document.createElement('div');
-  menu.className = 'item-menu';
-  menu.innerHTML = `
-    <button onclick="(function(){
-      showEditItemDialog(${listIndex}, ${itemIndex},
-        \`${item.name.replace(/`/g, '\\`')}\`,
-        \`${(item.note||'').replace(/`/g, '\\`')}\`,
-        (newName, newNote) => {
-          item.name = newName;
-          item.note = newNote;
-          stampListTimestamps(lists[${listIndex}]);
-          saveLists(lists);
-          renderListDetail(${listIndex});
-        }
-      );
-    })()">Ändra</button>
-    <button onclick="(function(){
-      if (confirm('Ta bort varan permanent?')) {
-        lists[${listIndex}].items.splice(${itemIndex},1);
-        stampListTimestamps(lists[${listIndex}]);
-        saveLists(lists);
-        renderListDetail(${listIndex});
-      }
-    })()">Ta bort</button>
-  `;
-
-  btn.parentElement.appendChild(menu);
-  const rect = btn.getBoundingClientRect();
-  menu.style.top = (rect.bottom + window.scrollY + 4) + 'px';
-  menu.style.left = (rect.right + window.scrollX - menu.offsetWidth) + 'px';
-
-  document.addEventListener('click', function onDocClick(e) {
-    if (!menu.contains(e.target) && e.target !== btn) {
-      menu.remove();
-      document.removeEventListener('click', onDocClick);
-    }
-  });
-}
-
 
 // Info/modal för kategori (exempel)
 window.showCategoryPicker = function (name, onSave) {
