@@ -540,3 +540,104 @@ body.modal-open {
 .item-menu-btn.delete-btn {
   color: #d44;
 }
+
+/* ===== Global modal‑bakgrund ===== */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+/* ===== Modal‑ruta ===== */
+.modal-content {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  max-width: 360px;
+  width: 90%;
+  box-sizing: border-box;
+  font-family: sans-serif;
+}
+
+/* ===== Rubrik ===== */
+.modal-content h2 {
+  margin: 0 0 16px;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+}
+
+/* ===== Fältuppställning ===== */
+.modal-content label {
+  display: block;
+  margin-bottom: 12px;
+}
+.modal-content label span,
+.modal-content label {
+  display: block;
+  margin-bottom: 4px;
+  color: #555;
+  font-size: 0.9rem;
+}
+.modal-content input[type="text"],
+.modal-content input[type="search"],
+.modal-content input[type="number"],
+.modal-content select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+.modal-content input:focus,
+.modal-content select:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+/* ===== Knapprad ===== */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+/* ===== Knappar ===== */
+.modal-actions button {
+  flex: 1;
+  padding: 10px 0;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+.modal-actions button:first-child {
+  background: #eee;
+  color: #333;
+}
+.modal-actions button:first-child:hover {
+  background: #ddd;
+}
+.modal-actions button:last-child {
+  background: #4CAF50;
+  color: #fff;
+}
+.modal-actions button:last-child:hover {
+  background: #45a045;
+}
+.modal-actions button:active {
+  transform: translateY(1px);
+}
+
