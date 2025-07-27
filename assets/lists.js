@@ -516,8 +516,7 @@ window.renderListDetail = function(i) {
 
   applyFade && applyFade();
 };
-
-// ===== Lägg till varor via flytande ➕ (respekterar hideCategories) =====
+// ===== Lägg till via flytande ➕ (respekterar hideCategories + filtrerad autocomplete) =====
 window.addItemsWithCategory = function(listIndex = null) {
   let i = listIndex;
   if (i === null) {
@@ -531,32 +530,31 @@ window.addItemsWithCategory = function(listIndex = null) {
   }
 
   const list = lists[i];
-  const allaVaror = getAllUniqueItemNames(lists);
-  const mallVaror = getTemplateItemNames(lists);
+
+  // Filtrera in bara de listor som matchar hideCategories för autocomplete
+  const sameModeLists = lists.filter(l => !!l.hideCategories === !!list.hideCategories);
+  const allaVaror = getAllUniqueItemNames(sameModeLists);
+  const mallVaror = getTemplateItemNames(sameModeLists);
 
   showAddItemsDialog({
     allaVaror,
     mallVaror,
-    kategoriVaror: [],
+    kategoriVaror: [],       // inga kategorier i denna vy
     onlyCategory: false,
     onDone: added => {
       if (!added || !added.length) return;
 
-      // wrap i en async IIFE för att kunna awaita chooseCategory
       (async () => {
         for (const raw of added) {
           const [namePart, ...noteParts] = raw.split(',');
           const name = namePart.trim();
           const note = noteParts.join(',').trim();
 
-          // hoppa dubbletter
-          const exists = list.items.some(item =>
-            item.name.trim().toLowerCase() === name.toLowerCase() &&
-            (item.note || '').trim().toLowerCase() === note.toLowerCase()
-          );
-          if (exists) continue;
+          if (list.items.some(it =>
+            it.name.trim().toLowerCase() === name.toLowerCase() &&
+            (it.note||'').trim().toLowerCase() === note.toLowerCase()
+          )) continue;
 
-          // bestäm kategori
           let category;
           if (!list.hideCategories) {
             category = window.categoryMemory[name]
@@ -568,10 +566,9 @@ window.addItemsWithCategory = function(listIndex = null) {
             name,
             note,
             done: false,
-            ...(list.hideCategories ? {} : { category })
+            ...(!list.hideCategories ? { category } : {})
           });
         }
-
         stampListTimestamps(list, false);
         saveLists(lists);
         renderListDetail(i);
@@ -580,15 +577,17 @@ window.addItemsWithCategory = function(listIndex = null) {
   });
 };
 
-// ===== Lägg till via kategori‑knapp (ingen effekt om hideCategories=true) =====
+// ===== Lägg till via kategori‑knapp (filtrerad autocomplete) =====
 window.addItemViaCategory = function(listIndex, category) {
   const list = lists[listIndex];
   if (list.hideCategories) {
     return window.addItemsWithCategory(listIndex);
   }
 
-  const allaVaror     = getAllUniqueItemNames(lists);
-  const mallVaror     = getTemplateItemNames(lists);
+  // filtrera autocomplete‐källor enligt hideCategories
+  const sameModeLists = lists.filter(l => !!l.hideCategories === !!list.hideCategories);
+  const allaVaror     = getAllUniqueItemNames(sameModeLists);
+  const mallVaror     = getTemplateItemNames(sameModeLists);
   const kategoriVaror = getCategoryItemNames(list, category);
 
   showAddItemsDialog({
@@ -599,17 +598,15 @@ window.addItemViaCategory = function(listIndex, category) {
     onDone: added => {
       if (!added || !added.length) return;
 
-      // här räcker en synkron loop
       added.forEach(raw => {
         const [namePart, ...noteParts] = raw.split(',');
         const name = namePart.trim();
         const note = noteParts.join(',').trim();
 
-        const exists = list.items.some(item =>
-          item.name.trim().toLowerCase() === name.toLowerCase() &&
-          (item.note || '').trim().toLowerCase() === note.toLowerCase()
-        );
-        if (exists) return;
+        if (list.items.some(it =>
+          it.name.trim().toLowerCase() === name.toLowerCase() &&
+          (it.note||'').trim().toLowerCase() === note.toLowerCase()
+        )) return;
 
         list.items.push({
           name,
@@ -625,6 +622,8 @@ window.addItemViaCategory = function(listIndex, category) {
     }
   });
 };
+
+
 
 // ===== Ny inköpslista via modal‑dialog =====
 window.newList = function() {
