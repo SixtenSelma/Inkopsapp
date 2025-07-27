@@ -64,7 +64,6 @@ window.addItemsWithCategory = function(listIndex = null) {
   const list = lists[i];
   const allNames = getAllUniqueItemNames(lists);
 
-  // Visa enkel modal för manuell inmatning (utan kategori-val i förväg)
   showAddItemsDialog({
     kategori: null,
     allaVaror: allNames,
@@ -82,22 +81,33 @@ window.addItemsWithCategory = function(listIndex = null) {
           (it.note||'').trim().toLowerCase() === note.toLowerCase()
         )) continue;
 
-        // För listor med kategorier: försök återanvända sparad kategori,
-        // annars fråga användaren efter kategori
         let category;
         if (!list.hideCategories) {
+          // 1) Kolla categoryMemory
           if (window.categoryMemory[name]) {
             category = window.categoryMemory[name];
           } else {
-            category = await chooseCategory(name) || "Övrigt";
-            // spara för nästa gång
+            // 2) Sök i andra listor efter tidigare inslagen kategori
+            let foundCat;
+            for (const other of lists) {
+              if (other === list) continue;
+              const it = other.items.find(x => x.name.trim().toLowerCase() === name.toLowerCase() && x.category);
+              if (it) { foundCat = it.category; break; }
+            }
+            if (foundCat) {
+              category = foundCat;
+            } else {
+              // 3) Fråga användaren
+              category = await chooseCategory(name) || "Övrigt";
+            }
+            // Spara för framtida autofyll
             window.categoryMemory[name] = category;
             try { localStorage.setItem("categoryMemory", JSON.stringify(window.categoryMemory)); }
             catch {}
           }
         }
 
-        // Lägg till varan
+        // Lägg till posten
         lists[i].items.push({
           name,
           note,
@@ -106,13 +116,14 @@ window.addItemsWithCategory = function(listIndex = null) {
         });
       }
 
-      // Spara och rendera om
+      // Spara & rendera om
       stampListTimestamps(lists[i]);
       saveLists(lists);
       renderListDetail(i);
     }
   });
 };
+
 
 
 // ===== Lägg till via kategori‑knapp – använder alla listors historik för autocomplete =====
