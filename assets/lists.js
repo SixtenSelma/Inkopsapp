@@ -15,18 +15,59 @@ function stampListTimestamps(list, isNew = false) {
   list.updatedBy = window.user;
 }
 
-// ===== Dialog & skapande av ny lista =====
+// ===== Dialog & skapande av ny lista med modal =====
 function showNewListDialog() {
-  const name = prompt("Vad ska listan heta?");
-  if (!name || !name.trim()) return;
-  const newList = {
-    name: name.trim(),
-    items: []
+  // Overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'modal';
+  overlay.style.backdropFilter = 'blur(4px)';
+
+  // Modal-box
+  const box = document.createElement('div');
+  box.className = 'modal-content';
+  box.innerHTML = `
+    <h2>Ny inköpslista</h2>
+    <label>
+      Namn:
+      <input type="text" id="newListName" placeholder="Listans namn" />
+    </label>
+    <label style="margin-top:12px; display:flex; align-items:center;">
+      <input type="checkbox" id="newListHideCats" />
+      <span style="margin-left:8px;">Dölj kategorier i detaljvy</span>
+    </label>
+    <div class="modal-actions" style="margin-top:16px;">
+      <button id="btnCancelNewList" class="btn-secondary">Avbryt</button>
+      <button id="btnOkNewList">Skapa</button>
+    </div>`;
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+
+  const input = box.querySelector('#newListName');
+  input.focus();
+
+  // Avbryt
+  box.querySelector('#btnCancelNewList').onclick = () => overlay.remove();
+
+  // Skapa
+  box.querySelector('#btnOkNewList').onclick = () => {
+    const name = input.value.trim();
+    if (!name) {
+      input.focus();
+      return;
+    }
+    const hideCats = box.querySelector('#newListHideCats').checked;
+
+    const newList = {
+      name,
+      items: [],
+      hideCategories: hideCats
+    };
+    stampListTimestamps(newList, true);
+    lists.push(newList);
+    saveLists(lists);
+    overlay.remove();
+    renderAllLists();
   };
-  stampListTimestamps(newList, true);
-  lists.push(newList);
-  saveLists(lists);
-  renderAllLists();
 }
 
 // ===== Toggle‐funktion för checkboxar på varuposter =====
@@ -424,18 +465,20 @@ window.openListMenuByName = function(name, btn) {
 window.renderListDetail = function(i) {
   const list = lists[i];
   let hideDone      = localStorage.getItem("hideDone") === "true";
-  let compressedMode = localStorage.getItem("compressedMode") === "true";
+  // Om list.hideCategories är satt → tvinga komprimerat läge
+  let compressedMode = list.hideCategories || localStorage.getItem("compressedMode") === "true";
   window.location.hash = encodeURIComponent(list.name);
 
-  // ---------- Helper for top bar ----------
+  // ===== Top‑bar HTML =====
   function topBarHtml() {
     return `
       <div class="top-bar">
         <span class="back-arrow"
               onclick="window.location.hash=''; renderAllLists()"
               title="Tillbaka">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24"
-               fill="none" stroke="#232323" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"
+               viewBox="0 0 24 24" fill="none" stroke="#232323" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round">
             <polyline points="15 18 9 12 15 6"/>
           </svg>
         </span>
@@ -444,29 +487,17 @@ window.renderListDetail = function(i) {
           <button id="btnHideDone" class="icon-button" title="Visa/Göm klara">
             ${hideDone ? '☑' : '☐'}
           </button>
-          <button id="btnToggleCats" class="icon-button" title="Komprimerat läge">≡</button>
-         <button class="icon-button import-button" title="Importera från lista"
-        onclick="importItemsFromList(${i})">
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-       viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"
-       stroke-linecap="round" stroke-linejoin="round">
-    <!-- Längre stam -->
-    <line x1="12" y1="2" x2="12" y2="18"/>
-    <!-- Större pilspets -->
-    <polyline points="6 14 12 20 18 14"/>
-  </svg>
-</button>
+          ${!list.hideCategories ? `<button id="btnToggleCats" class="icon-button" title="Komprimerat läge">≡</button>` : ''}
         </div>
       </div>`;
   }
 
-  // ---------- Komprimerat läge ----------
-  let contentHtml;
-  if (compressedMode) {
-    let incomplete = list.items.filter(it => !it.done);
-    let complete   = list.items.filter(it => it.done);
+  // ===== Innehåll för komprimerat läge =====
+  function compressedHtml() {
+    let incomplete = list.items.filter(item => !item.done);
+    let complete   = list.items.filter(item => item.done);
     if (hideDone) complete = [];
-    const cmp = (a,b) => a.name.localeCompare(b.name,'sv');
+    const cmp = (a, b) => a.name.localeCompare(b.name, 'sv');
     incomplete.sort(cmp);
     complete.sort(cmp);
     const items = [...incomplete, ...complete];
@@ -481,52 +512,52 @@ window.renderListDetail = function(i) {
       return `
         <li class="todo-item ${item.done?'done':''}">
           <input type="checkbox" ${item.done?'checked':''}
-            onchange="toggleItem(${i}, ${idx}, lists, user, saveAndRenderList)" />
+                 onchange="toggleItem(${i}, ${idx}, lists, user, saveAndRenderList)" />
           <div class="item-name">
             <div class="item-line1">${nameHTML}</div>
             <div class="item-note-sign-wrapper">${noteHTML}${sigHTML}</div>
           </div>
-          <button class="menu-btn"
-                  onclick="openItemMenu(${i}, ${idx}, this)">⋮</button>
+          <button class="menu-btn" onclick="openItemMenu(${i}, ${idx}, this)">⋮</button>
         </li>`;
     }).join('');
 
-    contentHtml = `
+    return `
       ${topBarHtml()}
       <ul class="todo-list">${rows}</ul>
       <div class="bottom-bar">
         <button onclick="addItemsWithCategory(${i})" title="Lägg till">➕</button>
       </div>`;
   }
-  // ---------- Kategoriview ----------
-  else {
+
+  // ===== Innehåll för kategoriview =====
+  function categoryHtml() {
     const allItems = list.items.map((it, idx) => ({ ...it, idx }));
     const grouped  = {};
     standardKategorier.forEach(cat => grouped[cat] = []);
     allItems.forEach(item => {
-      const c = item.category || "🏠 Övrigt";
-      grouped[c].push(item);
+      const cat = item.category || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)";
+      grouped[cat].push(item);
     });
 
     const catsWithItems = [], catsWithout = [];
     standardKategorier.forEach(cat => {
       const src = grouped[cat];
-      const vis = hideDone ? src.filter(x=>!x.done) : src;
-      if (vis.length) catsWithItems.push({cat,items:vis});
-      else catsWithout.push({cat,items:[]});
+      const vis = hideDone ? src.filter(x => !x.done) : src;
+      if (vis.length) catsWithItems.push({ cat, items: vis });
+      else catsWithout.push({ cat, items: [] });
     });
-    const finalCats = hideDone ? catsWithItems : catsWithItems.concat(catsWithout);
+    const finalCats = catsWithItems.concat(catsWithout);
 
-    const categoriesHTML = finalCats.map(({cat,items}) => {
+    const categoriesHTML = finalCats.map(({ cat, items }) => {
       const sorted = [
-        ...items.filter(x=>!x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv')),
-        ...items.filter(x=>x.done).sort((a,b)=>a.name.localeCompare(b.name,'sv'))
+        ...items.filter(x => !x.done).sort((a,b) => a.name.localeCompare(b.name,'sv')),
+        ...items.filter(x => x.done).sort((a,b) => a.name.localeCompare(b.name,'sv'))
       ];
       const rows = sorted.map(item => {
         return `
           <li class="todo-item ${item.done?'done':''}">
             <input type="checkbox" ${item.done?'checked':''}
-              onchange="toggleItem(${i}, ${item.idx}, lists, user, saveAndRenderList)" />
+                   onchange="toggleItem(${i}, ${item.idx}, lists, user, saveAndRenderList)" />
             <div class="item-name">
               <div class="item-line1">
                 ${item.done?`<s>${item.name}</s>`:`<strong>${item.name}</strong>`}
@@ -538,22 +569,20 @@ window.renderListDetail = function(i) {
                   : ""}
               </div>
             </div>
-            <button class="menu-btn"
-                    onclick="openItemMenu(${i}, ${item.idx}, this)">⋮</button>
+            <button class="menu-btn" onclick="openItemMenu(${i}, ${item.idx}, this)">⋮</button>
           </li>`;
       }).join('');
       return `
         <div class="category-block">
-          <h3 class="category-heading" style="display:${compressedMode?'none':''}">
+          <h3 class="category-heading">
             ${cat}
-            <button class="category-add-btn"
-                    onclick="addItemViaCategory(${i}, '${cat}')">+</button>
+            <button class="category-add-btn" onclick="addItemViaCategory(${i}, '${cat}')">+</button>
           </h3>
           <ul class="todo-list">${rows}</ul>
         </div>`;
     }).join('');
 
-    contentHtml = `
+    return `
       ${topBarHtml()}
       <div class="category-list">${categoriesHTML}</div>
       <div class="bottom-bar">
@@ -561,23 +590,28 @@ window.renderListDetail = function(i) {
       </div>`;
   }
 
-  // Rendera allt
-  app.innerHTML = contentHtml;
+  // ===== Rendera rätt vy =====
+  app.innerHTML = compressedMode ? compressedHtml() : categoryHtml();
 
-  // Knapplogik
+  // ===== Knapplogik =====
   document.getElementById("btnHideDone").onclick = () => {
     hideDone = !hideDone;
     localStorage.setItem("hideDone", hideDone);
     renderListDetail(i);
   };
-  document.getElementById("btnToggleCats").onclick = () => {
-    compressedMode = !compressedMode;
-    localStorage.setItem("compressedMode", compressedMode);
-    renderListDetail(i);
-  };
+  if (!list.hideCategories) {
+    document.getElementById("btnToggleCats").onclick = () => {
+      let mode = localStorage.getItem("compressedMode") === "true";
+      compressedMode = !mode;
+      localStorage.setItem("compressedMode", compressedMode);
+      renderListDetail(i);
+    };
+  }
 
   applyFade && applyFade();
 };
+
+
 
 
 // ===== Lägg till varor via plusknapp =====
