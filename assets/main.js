@@ -29,7 +29,7 @@ window.changeUser = function() {
 window.openListMenu = function(i, btn) {
   const list = lists[i];
   const html = `
-    <button onclick="renameList(${i})">🖊 Byt namn</button>
+    <button onclick="renameList(${i})">🖊 Ändra</button>
     <button onclick="deleteList(${i})" style="color:#d44;">✖ Ta bort lista</button>
     ${
       !list.archived
