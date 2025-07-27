@@ -76,7 +76,7 @@ window.getTemplateItemNames = function(lists) {
 window.getCategoryItemNames = function(list, category) {
   const names = new Set();
   list.items.forEach(item => {
-    const cat = item.category || '🏠 Övrigt (Hem, Teknik, Kläder, Säsong)';
+    const cat = item.category || '🏠 Övrigt';
     if (cat === category && item.name) names.add(item.name.trim());
   });
   return Array.from(names).sort();
@@ -450,7 +450,7 @@ function topBarHtml() {
     const grouped  = {};
     standardKategorier.forEach(cat => grouped[cat] = []);
     allItems.forEach(item => {
-      const cat = item.category || "🏠 Övrigt (Hem, Teknik, Kläder, Säsong)";
+      const cat = item.category || "🏠 Övrigt";
       grouped[cat].push(item);
     });
 
@@ -746,7 +746,7 @@ window.importItemsFromList = async function(targetIndex) {
   // 2) Gruppera per kategori
   const grouped = {};
   srcList.items.forEach((item, globalIdx) => {
-    const cat = item.category || '🏠 Övrigt (Hem, Teknik, Kläder, Säsong)';
+    const cat = item.category || '🏠 Övrigt';
     if (!grouped[cat]) grouped[cat] = [];
     grouped[cat].push({ item, globalIdx });
   });
@@ -843,7 +843,7 @@ window.importItemsFromList = async function(targetIndex) {
             name:     srcItem.name,
             note:     srcItem.note || '',
             done:     false,
-            category: srcItem.category || '🏠 Övrigt (Hem, Teknik, Kläder, Säsong)'
+            category: srcItem.category || '🏠 Övrigt'
           });
         }
       });
