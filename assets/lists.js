@@ -15,28 +15,6 @@ function stampListTimestamps(list, isNew = false) {
   list.updatedBy = window.user;
 }
 
-// ===== Ny inköpslista via modal‑dialog =====
-window.showNewListDialog = function() {
-  // Anropar den gemensamma dialogen från modal.js
-  window.showListSettingsDialog(
-    'Skapa ny inköpslista',    // titel
-    '',                         // tomt namn som utgångspunkt
-    false,                      // default: visa kategorier
-    (name, hideCats) => {       // callback på OK
-      const newList = {
-        name: name.trim(),
-        items: [],
-        hideCategories: hideCats
-      };
-      stampListTimestamps(newList, true);
-      lists.push(newList);
-      saveLists(lists);
-      renderAllLists();
-    }
-    // du kan lägga till en suggestions‑array som 5:e argument om du vill
-  );
-};
-
 
 // ===== Toggle‐funktion för checkboxar på varuposter =====
 function toggleItem(listIndex, itemIndex, lists, user, callback) {
@@ -351,7 +329,7 @@ window.renderAllLists = function() {
     </ul>
     ${archivedSection}
     <div class="bottom-bar">
-      <button onclick="showNewListDialog()" title="Ny lista">➕</button>
+      <button onclick="newList()" title="Ny lista">➕</button>
     </div>`;
 
   // Gör arkivsektionen kollapsbar
@@ -648,25 +626,42 @@ window.addItemsWithCategory = function(listIndex = null) {
 };
 
 
-// ===== CRUD =====
 
-// Ny lista
-// ----- Byt namn på lista -----
+
+// ===== Ny inköpslista via modal‑dialog =====
+window.newList = function() {
+  window.showListSettingsDialog(
+    'Skapa ny inköpslista',
+    '',
+    false,
+    (name, hideCats) => {
+      const newList = {
+        name: name.trim(),
+        items: [],
+        hideCategories: hideCats
+      };
+      stampListTimestamps(newList, true);
+      lists.push(newList);
+      saveLists(lists);
+      renderAllLists();
+    }
+  );
+};
+
 window.renameList = function(i) {
   const list = lists[i];
   window.showListSettingsDialog(
-    'Ändra lista',             // titel
-    list.name,                 // nuvarande namn
-    list.hideCategories || false,
-    (newName, hideCats) => {   // callback
-      list.name           = newName.trim();
+    'Byt namn på lista',
+    list.name,
+    list.hideCategories||false,
+    (newName, hideCats) => {
+      list.name = newName.trim();
       list.hideCategories = hideCats;
       stampListTimestamps(list);
       saveLists(lists);
       renderAllLists();
       closeAnyMenu && closeAnyMenu();
     }
-    // Du kan skicka med suggestions‑array här också om du vill
   );
 };
 
