@@ -91,6 +91,43 @@ window.scrollModalToTop = function () {
   }, 100);
 };
 
+// Öppna "lägg till varor"-modal utan kategoribegränsning
+window.addItemsWithCategory = function(listIndex) {
+  const list = lists[listIndex];
+  window.showAddItemsDialog({
+    kategori: null,
+    allaVaror: window.getAllUniqueItemNames(lists),
+    onlyCategory: false,
+    onDone: items => {
+      items.forEach(name => {
+        list.items.push({ name, note: '', done: false });
+      });
+      stampListTimestamps(list);
+      saveLists(lists);
+      renderListDetail(listIndex);
+    }
+  });
+};
+
+// Öppna "lägg till varor"-modal begränsad till en viss kategori
+window.addItemViaCategory = function(listIndex, kategori) {
+  const list = lists[listIndex];
+  window.showAddItemsDialog({
+    kategori,
+    allaVaror: window.getCategoryItemNames(list, kategori),
+    onlyCategory: true,
+    onDone: items => {
+      items.forEach(name => {
+        list.items.push({ name, note: '', done: false, category: kategori });
+      });
+      stampListTimestamps(list);
+      saveLists(lists);
+      renderListDetail(listIndex);
+    }
+  });
+};
+
+
 window.showAddItemsDialog = function({
   kategori = null,
   allaVaror = [],
