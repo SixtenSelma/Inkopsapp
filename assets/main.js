@@ -55,7 +55,7 @@ window.openItemMenu = function(listIndex, itemIndex, btn) {
   menu.innerHTML = `
     <ul class="item-menu-list">
       <li>
-        <button type="button" class="item-menu-btn edit-btn">Ändra/komplettera</button>
+        <button type="button" class="item-menu-btn edit-btn">Ändra</button>
       </li>
       <li>
         <button type="button" class="item-menu-btn delete-btn">Ta bort</button>
@@ -80,7 +80,7 @@ window.openItemMenu = function(listIndex, itemIndex, btn) {
     });
   }, 0);
 
-  // "Ändra/komplettera"
+  // "Ändra"
   menu.querySelector('.edit-btn').onclick = () => {
     const item = lists[listIndex].items[itemIndex];
     showEditItemDialog(
