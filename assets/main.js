@@ -43,21 +43,21 @@ window.openListMenu = function(i, btn) {
 
 // --- Menyer (popup) för enskild vara ---
 window.openItemMenu = function(listIndex, itemIndex, btn) {
-  // Stoppa bubbla så vi inte triggar grid‑click o.s.v.
+  // Stoppa bubbla så vi inte triggar annat
   event.stopPropagation();
 
   // Ta bort ev. öppna menyer
   document.querySelectorAll('.item-menu').forEach(el => el.remove());
 
-  // Hämta själva HTML‑knappen vi klickade på
+  // Hämta knappelementet vi klickade på
   const container = btn.parentElement;
 
-  // Skapa meny‑elementet
+  // Skapa meny-element
   const menu = document.createElement('div');
   menu.className = 'item-menu';
   menu.innerHTML = `
     <button onclick="(function(){
-      // Ändra → öppna kombinerad namn/komplement‑modal
+      // Ändra → öppna kombinerad namn/komplement-modal
       showEditItemDialog(
         ${listIndex},
         ${itemIndex},
@@ -74,12 +74,11 @@ window.openItemMenu = function(listIndex, itemIndex, btn) {
       );
     })()">Ändra</button>
     <button onclick="(function(){
-      if (confirm('Ta bort varan permanent?')) {
-        lists[${listIndex}].items.splice(${itemIndex}, 1);
-        stampListTimestamps(lists[${listIndex}]);
-        saveLists(lists);
-        renderListDetail(${listIndex});
-      }
+      // Ta bort varan direkt utan bekräftelse
+      lists[${listIndex}].items.splice(${itemIndex}, 1);
+      stampListTimestamps(lists[${listIndex}]);
+      saveLists(lists);
+      renderListDetail(${listIndex});
     })()" style="color:#d44;">Ta bort</button>
   `;
 
@@ -97,6 +96,7 @@ window.openItemMenu = function(listIndex, itemIndex, btn) {
     }
   });
 };
+
 
 // --- Initiera första rendering ---
 window.renderAllLists();
