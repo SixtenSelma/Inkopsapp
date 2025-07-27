@@ -15,60 +15,28 @@ function stampListTimestamps(list, isNew = false) {
   list.updatedBy = window.user;
 }
 
-// ===== Dialog & skapande av ny lista med modal =====
-function showNewListDialog() {
-  // Overlay
-  const overlay = document.createElement('div');
-  overlay.className = 'modal';
-  overlay.style.backdropFilter = 'blur(4px)';
-
-  // Modal-box
-  const box = document.createElement('div');
-  box.className = 'modal-content';
-  box.innerHTML = `
-    <h2>Ny inköpslista</h2>
-    <label>
-      Namn:
-      <input type="text" id="newListName" placeholder="Listans namn" />
-    </label>
-    <label style="margin-top:12px; display:flex; align-items:center;">
-      <input type="checkbox" id="newListHideCats" />
-      <span style="margin-left:8px;">Dölj kategorier i detaljvy</span>
-    </label>
-    <div class="modal-actions" style="margin-top:16px;">
-      <button id="btnCancelNewList" class="btn-secondary">Avbryt</button>
-      <button id="btnOkNewList">Skapa</button>
-    </div>`;
-  overlay.appendChild(box);
-  document.body.appendChild(overlay);
-
-  const input = box.querySelector('#newListName');
-  input.focus();
-
-  // Avbryt
-  box.querySelector('#btnCancelNewList').onclick = () => overlay.remove();
-
-  // Skapa
-  box.querySelector('#btnOkNewList').onclick = () => {
-    const name = input.value.trim();
-    if (!name) {
-      input.focus();
-      return;
+// ===== Ny inköpslista via modal‑dialog =====
+window.showNewListDialog = function() {
+  // Anropar den gemensamma dialogen från modal.js
+  window.showListSettingsDialog(
+    'Skapa ny inköpslista',    // titel
+    '',                         // tomt namn som utgångspunkt
+    false,                      // default: visa kategorier
+    (name, hideCats) => {       // callback på OK
+      const newList = {
+        name: name.trim(),
+        items: [],
+        hideCategories: hideCats
+      };
+      stampListTimestamps(newList, true);
+      lists.push(newList);
+      saveLists(lists);
+      renderAllLists();
     }
-    const hideCats = box.querySelector('#newListHideCats').checked;
+    // du kan lägga till en suggestions‑array som 5:e argument om du vill
+  );
+};
 
-    const newList = {
-      name,
-      items: [],
-      hideCategories: hideCats
-    };
-    stampListTimestamps(newList, true);
-    lists.push(newList);
-    saveLists(lists);
-    overlay.remove();
-    renderAllLists();
-  };
-}
 
 // ===== Toggle‐funktion för checkboxar på varuposter =====
 function toggleItem(listIndex, itemIndex, lists, user, callback) {
