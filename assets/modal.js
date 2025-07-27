@@ -127,7 +127,6 @@ window.addItemViaCategory = function(listIndex, kategori) {
   });
 };
 
-
 window.showAddItemsDialog = function({
   kategori = null,
   allaVaror = [],
@@ -146,7 +145,7 @@ window.showAddItemsDialog = function({
     <div class="modal-content">
       <h2>Lägg till vara</h2>
       ${kategori ? `<p class="additem-subtitle">Kategori: <strong>${kategori}</strong></p>` : ""}
-      <input id="addItemInput" placeholder="Skriv varunamn…" list="add-items-suggestions" autocomplete="off"/>
+      <input id="addItemInput" placeholder="Skriv varunamn… (\"varan, komplement\")" list="add-items-suggestions" autocomplete="off"/>
       <datalist id="add-items-suggestions">
         ${[...new Set(source)].sort().map(s => `<option value="${s}">`).join("")}
       </datalist>
@@ -158,18 +157,17 @@ window.showAddItemsDialog = function({
     </div>`;
   document.body.appendChild(m);
 
-  // Scrolla upp
   window.scrollModalToTop();
 
-  const input   = m.querySelector("#addItemInput");
-  const preview = m.querySelector("#addItemPreview");
-  const btnOk   = m.querySelector("#addItemConfirm");
+  const input     = m.querySelector("#addItemInput");
+  const preview   = m.querySelector("#addItemPreview");
+  const btnOk     = m.querySelector("#addItemConfirm");
   const btnCancel = m.querySelector("#addItemCancel");
-  let items = [];
+  let items = []; // ska bli [{ name, note }, ...]
 
   function renderPreview() {
-    preview.innerHTML = items.map((name,i) =>
-      `<li>${name}
+    preview.innerHTML = items.map(({name,note},i) =>
+      `<li>${name}${note?` – <em>${note}</em>`:""}
          <button class="btn-remove" data-idx="${i}" title="Ta bort">×</button>
        </li>`
     ).join("");
@@ -182,12 +180,16 @@ window.showAddItemsDialog = function({
     );
   }
 
-  // Enter lägger till
+  // Lägg till på Enter: dela vid komma
   input.onkeydown = e => {
     if (e.key === "Enter" && input.value.trim()) {
       const val = input.value.trim();
-      if (!items.includes(val)) {
-        items.push(val);
+      let [name, ...rest] = val.split(",");
+      name = name.trim();
+      const note = rest.join(",").trim();
+      // Undvik dubletter (samma name+note)
+      if (name && !items.some(it => it.name===name && it.note===note)) {
+        items.push({ name, note });
         renderPreview();
       }
       input.value = "";
@@ -201,7 +203,6 @@ window.showAddItemsDialog = function({
     m.remove();
   };
 
-  // Fokus på input
   setTimeout(() => input.focus(), 50);
 };
 
