@@ -48,7 +48,7 @@ window.showListSettingsDialog = function(title, currentName, currentHideCats, on
   };
 };
 
-// ===== Lägg till varor via flytande ➕ (agerar på hideCategories) =====
+// ===== Lägg till varor via botten‑➕ =====
 window.addItemsWithCategory = function(listIndex = null) {
   let i = listIndex;
   if (i === null) {
@@ -62,42 +62,58 @@ window.addItemsWithCategory = function(listIndex = null) {
   }
 
   const list = lists[i];
-
-  // Om kategorier är på → be användaren först välja kategori
-  if (!list.hideCategories) {
-    chooseCategory("Ny vara")
-      .then(cat => {
-        if (!cat) return;
-        // När kategori är vald kör vi addItemViaCategory
-        addItemViaCategory(i, cat);
-      });
-    return;
-  }
-
-  // Om list.hideCategories === true → direkt fritt autocomplete
   const allNames = getAllUniqueItemNames(lists);
+
+  // Visa enkel modal för manuell inmatning (utan kategori-val i förväg)
   showAddItemsDialog({
     kategori: null,
     allaVaror: allNames,
-    onDone: added => {
+    onDone: async added => {
       if (!added.length) return;
-      added.forEach(raw => {
+
+      for (const raw of added) {
         const [namePart, ...noteParts] = raw.split(',');
         const name = namePart.trim();
         const note = noteParts.join(',').trim();
-        // undvik dubbletter
+
+        // Hoppa över dubbletter
         if (lists[i].items.some(it =>
           it.name.trim().toLowerCase() === name.toLowerCase() &&
           (it.note||'').trim().toLowerCase() === note.toLowerCase()
-        )) return;
-        lists[i].items.push({ name, note, done: false });
-      });
+        )) continue;
+
+        // För listor med kategorier: försök återanvända sparad kategori,
+        // annars fråga användaren efter kategori
+        let category;
+        if (!list.hideCategories) {
+          if (window.categoryMemory[name]) {
+            category = window.categoryMemory[name];
+          } else {
+            category = await chooseCategory(name) || "Övrigt";
+            // spara för nästa gång
+            window.categoryMemory[name] = category;
+            try { localStorage.setItem("categoryMemory", JSON.stringify(window.categoryMemory)); }
+            catch {}
+          }
+        }
+
+        // Lägg till varan
+        lists[i].items.push({
+          name,
+          note,
+          done: false,
+          ...(list.hideCategories ? {} : { category })
+        });
+      }
+
+      // Spara och rendera om
       stampListTimestamps(lists[i]);
       saveLists(lists);
       renderListDetail(i);
     }
   });
 };
+
 
 // ===== Lägg till via kategori‑knapp – använder alla listors historik för autocomplete =====
 window.addItemViaCategory = function(listIndex, category) {
