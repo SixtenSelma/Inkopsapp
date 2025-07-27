@@ -313,7 +313,7 @@ window.renderAllLists = function() {
                 ⋮
               </button>
             </div>
-            <div class="progress-text">Arkiverad:${by}  ${dateTxt}</div>
+            <div class="progress-text">Arkiverad:${dateTxt}</div>
           </div>
         </li>`;
     }).join('');
