@@ -783,17 +783,33 @@ window.addItemsWithCategory = function(listIndex) {
 
 
 
-// ===== Lägg till varor inom en viss kategori =====
+// ===== Lägg till varor inom en viss kategori (sparar också globalt minne) =====
 window.addItemViaCategory = function(listIndex, kategori) {
   const list = lists[listIndex];
+
   window.showAddItemsDialog({
     kategori,
+    // Om dina getCategoryItemNames returnerar strängar:
     allaVaror: window.getCategoryItemNames(list, kategori).map(name => ({ name, category: kategori })),
     onlyCategory: true,
     onDone: items => {
-      items.forEach(({name, note}) => {
-        list.items.push({ name, note, done: false, category: kategori });
+      items.forEach(({ name, note }) => {
+        // Skapa objektet
+        const newItem = { name, note, done: false, category: kategori };
+        list.items.push(newItem);
+
+        // Spara globalt minne för just det här namnet
+        const key = name.trim().toLowerCase();
+        window.categoryMemory[key] = kategori;
       });
+
+      // Persist till localStorage en gång efter loopen
+      try {
+        saveCategoryMemory(window.categoryMemory);
+      } catch (e) {
+        console.warn("Kunde inte spara categoryMemory:", e);
+      }
+
       stampListTimestamps(list);
       saveLists(lists);
       renderListDetail(listIndex);
