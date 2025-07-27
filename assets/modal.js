@@ -7,105 +7,46 @@ window.scrollModalToTop = function () {
   }, 100);
 };
 
-// Byt namn-modal
-window.showRenameDialog = function (title, currentName, onConfirm, suggestions = []) {
-  const m = document.createElement("div");
-  m.className = "modal";
-
-  // Skapa datalist options för autocomplete om finns
-  const dataListId = "itemNamesListModal";
-  let dataListHTML = "";
+window.showListSettingsDialog = function(title, currentName, currentHideCats, onConfirm, suggestions = []) {
+  delete window.confirmListSettings;
+  const m = document.createElement('div');
+  m.className = 'modal';
+  // Autocomplete‐datalist
+  const dataListId = 'modalListSettingsData';
+  let dl = '';
   if (suggestions.length) {
-    dataListHTML = `<datalist id="${dataListId}">${suggestions
-      .map((s) => `<option value="${s}">`)
-      .join("")}</datalist>`;
+    dl = `<datalist id="${dataListId}">${suggestions
+      .map(s => `<option value="${s}">`).join('')}</datalist>`;
   }
-
   m.innerHTML = `
     <div class="modal-content">
       <h2>${title}</h2>
-      <input id="renameInput" value="${currentName || ""}" autocomplete="off" list="${dataListId}" />
-      ${dataListHTML}
-      <div class="modal-actions">
-        <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
-        <button onclick="confirmRename()">OK</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(m);
-
-  const input = document.getElementById("renameInput");
-  setTimeout(() => {
-    input.focus();
-    input.select();
-    window.scrollModalToTop && window.scrollModalToTop();
-  }, 100);
-
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") confirmRename();
-  });
-
-  window.confirmRename = () => {
-    const newName = input.value.trim();
-    if (newName) {
-      onConfirm(newName);
-      document.body.removeChild(m);
-    }
-  };
-};
-
-// Ny lista-modal med 'Dölj kategorier'
-window.showNewListModal = function (onConfirm) {
-  // Ta bort tidigare confirm-funktion om den finns
-  delete window.confirmNewList;
-
-  const m = document.createElement("div");
-  m.className = "modal";
-  m.innerHTML = `
-    <div class="modal-content">
-      <h2>Skapa ny lista</h2>
-      <label style="display:block; margin-top:8px;">
-        Namn på lista:
-        <input id="modalNewListInput" placeholder="Namn på lista…" autocomplete="off" />
-      </label>
-      <label style="display:flex; align-items:center; margin-top:12px;">
-        <input type="checkbox" id="modalHideCatsCheckbox" />
+      <input id="modalListName" value="${currentName||''}" list="${dataListId}" autocomplete="off" />
+      ${dl}
+      <label style="display:flex;align-items:center;margin-top:12px;">
+        <input type="checkbox" id="modalHideCats" ${currentHideCats?'checked':''}/>
         <span style="margin-left:8px;">Dölj kategorier i detaljvy</span>
       </label>
       <div class="modal-actions" style="margin-top:16px;">
         <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
-        <button onclick="confirmNewList()">OK</button>
+        <button onclick="confirmListSettings()">OK</button>
       </div>
-    </div>
-  `;
+    </div>`;
   document.body.appendChild(m);
 
-  const input = document.getElementById("modalNewListInput");
-  setTimeout(() => {
-    input.focus();
-    input.select();
-    window.scrollModalToTop && window.scrollModalToTop();
-  }, 100);
+  const inp = m.querySelector('#modalListName');
+  setTimeout(() => { inp.focus(); inp.select(); }, 100);
+  inp.addEventListener('keydown', e => e.key==='Enter' && window.confirmListSettings());
 
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") window.confirmNewList();
-  });
-
-  // Globalt confirm‐skript
-  window.confirmNewList = () => {
-    const name = input.value.trim();
-    if (!name) {
-      input.focus();
-      return;
-    }
-    const hideCats = document.getElementById("modalHideCatsCheckbox").checked;
-    // Skicka tillbaka båda värdena
+  window.confirmListSettings = () => {
+    const name = inp.value.trim();
+    if (!name) { inp.focus(); return; }
+    const hideCats = m.querySelector('#modalHideCats').checked;
     onConfirm(name, hideCats);
     document.body.removeChild(m);
-    delete window.confirmNewList;
+    delete window.confirmListSettings;
   };
 };
-
 
 // NY: Batch add med stöd för historik/mallar/kategori och rätt autofokus på iOS
 window.showAddItemsDialog = function ({
