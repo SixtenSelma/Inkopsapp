@@ -1096,3 +1096,94 @@ body.modal-open {
   opacity: 0.8;
 }
 
+/* ===========================================
+   Add‑Items Modal — padding + scroll
+   =========================================== */
+
+/* 1) Gör hela content till flex‑kolumn med begränsad höjd */
+.modal.add-items-modal > .modal-content {
+  display: flex;
+  flex-direction: column;
+  max-height: 85vh;         /* maxhöjd */
+  overflow: hidden;         /* vi scrollar i preview-list */
+}
+
+/* 2) Ge h2, subtitle och input padding — alla utom knapp‑raden */
+.modal.add-items-modal > .modal-content > h2,
+.modal.add-items-modal > .modal-content > .additem-subtitle,
+.modal.add-items-modal > .modal-content > input#addItemInput,
+.modal.add-items-modal > .modal-content > datalist,
+.modal.add-items-modal > .modal-content > ul.preview-list {
+  padding: 0 1.5rem;
+}
+
+/* 3) Mellanrum mellan elementen */
+.modal.add-items-modal > .modal-content > h2 {
+  margin: 1rem 0 0.5rem;
+}
+.modal.add-items-modal > .modal-content > .additem-subtitle {
+  margin: 0 0 0.75rem;
+}
+.modal.add-items-modal > .modal-content > input#addItemInput {
+  margin-bottom: 0.75rem;
+}
+
+/* 4) Gör preview‑list scrollbar och tätare rader */
+.modal.add-items-modal > .modal-content > ul.preview-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  margin: 0.5rem 0;
+  list-style: none;
+  padding: 0;
+}
+.modal.add-items-modal ul.preview-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.25rem 0;       /* tajt radavstånd */
+  font-size: 0.95rem;
+  border-bottom: 1px solid #eee;
+}
+.modal.add-items-modal ul.preview-list li:last-child {
+  border-bottom: none;
+}
+
+/* 5) Ta‑bort‑knappen – scoped */
+.modal.add-items-modal ul.preview-list .btn-remove {
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  color: #c00;
+  padding: 0 0.25rem;
+  cursor: pointer;
+  line-height: 1;
+}
+.modal.add-items-modal ul.preview-list .btn-remove:hover {
+  opacity: 0.8;
+}
+
+/* 6) Actions‑raden får egen padding och stannar utanför scroll */
+.modal.add-items-modal .modal-actions {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  background: #f9f9f9;
+  border-top: 1px solid #e0e0e0;
+}
+.modal.add-items-modal .modal-actions button {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.95rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+}
+.modal.add-items-modal #addItemCancel {
+  background-color: #e0e0e0;
+  color: #333;
+}
+.modal.add-items-modal #addItemConfirm {
+  background-color: #28a745;
+  color: #fff;
+}
