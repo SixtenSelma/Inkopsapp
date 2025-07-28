@@ -1024,17 +1024,17 @@ body.modal-open {
 
 /* Återställ padding enbart för denna modal‑content */
 .modal.add-items-modal > .modal-content {
-  padding: 1rem 1.5rem;      /* eller 24px om du vill matcha övriga */
-  max-height: 90vh;
+  max-height: 85vh;             /* Begränsar totalhöjd */
   display: flex;
   flex-direction: column;
+  padding: 0;                   /* Padding hanteras inne i sektionerna */
 }
 
 /* Body scroll & spacing */
 .modal.add-items-modal .modal-body {
-  flex: 1 1 auto;
-  overflow-y: auto;
-  margin-bottom: 1rem;       /* ge lite space under body innan actions */
+  flex: 1 1 auto;               /* Tar kvarvarande höjd */
+  overflow-y: auto;             /* Scroll inåt vid overflow */
+  padding: 1rem 1.5rem;         /* Egen padding */
 }
 
 /* Preview‑listan */
@@ -1072,8 +1072,8 @@ body.modal-open {
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
-  /* Behåll samma padding som content */
-  padding-top: 0.5rem;
+  padding: 0.5rem 1.5rem;
+  background: #f9f9f9;
   border-top: 1px solid #e0e0e0;
 }
 .modal.add-items-modal .modal-actions button {
