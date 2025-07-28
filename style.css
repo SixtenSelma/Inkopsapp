@@ -1078,3 +1078,37 @@ body.modal-open {
 .modal.import-modal .modal-footer .btn-import:hover {
   opacity: 0.9;
 }
+
+/* ==============================
+   Import‑Modal: tajta rader med checkbox + label på samma rad
+   ============================== */
+.modal.import-modal .items-container {
+  padding: 0;              /* ta bort extra padding om någon ligger på ul/div */
+}
+.modal.import-modal .items-container ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.modal.import-modal .items-container li.import-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;             /* avstånd mellan checkbox och text */
+  margin: 2px 0;           /* mycket tajt radavstånd */
+  padding: 2px 0;          /* klickyta men kompakt */
+}
+.modal.import-modal .items-container li.import-row input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+}
+.modal.import-modal .items-container li.import-row .item-label {
+  flex: 1;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
