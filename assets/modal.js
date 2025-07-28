@@ -7,25 +7,25 @@ window.scrollModalToTop = function () {
   }, 100);
 };
 
-// ===== Lägg till varor-dialog med namn + komplement (note) efter komma =====
 window.showAddItemsDialog = function({
   kategori = null,
-  allaVaror = [],     // array av strängar eller objekt {name,category}
+  allaVaror = [],
   onlyCategory = false,
   onDone
 }) {
-  // 1) Filtrera på kategori om det är objekt och onlyCategory
+  // 1) Skapa overlay med egen klass
+  const m = document.createElement("div");
+  m.className = "modal add-items-modal";
+  document.body.appendChild(m);
+
+  // 2) Filtrera ev. på kategori
   let source = allaVaror;
   if (onlyCategory && kategori !== null && source.length && typeof source[0] === "object") {
     source = source.filter(v => v.category === kategori);
   }
-
-  // 2) Extrahera alltid ut bara namn (strängar)
   const names = source.map(v => typeof v === "string" ? v : v.name);
 
-  // 3) Bygg modal‑DOM
-  const m = document.createElement("div");
-  m.className = "modal";
+  // 3) Bygg modal‑innehåll
   m.innerHTML = `
     <div class="modal-content">
       <h2>Lägg till vara</h2>
@@ -43,21 +43,22 @@ window.showAddItemsDialog = function({
         <button id="addItemCancel" class="btn-secondary">Avbryt</button>
         <button id="addItemConfirm" disabled>Klar</button>
       </div>
-    </div>`;
-  document.body.appendChild(m);
+    </div>
+  `;
 
-  // 4) Hämta element och initiera state
+  // 4) Hämta element
   const input     = m.querySelector("#addItemInput");
   const preview   = m.querySelector("#addItemPreview");
   const btnOk     = m.querySelector("#addItemConfirm");
   const btnCancel = m.querySelector("#addItemCancel");
-  let items = []; // kommer innehålla { name, note }
+  let items = [];
 
-  // 5) Funktion för att visa preview-listan
+  // 5) Render‑funktion
   function renderPreview() {
     preview.innerHTML = items.map(({name,note}, idx) =>
       `<li>
-         <strong>${name}</strong>${note?` – <em>${note}</em>`:""}
+         <span>${name}</span>
+         ${note ? `<em>– ${note}</em>` : ""}
          <button class="btn-remove" data-idx="${idx}" title="Ta bort">×</button>
        </li>`
     ).join("");
@@ -70,7 +71,7 @@ window.showAddItemsDialog = function({
     );
   }
 
-  // 6) Hantera Enter: dela på första kommatecknet
+  // 6) Hantera Enter i input
   input.addEventListener("keydown", e => {
     if (e.key === "Enter" && input.value.trim()) {
       const [namePart, ...rest] = input.value.trim().split(",");
@@ -85,14 +86,15 @@ window.showAddItemsDialog = function({
     }
   });
 
-  // 7) Knapphantering
+  // 7) Knappar
   btnCancel.onclick = () => m.remove();
   btnOk.onclick     = () => { onDone(items); m.remove(); };
 
-  // 8) Mobil-scroll + fokus
-  window.scrollModalToTop();
+  // 8) Mobil‑scroll + fokus
+  window.scrollModalToTop && window.scrollModalToTop();
   setTimeout(() => input.focus(), 50);
 };
+
 
 
 
