@@ -1018,29 +1018,31 @@ body.modal-open {
   opacity: 0.9;
 }
 
-
 /* ==============================
-   Add‑Items Modal
+   Add‑Items Modal (showAddItemsDialog)
    ============================== */
+
+/* Återställ padding enbart för denna modal‑content */
 .modal.add-items-modal > .modal-content {
+  padding: 1rem 1.5rem;      /* eller 24px om du vill matcha övriga */
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
-  max-height: 90vh;
-  padding: 0;
 }
 
+/* Body scroll & spacing */
 .modal.add-items-modal .modal-body {
   flex: 1 1 auto;
   overflow-y: auto;
-  padding: 1rem 1.5rem;
+  margin-bottom: 1rem;       /* ge lite space under body innan actions */
 }
 
+/* Preview‑listan */
 .modal.add-items-modal .preview-list {
   list-style: none;
   margin: 0;
   padding: 0;
 }
-
 .modal.add-items-modal .preview-list li {
   display: flex;
   align-items: center;
@@ -1049,11 +1051,11 @@ body.modal-open {
   font-size: 0.95rem;
   border-bottom: 1px solid #eee;
 }
-
 .modal.add-items-modal .preview-list li:last-child {
   border-bottom: none;
 }
 
+/* Ta‑bort‑knappen */
 .modal.add-items-modal .btn-remove {
   background: none;
   border: none;
@@ -1064,13 +1066,16 @@ body.modal-open {
   line-height: 1;
 }
 
+/* Actions (Avbryt/Klar) */
 .modal.add-items-modal .modal-actions {
   flex-shrink: 0;
-  padding: 0.75rem 1.5rem;
-  background: #f9f9f9;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  /* Behåll samma padding som content */
+  padding-top: 0.5rem;
   border-top: 1px solid #e0e0e0;
 }
-
 .modal.add-items-modal .modal-actions button {
   padding: 0.4rem 0.8rem;
   font-size: 0.95rem;
@@ -1078,17 +1083,14 @@ body.modal-open {
   border: none;
   cursor: pointer;
 }
-
 .modal.add-items-modal #addItemCancel {
   background-color: #e0e0e0;
   color: #333;
 }
-
 .modal.add-items-modal #addItemConfirm {
   background-color: #28a745;
   color: #fff;
 }
-
 .modal.add-items-modal .modal-actions button:hover,
 .modal.add-items-modal .btn-remove:hover {
   opacity: 0.8;
