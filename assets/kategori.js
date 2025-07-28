@@ -17,37 +17,38 @@ window.standardKategorier = [
   "🏠 Övrigt"
 ];
 
-// Visa popup för att välja kategori – används vid komplettering av vara och ibland batch add
 window.showCategoryPicker = function(name, onSave) {
   const m = document.createElement("div");
   m.className = "modal";
   m.innerHTML = `
     <div class="modal-content">
-      <h2>Kategori för "${name}"</h2>
-      <select id="categorySelectPopup" style="width:100%;margin-top:14px;font-size:1.1rem;padding:10px;border-radius:8px;border:2px solid #2863c7;">
-        <option value="">Välj kategori…</option>
-        ${standardKategorier
-          .map(cat => `<option value="${cat}">${cat}</option>`)
-          .join("")}
+      <h2>Kategori för "<em>${name}</em>"</h2>
+      <select id="categorySelectPopup" style="width:100%; margin-top:14px; font-size:1.1rem; padding:10px; border-radius:8px; border:2px solid #2863c7;">
+        ${standardKategorier.map(cat =>
+          `<option value="${cat}"${cat === "🏠 Övrigt" ? " selected" : ""}>${cat}</option>`
+        ).join("")}
       </select>
       <div class="modal-actions" style="margin-top:16px;">
-        <button onclick="document.body.removeChild(this.closest('.modal'))">Avbryt</button>
-        <button onclick="pickCategoryOK()">OK</button>
+        <button class="btn-secondary">Avbryt</button>
+        <button id="pickCategoryOK">OK</button>
       </div>
     </div>
   `;
   document.body.appendChild(m);
-  const select = document.getElementById("categorySelectPopup");
-  select.focus();
-  window.scrollModalToTop && window.scrollModalToTop();
-  window.pickCategoryOK = () => {
-    const value = select.value;
-    if (!value) {
-      select.style.border = "2px solid red";
-      select.focus();
-      return;
-    }
-    onSave(value);
+
+  // Stäng-knapp
+  m.querySelector(".btn-secondary").onclick = () => {
     document.body.removeChild(m);
+  };
+
+  // Fokusera på select
+  const select = m.querySelector("#categorySelectPopup");
+  setTimeout(() => select.focus(), 100);
+
+  // OK-knapp
+  m.querySelector("#pickCategoryOK").onclick = () => {
+    const value = select.value;
+    document.body.removeChild(m);
+    onSave(value);
   };
 };
