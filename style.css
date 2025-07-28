@@ -1018,40 +1018,29 @@ body.modal-open {
   opacity: 0.9;
 }
 
+
 /* ==============================
-   Add‑Items Modal (showAddItemsDialog)
+   Add‑Items Modal
    ============================== */
 .modal.add-items-modal > .modal-content {
   display: flex;
   flex-direction: column;
-  max-height: 85vh;            /* Begränsar totalhöjd */
-  overflow: hidden;            /* Scroll inuti .modal-body */
-  padding: 0;                  /* Egen padding i underrubriker */
+  max-height: 90vh;
+  padding: 0;
 }
 
-/* Rubrik & input får padding */
-.modal.add-items-modal > .modal-content h2,
-.modal.add-items-modal > .modal-content .additem-subtitle,
-.modal.add-items-modal > .modal-content #addItemInput {
-  padding: 1rem 1.5rem;
-  margin: 0;
-}
-
-/* Datalist (osynlig) */
-.modal.add-items-modal > .modal-content datalist {
-  display: none;
-}
-
-/* Preview‑listan scrollar */
-.modal.add-items-modal > .modal-content .preview-list {
+.modal.add-items-modal .modal-body {
   flex: 1 1 auto;
   overflow-y: auto;
-  margin: 0;
-  padding: 0 1.5rem;
-  list-style: none;
+  padding: 1rem 1.5rem;
 }
 
-/* Kompakta rader */
+.modal.add-items-modal .preview-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
 .modal.add-items-modal .preview-list li {
   display: flex;
   align-items: center;
@@ -1060,12 +1049,12 @@ body.modal-open {
   font-size: 0.95rem;
   border-bottom: 1px solid #eee;
 }
+
 .modal.add-items-modal .preview-list li:last-child {
   border-bottom: none;
 }
 
-/* Ta‑bort‑knapp */
-.modal.add-items-modal .preview-list .btn-remove {
+.modal.add-items-modal .btn-remove {
   background: none;
   border: none;
   font-size: 0.9rem;
@@ -1074,22 +1063,14 @@ body.modal-open {
   cursor: pointer;
   line-height: 1;
 }
-.modal.add-items-modal .preview-list .btn-remove:hover {
-  opacity: 0.8;
-}
 
-/* Knappsektionen alltid synlig */
-.modal.add-items-modal > .modal-content .modal-actions {
+.modal.add-items-modal .modal-actions {
   flex-shrink: 0;
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
   padding: 0.75rem 1.5rem;
   background: #f9f9f9;
   border-top: 1px solid #e0e0e0;
 }
 
-/* Avbryt/Klar‑knappar */
 .modal.add-items-modal .modal-actions button {
   padding: 0.4rem 0.8rem;
   font-size: 0.95rem;
@@ -1097,15 +1078,18 @@ body.modal-open {
   border: none;
   cursor: pointer;
 }
+
 .modal.add-items-modal #addItemCancel {
   background-color: #e0e0e0;
   color: #333;
 }
+
 .modal.add-items-modal #addItemConfirm {
   background-color: #28a745;
   color: #fff;
 }
-.modal.add-items-modal .modal-actions button:hover {
+
+.modal.add-items-modal .modal-actions button:hover,
+.modal.add-items-modal .btn-remove:hover {
   opacity: 0.8;
 }
-
