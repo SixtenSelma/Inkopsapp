@@ -537,22 +537,21 @@ window.addEventListener('load', () => {
 });
 
 window.importItemsFromList = async function(targetIndex) {
-  // 1) Välj källa‑lista
   const srcIdx = await chooseSourceList(targetIndex);
   if (srcIdx == null) return;
   const srcList = lists[srcIdx];
 
-  // 2) Grupp & sortera per kategori
+  // Grupp & sortera
   const grouped = srcList.items.reduce((acc, item, idx) => {
     const cat = item.category || 'Övrigt';
-    (acc[cat] = acc[cat] || []).push({ item, idx });
+    (acc[cat] = acc[cat]||[]).push({ item, idx });
     return acc;
   }, {});
-  const categories = Object.keys(grouped).sort((a, b) =>
-    a.localeCompare(b, 'sv')
+  const categories = Object.keys(grouped).sort((a,b)=>
+    a.localeCompare(b,'sv')
   );
 
-  // 3) Skapa overlay och modal‑wrapper
+  // Overlay + modal
   const overlay = document.createElement('div');
   overlay.className = 'modal import-modal';
   document.body.appendChild(overlay);
@@ -561,77 +560,64 @@ window.importItemsFromList = async function(targetIndex) {
   modal.className = 'modal-content';
   overlay.appendChild(modal);
 
-  // 4) Header
-  const header = document.createElement('div');
-  header.className = 'modal-header';
-  header.innerHTML = `
-    <h2>Importera varor från <em>${srcList.name}</em></h2>
-    <button class="btn-close" aria-label="Stäng">&times;</button>
-  `;
-  modal.appendChild(header);
-
-  // 5) Body (filter + lista)
-  const body = document.createElement('div');
-  body.className = 'modal-body';
-  body.innerHTML = `
-    <div class="controls">
-      <button type="button" class="btn-select-all">Markera alla</button>
-      <input type="text" class="filter-input" placeholder="Filtrera…">
+  // Header
+  modal.innerHTML = `
+    <div class="modal-header">
+      <h2>Importera varor från <em>${srcList.name}</em></h2>
+      <button class="btn-close" aria-label="Stäng">&times;</button>
     </div>
-    <div class="items-container"></div>
+    <div class="modal-body">
+      <div class="controls">
+        <button type="button" class="btn-select-all">Markera alla</button>
+        <input type="text" class="filter-input" placeholder="Filtrera…">
+      </div>
+      <div class="items-container"></div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-cancel">Avbryt</button>
+      <button type="button" class="btn-import">Importera</button>
+    </div>
   `;
-  modal.appendChild(body);
 
-  const container = body.querySelector('.items-container');
+  const container = modal.querySelector('.items-container');
   categories.forEach(cat => {
-    const wrap = document.createElement('div');
-    wrap.className = 'category-group';
-    const rows = grouped[cat].map(({ item, idx }) => `
-      <li>
-        <label>
-          <input type="checkbox" data-idx="${idx}">
-          ${item.name}${item.note ? ' – ' + item.note : ''}
-        </label>
-      </li>
-    `).join('');
-    wrap.innerHTML = `<h3>${cat}</h3><ul>${rows}</ul>`;
-    container.appendChild(wrap);
+    // Rubrik
+    const groupWrap = document.createElement('div');
+    groupWrap.className = 'category-group';
+    groupWrap.innerHTML = `<h3>${cat}</h3>`;
+    // Lista
+    const ul = document.createElement('ul');
+    grouped[cat].forEach(({ item, idx }) => {
+      const li = document.createElement('li');
+      li.className = 'import-row';
+      li.innerHTML = `
+        <input type="checkbox" data-idx="${idx}">
+        <span class="item-label">${item.name}${item.note? ' – '+item.note : ''}</span>
+      `;
+      ul.appendChild(li);
+    });
+    groupWrap.appendChild(ul);
+    container.appendChild(groupWrap);
   });
 
-  // 6) Footer (avbryt + importera)
-  const footer = document.createElement('div');
-  footer.className = 'modal-footer';
-  footer.innerHTML = `
-    <button type="button" class="btn-cancel">Avbryt</button>
-    <button type="button" class="btn-import">Importera</button>
-  `;
-  modal.appendChild(footer);
+  // Hooka events
+  const remove = () => overlay.remove();
+  modal.querySelector('.btn-close').onclick = remove;
+  modal.querySelector('.btn-cancel').onclick = remove;
 
-  // 7) Hämta element för event‑hooks
-  const btnClose    = header.querySelector('.btn-close');
-  const btnCancel   = footer.querySelector('.btn-cancel');
-  const btnImport   = footer.querySelector('.btn-import');
-  const btnSelectAll= body.querySelector('.btn-select-all');
-  const filterInput = body.querySelector('.filter-input');
-  const checkboxes  = container.querySelectorAll('input[type="checkbox"]');
-
-  // 8) Event‑listeners
-  const removeModal = () => overlay.remove();
-  btnClose.onclick = btnCancel.onclick = removeModal;
-
-  btnSelectAll.onclick = () => {
+  const checkboxes = modal.querySelectorAll('.import-row input[type="checkbox"]');
+  modal.querySelector('.btn-select-all').onclick = () =>
     checkboxes.forEach(cb => cb.checked = true);
-  };
 
-  filterInput.addEventListener('input', () => {
-    const term = filterInput.value.toLowerCase();
-    container.querySelectorAll('li').forEach(li => {
+  modal.querySelector('.filter-input').addEventListener('input', e => {
+    const term = e.target.value.toLowerCase();
+    container.querySelectorAll('.import-row').forEach(li => {
       li.style.display = li.textContent.toLowerCase().includes(term)
         ? '' : 'none';
     });
   });
 
-  btnImport.onclick = () => {
+  modal.querySelector('.btn-import').onclick = () => {
     checkboxes.forEach(cb => {
       if (!cb.checked) return;
       const idx = +cb.dataset.idx;
@@ -641,19 +627,19 @@ window.importItemsFromList = async function(targetIndex) {
       );
       if (!exists) {
         lists[targetIndex].items.push({
-          name:     src.name,
-          note:     src.note || '',
-          done:     false,
+          name: src.name,
+          note: src.note || '',
+          done: false,
           category: srcList.hideCategories
-                     ? undefined
-                     : (src.category || 'Övrigt')
+                    ? undefined
+                    : (src.category || 'Övrigt')
         });
       }
     });
     stampListTimestamps(lists[targetIndex]);
     saveLists(lists);
     renderListDetail(targetIndex);
-    removeModal();
+    remove();
   };
 };
 
