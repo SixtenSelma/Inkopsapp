@@ -542,34 +542,35 @@ window.importItemsFromList = async function(targetIndex) {
   if (srcIdx == null) return;
   const srcList = lists[srcIdx];
 
-  // 2) Grupp & sortera
+  // 2) Grupp & sortera per kategori
   const grouped = srcList.items.reduce((acc, item, idx) => {
     const cat = item.category || 'Övrigt';
-    (acc[cat] = acc[cat]||[]).push({ item, idx });
+    (acc[cat] = acc[cat] || []).push({ item, idx });
     return acc;
   }, {});
-  const categoryKeys = Object.keys(grouped)
-    .sort((a,b) => a.localeCompare(b,'sv'));
+  const categories = Object.keys(grouped).sort((a, b) =>
+    a.localeCompare(b, 'sv')
+  );
 
-  // 3) Skapa overlay + content‑box
+  // 3) Skapa overlay och modal‑wrapper
   const overlay = document.createElement('div');
   overlay.className = 'modal import-modal';
   document.body.appendChild(overlay);
 
-  const box = document.createElement('div');
-  box.className = 'modal-content';
-  overlay.appendChild(box);
+  const modal = document.createElement('div');
+  modal.className = 'modal-content';
+  overlay.appendChild(modal);
 
   // 4) Header
-  const hdr = document.createElement('div');
-  hdr.className = 'modal-header';
-  hdr.innerHTML = `
+  const header = document.createElement('div');
+  header.className = 'modal-header';
+  header.innerHTML = `
     <h2>Importera varor från <em>${srcList.name}</em></h2>
     <button class="btn-close" aria-label="Stäng">&times;</button>
   `;
-  box.appendChild(hdr);
+  modal.appendChild(header);
 
-  // 5) Body med controls + items-container
+  // 5) Body (filter + lista)
   const body = document.createElement('div');
   body.className = 'modal-body';
   body.innerHTML = `
@@ -579,50 +580,52 @@ window.importItemsFromList = async function(targetIndex) {
     </div>
     <div class="items-container"></div>
   `;
-  box.appendChild(body);
+  modal.appendChild(body);
 
-  const itemsContainer = body.querySelector('.items-container');
-  categoryKeys.forEach(cat => {
-    const groupEl = document.createElement('div');
-    groupEl.className = 'category-group';
-    const rows = grouped[cat].map(({item, idx}) => `
+  const container = body.querySelector('.items-container');
+  categories.forEach(cat => {
+    const wrap = document.createElement('div');
+    wrap.className = 'category-group';
+    const rows = grouped[cat].map(({ item, idx }) => `
       <li>
         <label>
           <input type="checkbox" data-idx="${idx}">
-          ${item.name}${item.note? ' – '+item.note : ''}
+          ${item.name}${item.note ? ' – ' + item.note : ''}
         </label>
       </li>
     `).join('');
-    groupEl.innerHTML = `<h3>${cat}</h3><ul>${rows}</ul>`;
-    itemsContainer.appendChild(groupEl);
+    wrap.innerHTML = `<h3>${cat}</h3><ul>${rows}</ul>`;
+    container.appendChild(wrap);
   });
 
-  // 6) Footer med knappar
-  const ftr = document.createElement('div');
-  ftr.className = 'modal-footer';
-  ftr.innerHTML = `
+  // 6) Footer (avbryt + importera)
+  const footer = document.createElement('div');
+  footer.className = 'modal-footer';
+  footer.innerHTML = `
     <button type="button" class="btn-cancel">Avbryt</button>
     <button type="button" class="btn-import">Importera</button>
   `;
-  box.appendChild(ftr);
+  modal.appendChild(footer);
 
-  // 7) Hooka events
-  const btnClose  = hdr.querySelector('.btn-close');
-  const btnCancel = ftr.querySelector('.btn-cancel');
-  const btnImport = ftr.querySelector('.btn-import');
-  const btnAll    = body.querySelector('.btn-select-all');
-  const filterIn  = body.querySelector('.filter-input');
-  const checkboxes = itemsContainer.querySelectorAll('input[type="checkbox"]');
+  // 7) Hämta element för event‑hooks
+  const btnClose    = header.querySelector('.btn-close');
+  const btnCancel   = footer.querySelector('.btn-cancel');
+  const btnImport   = footer.querySelector('.btn-import');
+  const btnSelectAll= body.querySelector('.btn-select-all');
+  const filterInput = body.querySelector('.filter-input');
+  const checkboxes  = container.querySelectorAll('input[type="checkbox"]');
 
-  btnClose.onclick = btnCancel.onclick = () => overlay.remove();
+  // 8) Event‑listeners
+  const removeModal = () => overlay.remove();
+  btnClose.onclick = btnCancel.onclick = removeModal;
 
-  btnAll.onclick = () => {
+  btnSelectAll.onclick = () => {
     checkboxes.forEach(cb => cb.checked = true);
   };
 
-  filterIn.addEventListener('input', () => {
-    const term = filterIn.value.toLowerCase();
-    itemsContainer.querySelectorAll('li').forEach(li => {
+  filterInput.addEventListener('input', () => {
+    const term = filterInput.value.toLowerCase();
+    container.querySelectorAll('li').forEach(li => {
       li.style.display = li.textContent.toLowerCase().includes(term)
         ? '' : 'none';
     });
@@ -633,25 +636,24 @@ window.importItemsFromList = async function(targetIndex) {
       if (!cb.checked) return;
       const idx = +cb.dataset.idx;
       const src = srcList.items[idx];
-      // Undvik dubletter
       const exists = lists[targetIndex].items.some(i =>
-        i.name===src.name && (i.note||'')===(src.note||'')
+        i.name === src.name && (i.note||'') === (src.note||'')
       );
       if (!exists) {
         lists[targetIndex].items.push({
-          name: src.name,
-          note: src.note||'',
-          done: false,
+          name:     src.name,
+          note:     src.note || '',
+          done:     false,
           category: srcList.hideCategories
-            ? undefined
-            : (src.category || 'Övrigt')
+                     ? undefined
+                     : (src.category || 'Övrigt')
         });
       }
     });
     stampListTimestamps(lists[targetIndex]);
     saveLists(lists);
     renderListDetail(targetIndex);
-    overlay.remove();
+    removeModal();
   };
 };
 
